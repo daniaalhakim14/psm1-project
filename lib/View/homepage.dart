@@ -1,0 +1,180 @@
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/material.dart';
+
+class homepage extends StatefulWidget {
+  const homepage({super.key});
+  @override
+  State<homepage> createState() => _homepageState();
+}
+
+class _homepageState extends State<homepage> {
+
+  int _selectedButtonIndex = 0;
+  final List<String>imgList = [
+    'hello',
+    'world'
+  ];
+  int _currentPage = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+      ),
+      // Dashboard Padding
+      body:Padding(
+        padding: const EdgeInsets.only(top: 10),
+          child:Column(
+            children: [
+              // Dashboard Container
+              Container(
+                height: 280,
+                decoration: BoxDecoration(
+                  color: Colors.grey,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CarouselSlider(
+                        items: imgList.map((e)=> Center(
+                            child: Text(e,
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),)
+                        )).toList(),
+                        options: CarouselOptions(
+                          initialPage: 0,
+                          onPageChanged: (value, _){
+                            setState(() {
+                              _currentPage = value;
+                            });
+                          }
+                        )
+                    ),
+                    carouselindicator(),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+              Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text("Spending Summary",style: TextStyle(fontSize: 18),),
+                      SizedBox(width: 60,),
+                      Text("View All",style: TextStyle(fontSize: 18))
+                    ],
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      height: 350,
+                      decoration: BoxDecoration(
+                        color: Colors.black12,
+                        borderRadius: BorderRadius.circular(15.0)
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10.0,left:10.0, right: 10.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Text('Recent spending: RM',
+                                  style: TextStyle(
+                                      fontSize: 20),
+                                ),
+                              ],
+                            ),
+                            Divider(
+                              height: 10,       // Space above and below the divider
+                              thickness: 3,     // Thickness of the line
+                              color: Colors.grey, // Optional: set color
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.grey,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+                onPressed: (){},
+                icon: Image.asset(
+                  'lib/Icons/Home.png',
+                  height: 30,
+                  width: 30,
+                )
+            ),
+            IconButton(
+              onPressed: (){},
+              icon: Image.asset(
+                'lib/Icons/Search.png',
+                height: 30,
+                width: 30,
+              ),
+            ),
+            IconButton(
+              onPressed: (){},
+              iconSize: 0, // Disables IconButton's default scaling
+              padding: EdgeInsets.zero, // Removes internal padding
+              constraints: BoxConstraints(), // Removes default size constraint
+              icon: Image.asset(
+                'lib/Gifs/Scans2.gif',
+                height: 50,
+                width: 50,
+              ),
+            ),
+            IconButton(
+              onPressed: (){},
+              icon: Image.asset(
+                'lib/Icons/checklist-icon1.png',
+                height: 40,
+                width: 40,
+              ),
+            ),
+            IconButton(
+              onPressed: (){},
+              icon: Image.asset(
+                'lib/Icons/account-icon.png',
+                height: 40,
+                width: 40,
+              ),
+            ),
+
+
+          ],
+
+        ),
+      ),
+    );
+  }
+
+
+  Row carouselindicator() {
+    return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for(int i = 0; i < imgList.length;i++)
+                    Container(
+                      margin: const EdgeInsets.only(left: 5, right: 5),
+                      height: i == _currentPage ? 7 : 5,
+                      width: i == _currentPage ? 7 : 5,
+                      decoration: BoxDecoration(
+                        color: i == _currentPage ? Colors.white : Colors.black,
+                        shape: BoxShape.circle
+                      ),
+                    )
+                ],
+              );
+  }
+}
+
