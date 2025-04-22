@@ -1,4 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class homepage extends StatefulWidget {
@@ -8,173 +9,156 @@ class homepage extends StatefulWidget {
 }
 
 class _homepageState extends State<homepage> {
-
   int _selectedButtonIndex = 0;
-  final List<String>imgList = [
-    'hello',
-    'world'
-  ];
+  final List<String> imgList = ['hello', 'world'];
   int _currentPage = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-      ),
+      appBar: AppBar(automaticallyImplyLeading: false),
       // Dashboard Padding
-      body:Padding(
+      body: Padding(
         padding: const EdgeInsets.only(top: 10),
-          child:Column(
-            children: [
-              // Dashboard Container
-              Container(
-                height: 280,
-                decoration: BoxDecoration(
-                  color: Colors.grey,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CarouselSlider(
-                        items: imgList.map((e)=> Center(
-                            child: Text(e,
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),)
-                        )).toList(),
-                        options: CarouselOptions(
-                          initialPage: 0,
-                          onPageChanged: (value, _){
-                            setState(() {
-                              _currentPage = value;
-                            });
-                          }
-                        )
+        child: Column(
+          children: [
+            // Dashboard Container
+            Container(
+              height: 280,
+              decoration: BoxDecoration(color: Colors.grey),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CarouselSlider(
+                    items:
+                        imgList
+                            .map(
+                              (e) => Center(
+                                child: Text(
+                                  e,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                    options: CarouselOptions(
+                      initialPage: 0,
+                      onPageChanged: (value, _) {
+                        setState(() {
+                          _currentPage = value;
+                        });
+                      },
                     ),
-                    carouselindicator(),
+                  ),
+                  carouselindicator(),
+                ],
+              ),
+            ),
+            SizedBox(height: 20),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text("Spending Summary", style: TextStyle(fontSize: 18)),
+                    SizedBox(width: 60),
+                    Text("View All", style: TextStyle(fontSize: 18)),
                   ],
                 ),
-              ),
-              SizedBox(height: 20),
-              Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text("Spending Summary",style: TextStyle(fontSize: 18),),
-                      SizedBox(width: 60,),
-                      Text("View All",style: TextStyle(fontSize: 18))
-                    ],
-                  ),
 
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Container(
-                      height: 350,
-                      decoration: BoxDecoration(
-                        color: Colors.black12,
-                        borderRadius: BorderRadius.circular(15.0)
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Container(
+                    height: 350,
+                    decoration: BoxDecoration(
+                      color: Colors.black12,
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 10.0,
+                        left: 10.0,
+                        right: 10.0,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 10.0,left:10.0, right: 10.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Text('Recent spending: RM',
-                                  style: TextStyle(
-                                      fontSize: 20),
-                                ),
-                              ],
-                            ),
-                            Divider(
-                              height: 10,       // Space above and below the divider
-                              thickness: 3,     // Thickness of the line
-                              color: Colors.grey, // Optional: set color
-                            )
-                          ],
-                        ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Recent spending: RM',
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Divider(
+                            height: 10, // Space above and below the divider
+                            thickness: 3, // Thickness of the line
+                            color: Colors.grey, // Optional: set color
+                          ),
+                        ],
                       ),
                     ),
-                  )
-                ],
-              )
-            ],
-          ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        shape: CircleBorder(),
+        backgroundColor: Colors.white,
+        onPressed: () {
+          setState(() {});
+        },
+        child: Icon(CupertinoIcons.qrcode_viewfinder,size: 40),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Colors.grey,
+        color: Colors.white,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             IconButton(
-                onPressed: (){},
-                icon: Image.asset(
-                  'lib/Icons/Home.png',
-                  height: 30,
-                  width: 30,
-                )
+              onPressed: () {},
+              icon: Icon(CupertinoIcons.home,size: 45,color: Colors.black,),
             ),
             IconButton(
-              onPressed: (){},
-              icon: Image.asset(
-                'lib/Icons/Search.png',
-                height: 30,
-                width: 30,
-              ),
+              onPressed: () {},
+              icon: Icon(CupertinoIcons.search,size: 50,color: Colors.black,),
             ),
             IconButton(
-              onPressed: (){},
-              iconSize: 0, // Disables IconButton's default scaling
-              padding: EdgeInsets.zero, // Removes internal padding
-              constraints: BoxConstraints(), // Removes default size constraint
-              icon: Image.asset(
-                'lib/Gifs/Scans2.gif',
-                height: 50,
-                width: 50,
-              ),
+              onPressed: () {},
+              icon: Icon(CupertinoIcons.doc,size: 45,color: Colors.black,)
             ),
             IconButton(
-              onPressed: (){},
-              icon: Image.asset(
-                'lib/Icons/checklist-icon1.png',
-                height: 40,
-                width: 40,
-              ),
+              onPressed: () {},
+              icon: Icon(CupertinoIcons.profile_circled,size: 48,color: Colors.black,),
             ),
-            IconButton(
-              onPressed: (){},
-              icon: Image.asset(
-                'lib/Icons/account-icon.png',
-                height: 40,
-                width: 40,
-              ),
-            ),
-
-
           ],
-
         ),
       ),
     );
   }
 
-
   Row carouselindicator() {
     return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for(int i = 0; i < imgList.length;i++)
-                    Container(
-                      margin: const EdgeInsets.only(left: 5, right: 5),
-                      height: i == _currentPage ? 7 : 5,
-                      width: i == _currentPage ? 7 : 5,
-                      decoration: BoxDecoration(
-                        color: i == _currentPage ? Colors.white : Colors.black,
-                        shape: BoxShape.circle
-                      ),
-                    )
-                ],
-              );
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        for (int i = 0; i < imgList.length; i++)
+          Container(
+            margin: const EdgeInsets.only(left: 5, right: 5),
+            height: i == _currentPage ? 7 : 5,
+            width: i == _currentPage ? 7 : 5,
+            decoration: BoxDecoration(
+              color: i == _currentPage ? Colors.white : Colors.black,
+              shape: BoxShape.circle,
+            ),
+          ),
+      ],
+    );
   }
 }
-
