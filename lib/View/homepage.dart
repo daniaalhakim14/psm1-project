@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 
 class homepage extends StatefulWidget {
   const homepage({super.key});
@@ -18,94 +19,96 @@ class _homepageState extends State<homepage> {
     return Scaffold(
       appBar: AppBar(automaticallyImplyLeading: false),
       // Dashboard Padding
-      body: Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: Column(
-          children: [
-            // Dashboard Container
-            Container(
-              height: 280,
-              decoration: BoxDecoration(color: Colors.grey),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CarouselSlider(
-                    items:
-                        imgList
-                            .map(
-                              (e) => Center(
-                                child: Text(
-                                  e,
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Column(
+            children: [
+              // Dashboard Container
+              Container(
+                height: 280,
+                decoration: BoxDecoration(color: Colors.grey),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CarouselSlider(
+                      items:
+                          imgList
+                              .map(
+                                (e) => Center(
+                                  child: Text(
+                                    e,
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                            .toList(),
-                    options: CarouselOptions(
-                      initialPage: 0,
-                      onPageChanged: (value, _) {
-                        setState(() {
-                          _currentPage = value;
-                        });
-                      },
+                              )
+                              .toList(),
+                      options: CarouselOptions(
+                        initialPage: 0,
+                        onPageChanged: (value, _) {
+                          setState(() {
+                            _currentPage = value;
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                  carouselindicator(),
-                ],
-              ),
-            ),
-            SizedBox(height: 20),
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text("Spending Summary", style: TextStyle(fontSize: 18)),
-                    SizedBox(width: 60),
-                    Text("View All", style: TextStyle(fontSize: 18)),
+                    carouselindicator(),
                   ],
                 ),
+              ),
+              SizedBox(height: 20),
+              Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text("Spending Summary", style: TextStyle(fontSize: 18)),
+                      SizedBox(width: 60),
+                      Text("View All", style: TextStyle(fontSize: 18)),
+                    ],
+                  ),
 
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Container(
-                    height: 350,
-                    decoration: BoxDecoration(
-                      color: Colors.black12,
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 10.0,
-                        left: 10.0,
-                        right: 10.0,
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      height: 350,
+                      decoration: BoxDecoration(
+                        color: Colors.black12,
+                        borderRadius: BorderRadius.circular(15.0),
                       ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Recent spending: RM',
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                          Divider(
-                            height: 10, // Space above and below the divider
-                            thickness: 3, // Thickness of the line
-                            color: Colors.grey, // Optional: set color
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 10.0,
+                          left: 10.0,
+                          right: 10.0,
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'Recent spending: RM',
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                              ],
+                            ),
+                            Divider(
+                              height: 10, // Space above and below the divider
+                              thickness: 3, // Thickness of the line
+                              color: Colors.grey, // Optional: set color
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -113,7 +116,19 @@ class _homepageState extends State<homepage> {
         shape: CircleBorder(),
         backgroundColor: Colors.white,
         onPressed: () {
-          setState(() {});
+          setState(() async {
+                DocumentScannerOptions documentScannerOptions = DocumentScannerOptions(
+                  documentFormat: DocumentFormat.pdf, // set output document format
+                  mode: ScannerMode.filter, // to control what features are enabled
+                  pageLimit: 10, // setting a limit to the number of pages scanned
+                  isGalleryImport: true, // importing from the photo gallery
+                );
+                final documentScanner = DocumentScanner(options: documentScannerOptions);
+                DocumentScanningResult result = await documentScanner.scanDocument();
+                final pdf = result.pdf; // A PDF object.
+                final images = result.images;  // A list with the paths to the images.
+                documentScanner.close();
+          });
         },
         child: Icon(CupertinoIcons.qrcode_viewfinder,size: 40),
       ),
