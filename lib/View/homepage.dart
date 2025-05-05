@@ -1,7 +1,11 @@
+import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp/View/camerascreen.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'expenseInput.dart';
 
 class homepage extends StatefulWidget {
   const homepage({super.key});
@@ -115,22 +119,31 @@ class _homepageState extends State<homepage> {
       floatingActionButton: FloatingActionButton(
         shape: CircleBorder(),
         backgroundColor: Colors.white,
-        onPressed: () {
-          setState(() async {
-                DocumentScannerOptions documentScannerOptions = DocumentScannerOptions(
-                  documentFormat: DocumentFormat.pdf, // set output document format
-                  mode: ScannerMode.filter, // to control what features are enabled
-                  pageLimit: 10, // setting a limit to the number of pages scanned
-                  isGalleryImport: true, // importing from the photo gallery
-                );
-                final documentScanner = DocumentScanner(options: documentScannerOptions);
-                DocumentScanningResult result = await documentScanner.scanDocument();
-                final pdf = result.pdf; // A PDF object.
-                final images = result.images;  // A list with the paths to the images.
-                documentScanner.close();
-          });
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => camerascreen()),
+          );
+
+          if (result != null && result is String) {
+            print("Received captured image path: $result");
+            // ✅ You can now pass this to OCR or other processing
+          }
+
+
+
+          // ✅ Navigate to expense category screen
+          /*
+          Navigator.push(
+
+            context,
+            MaterialPageRoute(builder: (context) => expenseInput()),
+          );
+
+          setState(() {});
+          */
         },
-        child: Icon(CupertinoIcons.qrcode_viewfinder,size: 40),
+        child: Icon(CupertinoIcons.qrcode_viewfinder, size: 40),
       ),
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
@@ -139,19 +152,23 @@ class _homepageState extends State<homepage> {
           children: [
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.home,size: 45,color: Colors.black,),
+              icon: Icon(CupertinoIcons.home, size: 45, color: Colors.black),
             ),
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.search,size: 50,color: Colors.black,),
+              icon: Icon(CupertinoIcons.search, size: 50, color: Colors.black),
             ),
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.doc,size: 45,color: Colors.black,)
+              icon: Icon(CupertinoIcons.doc, size: 45, color: Colors.black),
             ),
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.profile_circled,size: 48,color: Colors.black,),
+              icon: Icon(
+                CupertinoIcons.profile_circled,
+                size: 48,
+                color: Colors.black,
+              ),
             ),
           ],
         ),
