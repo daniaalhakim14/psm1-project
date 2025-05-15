@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fyp/View/expenseInput.dart';
+import 'package:fyp/View/firstpage.dart';
 import 'package:fyp/View/homepage.dart';
 import 'package:provider/provider.dart';
 import 'ViewModel/addexpense/addexpense_viewmodel.dart';
@@ -27,8 +28,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      //home: homepage(userInfo: null,),
-      home: expenseInput(),
+      //home: homepage(),
+      home: firstpage(),
     );
   }
 }
