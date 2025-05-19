@@ -3,6 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/View/camerascreen.dart';
+import 'package:fyp/View/comparepricepage.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../Model/signupLoginpage.dart';
@@ -172,7 +173,12 @@ class _homepageState extends State<homepage> {
               icon: Icon(CupertinoIcons.home, size: 45, color: Colors.black),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => comparepricepage()),
+                );
+              },
               icon: Icon(CupertinoIcons.search, size: 50, color: Colors.black),
             ),
             IconButton(

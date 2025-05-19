@@ -28,8 +28,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      //home: homepage(),
-      home: firstpage(),
+      home: homepage(),
+      //home: firstpage(),
+
     );
   }
 }
