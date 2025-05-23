@@ -124,6 +124,7 @@ class _homepageState extends State<homepage> {
         shape: CircleBorder(),
         backgroundColor: Colors.white,
         onPressed: () async {
+
           DocumentScannerOptions
           documentScannerOptions = DocumentScannerOptions(
             documentFormat: DocumentFormat.pdf, // set output document format
