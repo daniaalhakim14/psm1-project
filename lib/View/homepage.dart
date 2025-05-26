@@ -21,6 +21,8 @@ class _homepageState extends State<homepage> {
   int _selectedButtonIndex = 0;
   final List<String> imgList = ['hello', 'world'];
   int _currentPage = 0;
+  File? _uploadedPdf;
+
 
   @override
   Widget build(BuildContext context) {
@@ -136,8 +138,10 @@ class _homepageState extends State<homepage> {
             ); // ✅ strip prefix
 
             if (pdfPath != null && pdfPath.isNotEmpty) {
+              setState(() {
+                _uploadedPdf = File(pdfPath); // ✅ This updates the UI to show the preview
+              });
               File pdfFile = File(pdfPath);
-
               final receiptParserVM = ReceiptParserViewModel();
               final success = await receiptParserVM.uploadPdf(pdfFile);
               if (success && receiptParserVM.parsedResult != null) {
@@ -147,6 +151,7 @@ class _homepageState extends State<homepage> {
                     builder:
                         (_) => expenseInput(
                           parsedData: receiptParserVM.parsedResult,
+                          pdfFile: pdfFile,
                         ),
                   ),
                 );

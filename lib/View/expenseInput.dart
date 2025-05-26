@@ -1,10 +1,11 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
 
 import 'categorypage.dart';
 
@@ -21,7 +22,9 @@ String dropdownValue = paymentType.first;
 
 class expenseInput extends StatefulWidget {
   final Map<String, dynamic>? parsedData;
-  const expenseInput({super.key, this.parsedData});
+  final File? pdfFile;
+  const expenseInput({super.key, this.parsedData, this.pdfFile});
+
 
   @override
   State<expenseInput> createState() => _expenseInputState();
@@ -36,6 +39,8 @@ final _textControllerAmount = TextEditingController();
 final _textControllerDescription =
     TextEditingController(); // to store user input
 Map<String, dynamic>? _selectedCategory;
+File? _uploadedPdf;
+
 
 class _expenseInputState extends State<expenseInput> {
   @override
@@ -43,6 +48,7 @@ class _expenseInputState extends State<expenseInput> {
     super.initState();
 
     final parsed = widget.parsedData;
+    _uploadedPdf = widget.pdfFile;
     Map<String, dynamic>? extracted;
 
     if (parsed != null) {
@@ -56,7 +62,7 @@ class _expenseInputState extends State<expenseInput> {
                   .trim();
           extracted = json.decode(raw);
         } catch (e) {
-          print("❌ Failed to parse rawText: $e");
+          print("Failed to parse rawText: $e");
         }
       } else {
         extracted = parsed;
@@ -339,8 +345,8 @@ class _expenseInputState extends State<expenseInput> {
                   children: [
                     Row(
                       children: [
-                        const Icon(
-                          Icons.note_add_outlined,
+                        Icon(
+                          CupertinoIcons.doc,
                           size: 60,
                           color: Colors.black87,
                         ),
@@ -418,8 +424,11 @@ class _expenseInputState extends State<expenseInput> {
                                       Colors.black, // Adjust color dynamically
                                 ),
                               ),
+                              // Payment Type
                               Padding(
-                                padding: EdgeInsets.only(left: screenWidth * 0.32),
+                                padding: EdgeInsets.only(
+                                  left: screenWidth * 0.23,
+                                ),
                                 child: Row(
                                   children: [
                                     DropdownButton<String>(
@@ -449,9 +458,11 @@ class _expenseInputState extends State<expenseInput> {
                                               value: value,
                                               child: Container(
                                                 width:
-                                                    screenWidth * 0.1525, // Customize the width
+                                                    screenWidth *
+                                                    0.20, // Customize the width
                                                 height:
-                                                    screenHeight * 0.1, // Customize the height
+                                                    screenHeight *
+                                                    0.1, // Customize the height
                                                 alignment:
                                                     Alignment
                                                         .centerLeft, // Align text if needed
@@ -480,6 +491,24 @@ class _expenseInputState extends State<expenseInput> {
                   ),
                 ],
               ),
+              // Attached PDF
+              Padding(
+                padding: EdgeInsets.only(
+                  left: screenWidth * 0.02,
+                  top: screenHeight * 0.005,
+                ),
+                child: Column(
+                  children: [
+                    if (_uploadedPdf != null)
+                      pdfUploadPreview(_uploadedPdf!, () {
+                        setState(() {
+                          _uploadedPdf = null;
+                        });
+                      }),
+                  ],
+                ),
+              ),
+
             ],
           ),
         ),
@@ -490,23 +519,20 @@ class _expenseInputState extends State<expenseInput> {
           children: [
             GestureDetector(
               onTap: () {},
-              child: Padding(
-                padding: const EdgeInsets.all(1.0),
-                child: Container(
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.deepPurpleAccent.shade100,
-                  ),
-                  width: MediaQuery.of(context).size.width * 0.55,
-                  height: MediaQuery.of(context).size.height * 0.050,
-                  child: const Text(
-                    'Add Expense',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.0,
-                      color: Colors.white,
-                    ),
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.deepPurpleAccent.shade100,
+                ),
+                width: MediaQuery.of(context).size.width * 0.85,
+                height: MediaQuery.of(context).size.height * 0.065,
+                child: const Text(
+                  'Add Expense',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.0,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -514,7 +540,41 @@ class _expenseInputState extends State<expenseInput> {
           ],
         ),
       ),
-
     );
   }
+  Widget pdfUploadPreview(File pdfFile, VoidCallback onRemove) {
+    return GestureDetector(
+      onTap: () async {
+        await OpenFile.open(pdfFile.path); // open PDF on tap
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.only(top: 10),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          border: Border.all(color: Colors.grey.shade400),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.picture_as_pdf, color: Colors.red, size: 28),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                pdfFile.path.split('/').last, // show filename
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+            const SizedBox(width: 10),
+            GestureDetector(
+              onTap: onRemove,
+              child: const Icon(Icons.close, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }
