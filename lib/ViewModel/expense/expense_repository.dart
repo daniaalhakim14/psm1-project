@@ -1,8 +1,9 @@
 //The repository centralizes all data-fetching and data-processing
 // logic in one place
 import 'dart:convert';
-import '../../Model/Category.dart';
-import 'addexpense_callapi.dart';
+import '../../Model/category.dart';
+import '../../Model/expense.dart';
+import 'expense_callapi.dart';
 
 class expenseCategoryRepository{
   final CallingApi _service = CallingApi();
@@ -20,6 +21,18 @@ class expenseCategoryRepository{
     } else {
       print('API Error: ${response.body}');
       throw Exception('Failed to load Categories');
+    }
+  }
+
+  Future<void> addExpense(AddExpense expense) async{
+    final response = await _service.addExpense(expense.toMap());
+
+    // Log the response for debugging
+    // print("Response status: ${response.statusCode}");
+    //print("Response body: ${response.body}");
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to add expense to database: ${response.body}');
     }
   }
 

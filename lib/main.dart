@@ -4,13 +4,15 @@ import 'package:fyp/View/expenseInput.dart';
 import 'package:fyp/View/firstpage.dart';
 import 'package:fyp/View/homepage.dart';
 import 'package:provider/provider.dart';
-import 'ViewModel/addexpense/addexpense_viewmodel.dart';
+import 'View/categorypage.dart';
+import 'ViewModel/expense/expense_viewmodel.dart';
+
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => expenseCategoryViewModel()),
+        ChangeNotifierProvider(create: (_) => expenseViewModel()),
       ],
       child: MyApp(),
     ),

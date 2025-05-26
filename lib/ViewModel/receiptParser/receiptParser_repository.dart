@@ -23,11 +23,11 @@ class ReceiptParserRepository {
 
       if (response.statusCode == 200) {
         final result = json.decode(response.body);
-        print("✅ PDF uploaded successfully!");
-        print("📦 Full response body: $result");
+        print("PDF uploaded successfully!");
+        //print("📦 Full response body: $result");
 
         final extracted = result['data'] ?? result['raw'];
-        print("🧾 Extracted parsed result: $extracted");
+        //print("🧾 Extracted parsed result: $extracted");
 
         return extracted;
         /*

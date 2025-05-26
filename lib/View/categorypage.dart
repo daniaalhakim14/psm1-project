@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../ViewModel/addexpense/addexpense_viewmodel.dart';
+
+import '../ViewModel/expense/expense_viewmodel.dart';
 
 
-class CategoryPage extends StatefulWidget {
+
+class categoryPage extends StatefulWidget {
   //final int userid;
   //const CategoryPage({super.key, required this.userid});
-  const CategoryPage({super.key});
+  const categoryPage({super.key});
 
   @override
-  State<CategoryPage> createState() => _CategoryPageState();
+  State<categoryPage> createState() => _categoryPageState();
 }
 
-class _CategoryPageState extends State<CategoryPage> {
+class _categoryPageState extends State<categoryPage> {
   NavigatorState? _navigatorState;
 
   @override
@@ -25,7 +27,7 @@ class _CategoryPageState extends State<CategoryPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_){
-      final viewModel = Provider.of<expenseCategoryViewModel>(context, listen: false);
+      final viewModel = Provider.of<expenseViewModel>(context, listen: false);
       if (!viewModel.fetchingData && viewModel.category.isEmpty) {
         viewModel.fetchCategories();
         print('Fetched categories: ${viewModel.category.length}');
@@ -35,15 +37,10 @@ class _CategoryPageState extends State<CategoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = Colors.white;
-    final textColor = Colors.white;
-    final appBarColor = const Color(0xFF65ADAD);
-    final highlightColor = const Color(0xFF65ADAD);
-
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF65ADAD),
+        backgroundColor: const Color(0xFF5A7BE7),
         iconTheme: const IconThemeData(
           color: Colors.white,
         ),
@@ -55,7 +52,7 @@ class _CategoryPageState extends State<CategoryPage> {
           ),
         ),
       ),
-      body: Consumer<expenseCategoryViewModel>(
+      body: Consumer<expenseViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.fetchingData) {
             return const Center(child: CircularProgressIndicator());
@@ -66,7 +63,7 @@ class _CategoryPageState extends State<CategoryPage> {
 
           // Print debug information
           for (var category in viewModel.category) {
-            print('Category: ${category.categoryid}, ${category.categoryname}, ${category.icondata}, ${category.iconcolor}');
+            print('Category: ${category.categoryId}, ${category.categoryName}, ${category.iconData}, ${category.iconColor}');
           }
 
           // Precompute category icons and colors
@@ -75,11 +72,11 @@ class _CategoryPageState extends State<CategoryPage> {
           final Map<String, Color> categoryColors = {};
 
           for (var category in viewModel.category) {
-            if (category.categoryname != null && category.categoryid != null) {
-              if (!categoryIcons.containsKey(category.categoryname)) {
-                categoryId[category.categoryname!] = category.categoryid!;
-                categoryIcons[category.categoryname!] = category.icondata!;
-                categoryColors[category.categoryname!] = category.iconcolor!;
+            if (category.categoryName != null && category.categoryId != null) {
+              if (!categoryIcons.containsKey(category.categoryName)) {
+                categoryId[category.categoryName!] = category.categoryId!;
+                categoryIcons[category.categoryName!] = category.iconData!;
+                categoryColors[category.categoryName!] = category.iconColor!;
               }
             }
           }
@@ -91,10 +88,10 @@ class _CategoryPageState extends State<CategoryPage> {
               return GestureDetector(
                 onTap: () {
                   final selectedCategory = {
-                    'categoryid': category.categoryid,
-                    'name': category.categoryname,
-                    'icon': category.icondata,
-                    'color': category.iconcolor,
+                    'categoryId': category.categoryId,
+                    'name': category.categoryName,
+                    'icon': category.iconData,
+                    'color': category.iconColor,
                   };
                   _navigatorState?.pop(selectedCategory);
                 },
@@ -114,7 +111,7 @@ class _CategoryPageState extends State<CategoryPage> {
                           width: 47,
                           height: 47,
                           decoration: BoxDecoration(
-                            color: category.iconcolor,
+                            color: category.iconColor,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: Colors.grey.shade400,
@@ -123,7 +120,7 @@ class _CategoryPageState extends State<CategoryPage> {
                           ),
                           child: Center(
                             child: Icon(
-                              category.icondata,
+                              category.iconData,
                               size: 30,
                               color: Colors.white,
                             ),
@@ -134,7 +131,7 @@ class _CategoryPageState extends State<CategoryPage> {
                         child: Padding(
                           padding: const EdgeInsets.all(5.0),
                           child: Text(
-                            category.categoryname.toString(),
+                            category.categoryName.toString(),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18.0,

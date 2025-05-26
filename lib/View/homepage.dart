@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
+import 'package:fyp/View/accountpage.dart';
 import 'package:fyp/View/comparepricepage.dart';
 import '../Model/signupLoginpage.dart';
 import '../ViewModel/receiptParser/receiptParser_viewmodel.dart';
@@ -27,7 +28,10 @@ class _homepageState extends State<homepage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: false),
+      backgroundColor: Color(0xFFE3ECF5),
+      appBar: AppBar(automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFF5A7BE7),
+      ),
       // Dashboard Padding
       body: SingleChildScrollView(
         child: Padding(
@@ -197,7 +201,12 @@ class _homepageState extends State<homepage> {
               icon: Icon(CupertinoIcons.doc, size: 45, color: Colors.black),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => accountpage()),
+                );
+              },
               icon: Icon(
                 CupertinoIcons.profile_circled,
                 size: 48,

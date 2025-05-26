@@ -4,9 +4,11 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fyp/Model/expense.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
-
+import 'package:provider/provider.dart';
+import '../ViewModel/expense/expense_viewmodel.dart';
 import 'categorypage.dart';
 
 // Global Variable
@@ -43,6 +45,7 @@ File? _uploadedPdf;
 
 
 class _expenseInputState extends State<expenseInput> {
+
   @override
   void initState() {
     super.initState();
@@ -96,6 +99,7 @@ class _expenseInputState extends State<expenseInput> {
         };
 
          */
+
       }
     }
   }
@@ -105,15 +109,16 @@ class _expenseInputState extends State<expenseInput> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
+      backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF5A7BE7),
         title: Center(
           child: const Text(
             'Expense Input',
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
           ),
         ),
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: false,
       ),
       body: Padding(
         padding: EdgeInsets.only(top: screenHeight * 0.015),
@@ -257,7 +262,7 @@ class _expenseInputState extends State<expenseInput> {
                               userid: widget.userid,
                             ),
                             */
-                          builder: (context) => CategoryPage(),
+                          builder: (context) => categoryPage(),
                         ),
                       );
                       if (selectedcategory != null) {
@@ -518,7 +523,49 @@ class _expenseInputState extends State<expenseInput> {
         child: Column(
           children: [
             GestureDetector(
-              onTap: () {},
+              onTap: () async {
+                final viewModel = expenseViewModel();
+                final pdfBytes = await _uploadedPdf!.readAsBytes();
+                final base64Pdf = base64Encode(pdfBytes);
+
+                AddExpense expense = AddExpense(
+                  expenseAmount: double.parse(_textControllerAmount.text),
+                  expenseDate: selectedDate,
+                  expenseDescription: _textControllerDescription.text,
+                  financialPlatform: 1,
+                  receiptPdf: base64Pdf,
+                  userId: 1, // need to change
+                  categoryId: _selectedCategory!['categoryId']
+                );
+                try{
+                  await viewModel.addExpense(expense);
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("Success"),
+                        content: const Text("Expense added successfully!"),
+                        actions: [
+                          TextButton(
+                            child: const Text("OK"),
+                            onPressed: () {
+                              Navigator.of(context).pop(); // close dialog
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  // Navigate back on success
+                } catch (e) {
+                  print("Failed to add Expense: $e");
+                  print(selectedDate);
+                  print(_textControllerAmount.text);
+                  print(_selectedCategory!['categoryId']);
+                  print(_textControllerDescription.text);
+                  print(dropdownValue);
+                }
+              },
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(

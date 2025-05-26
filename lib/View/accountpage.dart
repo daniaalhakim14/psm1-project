@@ -21,6 +21,7 @@ class _accountpageState extends State<accountpage> {
     return Scaffold(
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
+        backgroundColor: Color(0xFF5A7BE7),
         title: Center(
           child: Text("Account", style: TextStyle(fontWeight: FontWeight.bold)),
         ),

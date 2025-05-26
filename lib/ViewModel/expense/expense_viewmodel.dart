@@ -1,18 +1,18 @@
 // A bridge between view layer and repository (data layer)
 
 import 'package:flutter/material.dart';
-import '../../Model/Category.dart';
-import 'addexpense_repository.dart';
+import '../../Model/category.dart';
+import '../../Model/expense.dart';
+import 'expense_repository.dart';
 
 
 // ChangeNotifier allows View Model to notify listeners when data changes
-class expenseCategoryViewModel extends ChangeNotifier{
+class expenseViewModel extends ChangeNotifier{
 
   final repository = expenseCategoryRepository();
   final expenseCategoryRepository _repository = expenseCategoryRepository();
 
   bool fetchingData = false;
-
   List<Category> _category = [];
   List<Category> get category => _category;
 
@@ -31,6 +31,15 @@ class expenseCategoryViewModel extends ChangeNotifier{
       notifyListeners();
     }
   }
+
+  Future<void> addExpense(AddExpense expense) async{
+    try{
+      await repository.addExpense(expense);
+    }catch (e){
+      print('Failed to add new expense: $e');
+    }
+  }
+
 
 
 
