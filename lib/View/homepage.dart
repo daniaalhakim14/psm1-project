@@ -1,12 +1,12 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp/View/camerascreen.dart';
+import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
 import 'package:fyp/View/comparepricepage.dart';
-import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../Model/signupLoginpage.dart';
+import '../ViewModel/receiptParser/receiptParser_viewmodel.dart';
 import 'expenseInput.dart';
 
 class homepage extends StatefulWidget {
@@ -124,42 +124,47 @@ class _homepageState extends State<homepage> {
         shape: CircleBorder(),
         backgroundColor: Colors.white,
         onPressed: () async {
+          final result = await FlutterDocScanner().getScannedDocumentAsPdf();
 
-          DocumentScannerOptions
-          documentScannerOptions = DocumentScannerOptions(
-            documentFormat: DocumentFormat.pdf, // set output document format
-            mode: ScannerMode.filter, // to control what features are enabled
-            pageLimit: 10, // setting a limit to the number of pages scanned
-            isGalleryImport: true, // importing from the photo gallery
-          );
-          final documentScanner = DocumentScanner(
-            options: documentScannerOptions,
-          );
-          DocumentScanningResult result = await documentScanner.scanDocument();
-          final pdf = result.pdf; // A PDF object.
-          final images = result.images; // A list with the paths to the images.
-          documentScanner.close();
+          print("Scanner result: $result");
 
-          final textRecognizer = TextRecognizer(
-            script: TextRecognitionScript.latin,
-          );
+          if (result != null && result is Map) {
+            final uriString = result['pdfUri'] as String?;
+            final pdfPath = uriString?.replaceFirst(
+              'file://',
+              '',
+            ); // ✅ strip prefix
 
-          if (images.isNotEmpty) {
-            final inputImage = InputImage.fromFilePath(images.first);
-            final recognizedText = await textRecognizer.processImage(
-              inputImage,
-            );
+            if (pdfPath != null && pdfPath.isNotEmpty) {
+              File pdfFile = File(pdfPath);
 
-            String rawText = recognizedText.text;
-
-            // 🔍 You can now parse `rawText` to extract date, amount, items
-          }
-
-          if (result.pdf != null) {
-            MaterialPageRoute(
-              //builder: (context) => expenseInput(userid: widget.userInfo.id),
-              builder: (context) => expenseInput(),
-            );
+              final receiptParserVM = ReceiptParserViewModel();
+              final success = await receiptParserVM.uploadPdf(pdfFile);
+              if (success && receiptParserVM.parsedResult != null) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => expenseInput(
+                          parsedData: receiptParserVM.parsedResult,
+                        ),
+                  ),
+                );
+              } else {
+                print("Upload failed: ${receiptParserVM.errorMessage}");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      receiptParserVM.errorMessage ?? 'Upload failed.',
+                    ),
+                  ),
+                );
+              }
+            } else {
+              print("No valid PDF path found in pdfUri.");
+            }
+          } else {
+            print("Document scan failed or returned unexpected format.");
           }
         },
         child: Icon(CupertinoIcons.qrcode_viewfinder, size: 40),
