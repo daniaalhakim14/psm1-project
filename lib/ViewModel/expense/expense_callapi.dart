@@ -1,5 +1,6 @@
 // Service class
 import 'dart:convert';
+import 'package:fyp/Model/expense.dart';
 import 'package:http/http.dart'as http;
 import '../../configure_api.dart';
 
@@ -34,6 +35,13 @@ class CallingApi{
     print("Response body: ${response.body}"); // Log the response body
 
     return response;
+  }
+
+  Future<http.Response> fetchViewExpense(int userid) async{
+    // change to Expense
+    String endpoint = '/expense/$userid';
+    String url = '${AppConfig.baseUrl}$endpoint';
+    return await http.get(Uri.parse(url));
   }
 
 

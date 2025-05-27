@@ -83,10 +83,10 @@ class _expenseInputState extends State<expenseInput> {
             selectedDate = DateTime.parse(extracted['date']).toLocal();
             textdate = DateFormat('dd-MM-yyyy').format(selectedDate);
           } catch (e) {
-            print("⚠️ Error parsing date: $e");
+            print("Error parsing date: $e");
           }
         } else {
-          print("⚠️ 'date' is null or not a String");
+          print("'date' is null or not a String");
         }
 
         /*

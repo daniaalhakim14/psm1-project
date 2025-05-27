@@ -19,33 +19,33 @@ class Category {
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
     categoryId:
-        json['categoryId'] is int
-            ? json['categoryId']
-            : int.tryParse(json['categoryId'].toString()) ??
+        json['categoryid'] is int
+            ? json['categoryid']
+            : int.tryParse(json['categoryid'].toString()) ??
                 0, // Safely parse categoryid
 
-    categoryName: json['categoryName'] ?? 'Unknown', // fallback for safety
+    categoryName: json['categoryname'] ?? 'Unknown', // fallback for safety
 
-    description: json['categoryDesc'] ?? '',
+    description: json['categorydesc'] ?? '',
 
     iconData:
-        (json['iconCodePoint'] != null && json['iconFontFamily'] != null)
+        (json['iconcodepoint'] != null && json['iconfontfamily'] != null)
             ? IconData(
               // Safely parse codepoint: supports both int and string
-              json['iconCodePoint'] is int
-                  ? json['iconCodePoint']
-                  : int.tryParse(json['iconCodePoint'].toString()) ?? 0,
-              fontFamily: json['iconFontFamily'],
+              json['iconcodepoint'] is int
+                  ? json['iconcodepoint']
+                  : int.tryParse(json['iconcodepoint'].toString()) ?? 0,
+              fontFamily: json['iconfontfamily'],
             )
             : null, // fallback to null if incomplete icon data
 
     iconColor:
-        json['iconColor'] != null
+        json['iconcolor'] != null
             ? Color(
               // Safely parse color from int or string
-              json['iconColor'] is int
-                  ? json['iconColor']
-                  : int.tryParse(json['iconColor'].toString()) ?? 0,
+              json['iconcolor'] is int
+                  ? json['iconcolor']
+                  : int.tryParse(json['iconcolor'].toString()) ?? 0,
             )
             : null,
   );

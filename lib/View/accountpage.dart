@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/View/homepage.dart';
 
+import '../Model/signupLoginpage.dart';
 import 'comparepricepage.dart';
 
 class accountpage extends StatefulWidget {
@@ -221,7 +222,16 @@ class _accountpageState extends State<accountpage> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => homepage()),
+                  MaterialPageRoute(builder: (context) => homepage(
+                    userInfo: UserInfoModule(
+                      id: 1,
+                      name: 'Test User',
+                      email: 'test@example.com',
+                      phone: '0123456789',
+                      address: 'Test Street',
+                      personalImage: null, // Or provide a valid Uint8List if needed
+                    ),
+                  ),),
                 );
               },
               icon: Icon(CupertinoIcons.home, size: 45, color: Colors.black),

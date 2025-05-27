@@ -1,7 +1,7 @@
 //The repository centralizes all data-fetching and data-processing
 // logic in one place
 import 'dart:convert';
-import '../../Model/category.dart';
+import '../../Model/Category.dart';
 import '../../Model/expense.dart';
 import 'expense_callapi.dart';
 
@@ -14,7 +14,7 @@ class expenseCategoryRepository{
     if (response.statusCode == 200) {
 
       final data = jsonDecode(response.body);
-      // print('Decoded Categories: $data');
+      print('Decoded Categories: $data');
       return List<Category>.from(
           data.map((x) => Category.fromJson(x))
       );
@@ -36,12 +36,23 @@ class expenseCategoryRepository{
     }
   }
 
-
+  Future<List<ViewExpense>> getViewExpense(int userid) async{
+    final response = await _service.fetchViewExpense(userid);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body); // This is a list of maps
+      print('Decoded Transaction Expense: $data'); // Debugging log
+      return List<ViewExpense>.from(
+          data.map((x) => ViewExpense.fromJson(x)) // Map each item
+      );
+    } else {
+      throw Exception('Failed to load Transaction Expense');
+    }
+  }
   // Add a dispose method to clean up resources
   void dispose() {
     _service.dispose(); // Call dispose in the service
     print("Repository resources cleaned up.");
   }
-
-
 }
+
+

@@ -1,7 +1,7 @@
 // A bridge between view layer and repository (data layer)
 
 import 'package:flutter/material.dart';
-import '../../Model/category.dart';
+import '../../Model/Category.dart';
 import '../../Model/expense.dart';
 import 'expense_repository.dart';
 
@@ -15,6 +15,8 @@ class expenseViewModel extends ChangeNotifier{
   bool fetchingData = false;
   List<Category> _category = [];
   List<Category> get category => _category;
+  List<ViewExpense> _ViewExpense = [];
+  List<ViewExpense> get viewExpense => _ViewExpense;
 
   Future<void> fetchCategories() async {
     fetchingData = true;
@@ -40,8 +42,20 @@ class expenseViewModel extends ChangeNotifier{
     }
   }
 
+  Future<void> fetchViewExpense(int userid) async {
+    fetchingData = true; // Indicate that data fetching is in progress
+    notifyListeners();
 
-
+    try {
+      _ViewExpense = await repository.getViewExpense(userid);
+    } catch (e) {
+      print('Failed to load transaction expenses: $e');
+      _ViewExpense = [];
+    } finally {
+      fetchingData = false; // Data fetching completed
+      notifyListeners();
+    }
+  }
 
   @override
   void dispose() {

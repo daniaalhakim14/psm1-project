@@ -88,7 +88,7 @@ class _categoryPageState extends State<categoryPage> {
               return GestureDetector(
                 onTap: () {
                   final selectedCategory = {
-                    'categoryId': category.categoryId,
+                    'categoryid': category.categoryId,
                     'name': category.categoryName,
                     'icon': category.iconData,
                     'color': category.iconColor,

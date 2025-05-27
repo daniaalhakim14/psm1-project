@@ -4,6 +4,7 @@ import 'package:fyp/View/expenseInput.dart';
 import 'package:fyp/View/firstpage.dart';
 import 'package:fyp/View/homepage.dart';
 import 'package:provider/provider.dart';
+import 'Model/signupLoginpage.dart';
 import 'View/categorypage.dart';
 import 'ViewModel/expense/expense_viewmodel.dart';
 
@@ -31,7 +32,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: homepage(),
+      home: expenseInput()
+
+
       //home: firstpage(),
 
     );
