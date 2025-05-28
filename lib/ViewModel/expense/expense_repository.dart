@@ -6,7 +6,7 @@ import '../../Model/expense.dart';
 import 'expense_callapi.dart';
 
 class expenseCategoryRepository{
-  final CallingApi _service = CallingApi();
+  final expense_callApi _service = expense_callApi();
 
   Future<List<Category>> getCategories() async {
     final response = await _service.fetchCategories();

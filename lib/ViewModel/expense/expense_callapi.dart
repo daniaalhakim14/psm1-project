@@ -1,17 +1,16 @@
 // Service class
 import 'dart:convert';
 import 'package:fyp/Model/expense.dart';
-import 'package:http/http.dart'as http;
+import 'package:http/http.dart' as http;
 import '../../configure_api.dart';
 
-
-class CallingApi{
-// Indicates that the function is asynchronous and does not return a value.
-// Instead, it returns a Future, which represents a potential value or error that will be available at some point in the future.
+class expense_callApi {
+  // Indicates that the function is asynchronous and does not return a value.
+  // Instead, it returns a Future, which represents a potential value or error that will be available at some point in the future.
 
   final http.Client _httpClient = http.Client();
 
-  Future<http.Response> fetchCategories() async{
+  Future<http.Response> fetchCategories() async {
     String endpoint = '/category';
     String url = '${AppConfig.baseUrl}$endpoint';
     //print(url);
@@ -37,15 +36,14 @@ class CallingApi{
     return response;
   }
 
-  Future<http.Response> fetchViewExpense(int userid) async{
+  Future<http.Response> fetchViewExpense(int userid) async {
     // change to Expense
     String endpoint = '/expense/$userid';
     String url = '${AppConfig.baseUrl}$endpoint';
     return await http.get(Uri.parse(url));
   }
 
-
-// Add a dispose method to clean up
+  // Add a dispose method to clean up
   void dispose() {
     _httpClient.close(); // Close the HTTP client to release resources
     print("HTTP client closed.");

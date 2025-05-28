@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'Model/signupLoginpage.dart';
 import 'View/categorypage.dart';
 import 'ViewModel/expense/expense_viewmodel.dart';
+import 'ViewModel/signUpnLogIn/signUpnLogin_viewmodel.dart';
 
 
 void main() {
@@ -14,6 +15,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => expenseViewModel()),
+        ChangeNotifierProvider(create: (_) => signUpnLogin_viewmodel()),
       ],
       child: MyApp(),
     ),
@@ -32,11 +34,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: expenseInput()
-
-
-      //home: firstpage(),
-
+      home: firstpage(),
     );
   }
 }

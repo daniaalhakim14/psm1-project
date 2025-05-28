@@ -15,9 +15,9 @@ import '../ViewModel/receiptParser/receiptParser_viewmodel.dart';
 import 'expenseInput.dart';
 
 class homepage extends StatefulWidget {
-  final UserInfoModule userInfo; // Accept UserModel as a parameter
-  const homepage({super.key,required this.userInfo});
-  //const homepage({super.key});
+  //final UserInfoModule userInfo; // Accept UserModel as a parameter
+  //const homepage({super.key,required this.userInfo});
+  const homepage({super.key});
   @override
   State<homepage> createState() => _homepageState();
 }
@@ -62,7 +62,7 @@ class _homepageState extends State<homepage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = Provider.of<expenseViewModel>(context, listen: false);
       if (!viewModel.fetchingData && viewModel.viewExpense.isEmpty) {
-        viewModel.fetchViewExpense(widget.userInfo.id);
+        viewModel.fetchViewExpense(1);
       }
 
     });
@@ -157,7 +157,7 @@ class _homepageState extends State<homepage> {
 
                                 if (expense.categoryName != null &&
                                     formattedExpenseDate == selectedMonth &&
-                                    expense.userId == widget.userInfo.id) {
+                                    expense.userId == 1) {
                                   if (!aggregatedData.containsKey(
                                     expense.categoryName,
                                   )) {

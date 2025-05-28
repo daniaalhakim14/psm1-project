@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:fyp/View/signuppage.dart';
+import 'package:fyp/View/signUpPage.dart';
 
 import 'loginpage.dart';
 
@@ -35,23 +35,24 @@ class _firstpageState extends State<firstpage> {
           Column(
             children: [
               Padding(
-                padding: EdgeInsets.only(top:screenHeight * 0.25),
+                padding: EdgeInsets.only(top: screenHeight * 0.25),
                 child: Center(
                   child: CarouselSlider(
-                    items: imgList
-                        .map(
-                          (e) => Image.asset(
-                        e,
-                        fit: BoxFit.contain,
-                        width: screenWidth * 0.8, // 80% of screen width
-                        height: screenHeight * 0.4, // 40% of screen height
-                      ),
-                    )
-                        .toList(),
+                    items:
+                        imgList
+                            .map(
+                              (e) => Image.asset(
+                                e,
+                                fit: BoxFit.contain,
+                                width: screenWidth * 0.8, // 80% of screen width
+                                height:
+                                    screenHeight * 0.4, // 40% of screen height
+                              ),
+                            )
+                            .toList(),
                     options: CarouselOptions(
                       initialPage: 0,
-                      enlargeCenterPage:
-                      true, // enlarges image, make it stand out visually
+                      enlargeCenterPage: true, // enlarges image, make it stand out visually
                       autoPlay: true, // automatic sliding of carousel image
                       reverse: false, // false, makes it move left to right
                       enableInfiniteScroll: true, // true, loop infinitely
@@ -70,60 +71,58 @@ class _firstpageState extends State<firstpage> {
             ],
           ),
           Padding(
-            padding:  EdgeInsets.only(top: screenHeight * 0.20,bottom: screenHeight * 0.05),
+            padding: EdgeInsets.only(
+              top: screenHeight * 0.20,
+              bottom: screenHeight * 0.05,
+            ),
             child: Column(
               children: [
                 SizedBox(
                   width: screenWidth * 0.6, // 60% of screen width
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => loginpage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      'Login',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
+                  child: _ElevatedButton(
+                    context,
+                    text: 'Login',
+                    destination: loginpage(),
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.015),
                 SizedBox(
                   width: screenWidth * 0.6, // 60% of screen width
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => signuppage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      'Sign Up',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
+                  child: _ElevatedButton(
+                    context,
+                    text: 'Sign Up',
+                    destination: signUpPage(),
                   ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  ElevatedButton _ElevatedButton(
+    BuildContext context, {
+    required String text,
+    required Widget destination,
+  }) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => destination),
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }

@@ -543,11 +543,11 @@ class _expenseInputState extends State<expenseInput> {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: const Text("Success"),
-                        content: const Text("Expense added successfully!"),
+                        title: const Text('Success'),
+                        content: const Text('Expense added successfully!'),
                         actions: [
                           TextButton(
-                            child: const Text("OK"),
+                            child: const Text('OK'),
                             onPressed: () {
                               Navigator.of(context).pop(); // close dialog
                             },
