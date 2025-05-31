@@ -35,7 +35,7 @@ class _firstpageState extends State<firstpage> {
           Column(
             children: [
               Padding(
-                padding: EdgeInsets.only(top: screenHeight * 0.25),
+                padding: EdgeInsets.only(top: screenHeight * 0.125),
                 child: Center(
                   child: CarouselSlider(
                     items:
@@ -52,7 +52,8 @@ class _firstpageState extends State<firstpage> {
                             .toList(),
                     options: CarouselOptions(
                       initialPage: 0,
-                      enlargeCenterPage: true, // enlarges image, make it stand out visually
+                      enlargeCenterPage:
+                          true, // enlarges image, make it stand out visually
                       autoPlay: true, // automatic sliding of carousel image
                       reverse: false, // false, makes it move left to right
                       enableInfiniteScroll: true, // true, loop infinitely
@@ -70,59 +71,54 @@ class _firstpageState extends State<firstpage> {
               ),
             ],
           ),
-          Padding(
-            padding: EdgeInsets.only(
-              top: screenHeight * 0.20,
-              bottom: screenHeight * 0.05,
-            ),
-            child: Column(
-              children: [
-                SizedBox(
-                  width: screenWidth * 0.6, // 60% of screen width
-                  child: _ElevatedButton(
-                    context,
-                    text: 'Login',
-                    destination: loginpage(),
-                  ),
-                ),
-                SizedBox(height: screenHeight * 0.015),
-                SizedBox(
-                  width: screenWidth * 0.6, // 60% of screen width
-                  child: _ElevatedButton(
-                    context,
-                    text: 'Sign Up',
-                    destination: signUpPage(),
-                  ),
-                ),
-              ],
-            ),
+          SizedBox(height: screenHeight * 0.22),
+          Column(
+            children: [
+              _navigationButton('Login', screenWidth, screenHeight, () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => loginpage()),
+                );
+              }),
+              SizedBox(height: screenHeight * 0.025,),
+              _navigationButton('Sign Up', screenWidth, screenHeight, () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => signUpPage()),
+                );
+              }),
+            ],
           ),
         ],
       ),
     );
   }
 
-  ElevatedButton _ElevatedButton(
-    BuildContext context, {
-    required String text,
-    required Widget destination,
-  }) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => destination),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.blue,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  Widget _navigationButton(
+    String text,
+    double screenWidth,
+    double screenHeight,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: screenWidth * 0.85,
+        height: screenHeight * 0.055,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: const Color(0xFF5A7BE7),
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }
