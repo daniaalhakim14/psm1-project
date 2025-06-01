@@ -13,10 +13,10 @@ class UserInfoModule {
   final DateTime dob;
   final String gender;
   final String address;
-  final String city;
-  final String postcode;
-  final String state;
-  final String country;
+  //final String city;
+  //final String postcode;
+  //final String state;
+  //final String country;
   final String phoneNumber;
   final Uint8List? personalImage;
 
@@ -29,10 +29,10 @@ class UserInfoModule {
     required this.dob,
     required this.gender,
     required this.address,
-    required this.city,
-    required this.postcode,
-    required this.state,
-    required this.country,
+    //required this.city,
+    //required this.postcode,
+   // required this.state,
+    //required this.country,
     required this.phoneNumber,
     required this.personalImage
   });
@@ -48,10 +48,10 @@ class UserInfoModule {
       dob: DateTime.tryParse(json['dob'] ?? '') ?? DateTime(1970),
       gender: json['gender'] ?? '',
       address: json['address'] ?? '',
-      city: json['city'] ?? 'unknown',
-      postcode: json['postcode'],
-      state: json['state'],
-      country: json['country'],
+      //city: json['city'] ?? 'unknown',
+      //postcode: json['postcode'],
+      //state: json['state'],
+      //country: json['country'],
       phoneNumber: json['phoneNumber'],
       personalImage: json['personalimage'] != null
           ? base64Decode(json['personalimage']) // Decode Base64 to Uint8List
@@ -69,10 +69,10 @@ class UserInfoModule {
       'dob': dob,
       'gender': gender,
       'address': address,
-      'city': city,
-      'postcode': postcode,
-      'state': state,
-      'country': country,
+      //'city': city,
+      //'postcode': postcode,
+      //'state': state,
+      //'country': country,
       'phoneNumber': phoneNumber,
       'personalimage': personalImage != null
           ? base64Encode(personalImage!) // Encode Uint8List to Base64

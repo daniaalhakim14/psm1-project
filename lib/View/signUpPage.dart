@@ -1,9 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:fyp/View/loginpage.dart';
 import 'package:fyp/ViewModel/signUpnLogIn/signUpnLogin_viewmodel.dart';
 import 'package:provider/provider.dart';
-
 
 class signUpPage extends StatefulWidget {
   const signUpPage({super.key});
@@ -32,9 +30,9 @@ class _signUpPageState extends State<signUpPage> {
   final TextEditingController _countryController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
 
-  String? selectedGender,selectedCountry,selectedState,selectedCity;
+  String? selectedGender, selectedCountry, selectedState, selectedCity;
   final genderOptions = ['Male', 'Female'];
-
+  bool isLoading = false;
 
   Future<void> _signUp() async {
     final viewModel = Provider.of<signUpnLogin_viewmodel>(
@@ -64,18 +62,35 @@ class _signUpPageState extends State<signUpPage> {
       dob: dob,
       gender: gender,
       address: address,
-      city: city,
-      postcode: postcode,
-      state: state,
-      country: country,
+      //city: city,
+      //postcode: postcode,
+      //state: state,
+      //country: country,
       phoneNumber: phoneNumber,
     );
 
     if (success) {
-      // Navigate to login page on successful signup
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => loginpage()),
+      await showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Sign-up Successful'),
+              content: const Text(
+                'Your account has been successfully created. Please log in to continue.',
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("Login"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => loginpage()),
+                    );
+                  },
+                ),
+              ],
+            ),
       );
     } else {
       // Display errors if validation fails
@@ -125,32 +140,72 @@ class _signUpPageState extends State<signUpPage> {
               child: Column(
                 children: [
                   _textLabel('First Name'),
-                  _inputTextField('First Name', 'Enter your first name', _firstNameController, viewModel.firstNameError,),
+                  _inputTextField(
+                    'First Name',
+                    'Enter your first name',
+                    _firstNameController,
+                    viewModel.firstNameError,
+                  ),
                   _textLabel('Last Name'),
-                  _inputTextField('Last Name', 'Enter your last name', _lastNameController, viewModel.lastNameError,),
+                  _inputTextField(
+                    'Last Name',
+                    'Enter your last name',
+                    _lastNameController,
+                    viewModel.lastNameError,
+                  ),
                   _textLabel('Email'),
-                  _inputTextField('Email', 'Enter your email', _emailController, viewModel.emailError,),
+                  _inputTextField(
+                    'Email',
+                    'Enter your email',
+                    _emailController,
+                    viewModel.emailError,
+                  ),
                   _textLabel('Password'),
-                  _inputPasswordField('Password', 'Enter your password', _passwordController, viewModel.passwordError,),
+                  _inputPasswordField(
+                    'Password',
+                    'Enter your password',
+                    _passwordController,
+                    viewModel.passwordError,
+                  ),
                   _textLabel('Re-enter Password'),
-                  _inputPasswordField('Re-enter Password', 'Re-enter Password', _repeatPasswordController, viewModel.repeatPasswordError,),
+                  _inputPasswordField(
+                    'Re-enter Password',
+                    'Re-enter Password',
+                    _repeatPasswordController,
+                    viewModel.repeatPasswordError,
+                  ),
                   _textLabel('Phone Number'),
-                  _inputTextField('Phone Number', 'Enter your phone number', _phoneNumberController, viewModel.phoneNumberError,),
+                  _inputTextField(
+                    'Phone Number',
+                    'Enter your phone number',
+                    _phoneNumberController,
+                    viewModel.phoneNumberError,
+                  ),
                   Row(
                     children: [
                       Column(
-                        mainAxisSize: MainAxisSize.min, // ⬅️ prevents it from taking full height
-                        crossAxisAlignment: CrossAxisAlignment.start, // aligns to the left
+                        mainAxisSize:
+                            MainAxisSize
+                                .min, // ⬅️ prevents it from taking full height
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start, // aligns to the left
                         children: [
                           _textLabel('Date of Birth'),
-                          _dobPickerTextField(controller: _dobController, context: context, width: screenWidth * 0.34, height: screenHeight * 0.06,
+                          _dobPickerTextField(
+                            controller: _dobController,
+                            context: context,
+                            width: screenWidth * 0.34,
+                            height: screenHeight * 0.06,
                             errorText: viewModel.dobError,
                           ),
                         ],
                       ),
                       Column(
-                        mainAxisSize: MainAxisSize.min, // ⬅️ prevents it from taking full height
-                        crossAxisAlignment: CrossAxisAlignment.start, // aligns to the left
+                        mainAxisSize:
+                            MainAxisSize
+                                .min, // ⬅️ prevents it from taking full height
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start, // aligns to the left
                         children: [
                           Padding(
                             padding: EdgeInsets.only(left: screenWidth * 0.02),
@@ -165,6 +220,9 @@ class _signUpPageState extends State<signUpPage> {
                               onChanged: (value) {
                                 setState(() {
                                   selectedGender = value;
+                                  _genderController.text =
+                                      value ??
+                                      ''; // <-- this line makes the fix
                                 });
                               },
                               errorText: viewModel.genderError,
@@ -173,11 +231,16 @@ class _signUpPageState extends State<signUpPage> {
                             ),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                   _textLabel('Address'),
-                  _inputTextField('Address', 'Enter your Address', _phoneNumberController, viewModel.phoneNumberError,),
+                  _inputTextField(
+                    'Address',
+                    'Enter your Address',
+                    _addressController,
+                    viewModel.addressError,
+                  ),
                   /*
                   CSCPickerPlus(
                     layout: Layout.horizontal,
@@ -214,20 +277,20 @@ class _signUpPageState extends State<signUpPage> {
 
                   // floating button
                   GestureDetector(
-                    onTap: () {
-                      viewModel.isLoading
-                          ? null
-                          : () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => loginpage(),
-                              ),
-                            );
-                          };
+                    onTap: () async {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      await _signUp(); // make sure _signUp is async
+                      setState(() {
+                        isLoading = false;
+                      });
                     },
                     child: Padding(
-                      padding: EdgeInsets.only(top: screenHeight * 0.04,bottom: screenHeight * 0.04),
+                      padding: EdgeInsets.only(
+                        top: screenHeight * 0.04,
+                        bottom: screenHeight * 0.04,
+                      ),
                       child: Container(
                         width: screenWidth * 0.85,
                         height: screenHeight * 0.055,
@@ -257,7 +320,12 @@ class _signUpPageState extends State<signUpPage> {
     );
   }
 
-  Widget _inputTextField(String label, String hint, TextEditingController controller, String? errorText,) {
+  Widget _inputTextField(
+    String label,
+    String hint,
+    TextEditingController controller,
+    String? errorText,
+  ) {
     final screenSize = MediaQuery.of(context).size;
     final double screenWidth = screenSize.width;
     final double screenHeight = screenSize.height;
@@ -320,7 +388,12 @@ class _signUpPageState extends State<signUpPage> {
     );
   }
 
-  Widget _inputPasswordField(String label, String hint, TextEditingController controller, String? errorText,) {
+  Widget _inputPasswordField(
+    String label,
+    String hint,
+    TextEditingController controller,
+    String? errorText,
+  ) {
     final screenSize = MediaQuery.of(context).size;
     final double screenWidth = screenSize.width;
     final double screenHeight = screenSize.height;
@@ -421,7 +494,9 @@ class _signUpPageState extends State<signUpPage> {
     );
   }
 
-  Widget _dobPickerTextField({required TextEditingController controller, required BuildContext context,
+  Widget _dobPickerTextField({
+    required TextEditingController controller,
+    required BuildContext context,
     double width = double.infinity,
     double height = 55,
     String label = 'dd/mm/yyyy',
@@ -432,22 +507,20 @@ class _signUpPageState extends State<signUpPage> {
     final double screenWidth = screenSize.width;
     final double screenHeight = screenSize.height;
     return Padding(
-      padding: EdgeInsets.only(
-        left: screenWidth * 0.05,
-      ),
+      padding: EdgeInsets.only(left: screenWidth * 0.05),
       child: GestureDetector(
         onTap: () async {
           final DateTime now = DateTime.now();
           final DateTime? picked = await showDatePicker(
             context: context,
-            initialDate: DateTime(1900, 1, 1),
+            initialDate: DateTime(1950, 1, 1),
             firstDate: DateTime(1900),
             lastDate: DateTime(now.year, now.month, now.day),
             helpText: 'Date of Birth',
           );
           if (picked != null) {
             controller.text =
-            '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+                '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
           }
         },
         child: AbsorbPointer(
@@ -460,9 +533,13 @@ class _signUpPageState extends State<signUpPage> {
                 labelText: label,
                 hintText: hint,
                 hintStyle: const TextStyle(
-                    color: Colors.grey, fontWeight: FontWeight.bold),
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
                 labelStyle: const TextStyle(
-                    color: Colors.grey, fontWeight: FontWeight.bold),
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(width: 2.5),
@@ -506,15 +583,12 @@ class _signUpPageState extends State<signUpPage> {
     String? errorText,
     double? width,
     double height = 55,
-
   }) {
     final screenSize = MediaQuery.of(context).size;
     final double screenWidth = screenSize.width;
     final double screenHeight = screenSize.height;
     return Padding(
-      padding: EdgeInsets.only(
-        left: screenWidth * 0.03,
-      ),
+      padding: EdgeInsets.only(left: screenWidth * 0.03),
       child: SizedBox(
         width: width ?? double.infinity,
         height: height,
@@ -554,19 +628,19 @@ class _signUpPageState extends State<signUpPage> {
               color: Colors.red,
               fontWeight: FontWeight.bold,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 14,
+            ),
           ),
-          items: items.map((item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            );
-          }).toList(),
+          items:
+              items.map((item) {
+                return DropdownMenuItem<String>(value: item, child: Text(item));
+              }).toList(),
         ),
       ),
     );
   }
-
 
   Future<void> _pickDate() async {
     DateTime now = DateTime.now();

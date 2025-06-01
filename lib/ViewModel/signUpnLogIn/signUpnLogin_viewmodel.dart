@@ -20,10 +20,10 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
   String? dobError;
   String? genderError;
   String? addressError;
-  String? cityError;
-  String? postcodeError;
-  String? stateError;
-  String? countryError;
+  //String? cityError;
+  //String? postcodeError;
+  //String? stateError;
+  //String? countryError;
   String? phoneNumberError;
 
   void resetErrors(){
@@ -35,10 +35,10 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     dobError = null;
     genderError = null;
     addressError = null;
-    cityError = null;
-    postcodeError = null;
-    stateError = null;
-    countryError = null;
+    //cityError = null;
+    //postcodeError = null;
+    //stateError = null;
+    //countryError = null;
     phoneNumberError = null;
     notifyListeners();
   }
@@ -52,10 +52,10 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     required String dob,
     required String gender,
     required String address,
-    required String city,
-    required String postcode,
-    required String state,
-    required String country,
+    //equired String city,
+    //required String postcode,
+    //required String state,
+    //required String country,
     required String phoneNumber,
 }) async{
     resetErrors();
@@ -83,6 +83,7 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     if (address.isEmpty) {
       addressError = 'Address cannot be empty';
     }
+    /*
     if(city.isEmpty){
       cityError = 'City canno be empty';
     }
@@ -95,6 +96,8 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     if(country.isEmpty){
       countryError = 'City canno be empty';
     }
+
+     */
     if (phoneNumber.isEmpty ||
         !RegExp(r"^\+?[0-9]{1,4}?[0-9]{7,15}$").hasMatch(phoneNumber)) {
       phoneNumberError = 'Enter a valid phone number';
@@ -107,10 +110,10 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
         repeatPasswordError != null ||
         dobError != null ||
         addressError != null ||
-        cityError != null ||
-        postcodeError != null ||
-        stateError != null ||
-        countryError != null||
+        //cityError != null ||
+        //postcodeError != null ||
+        //stateError != null ||
+        //countryError != null||
         phoneNumberError != null) {
       notifyListeners();
       return false;
@@ -129,10 +132,10 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
           dob: dob,
           gender: gender,
           address: address,
-          city: city,
-          postcode: postcode,
-          state: state,
-          country: country,
+          //city: city,
+          //postcode: postcode,
+          //state: state,
+          //country: country,
           phoneNumber: phoneNumber
       );
       _isLoading = false;

@@ -13,10 +13,10 @@ class signUpnLoginRepository {
     required dob,
     required gender,
     required address,
-    required city,
-    required postcode,
-    required state,
-    required country,
+    //required city,
+    //required postcode,
+    //required state,
+    //required country,
     required phoneNumber,
   }) async {
     final response = await _service.signUp(
@@ -27,15 +27,18 @@ class signUpnLoginRepository {
       dob: dob,
       gender: gender,
       address: address,
-      city: city,
-      postcode: postcode,
-      state: state,
-      country: country,
+      //city: city,
+      //postcode: postcode,
+      //state: state,
+      //country: country,
       phoneNumber: phoneNumber,
     );
     if (response.statusCode == 201) {
       return true;
     } else {
+      // Print the server response body to see the actual error message
+      print('❌ Signup failed with status: ${response.statusCode}');
+      print('❌ Response body: ${response.body}');
       throw Exception('Signup failed with status: ${response.statusCode}');
     }
   }
