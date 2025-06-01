@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:fyp/Model/signupLoginpage.dart';
-import 'package:fyp/ViewModel/signUpnLogIn/signUpnLogin_repository.dart';
+import 'package:fyp/ViewModel/signUpnLogin/signUpnLogin_repository.dart';
 
 class signUpnLogin_viewmodel extends ChangeNotifier {
   final signUpnLoginRepository _repository = signUpnLoginRepository();
   bool fetchingData = false;
 
   UserInfoModule? _userInfo;
-  UserInfoModule? get userInFO => _userInfo;
+  UserInfoModule? get userInfo => _userInfo;
+
+  String? _token;
+  String? get authToken  => _token;
 
   bool _isLoading = false ;
   bool get isLoading => _isLoading;
@@ -147,6 +150,54 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<bool> login(String email,String password, BuildContext context) async{
+    resetErrors();
+    if(email.isEmpty || !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(email)){
+      emailError = 'Enter a valid email';
+    }
+    if (password.isEmpty || password.length < 6) {
+      passwordError = 'Password must be at least 6 characters';
+    }
+    // If there are errors, return false
+    if (emailError != null || passwordError != null) {
+      notifyListeners();
+      return false;
+    }
+    // If no errors, proceed with login
+    _isLoading = true;
+    notifyListeners();
+
+    try{
+      // call your login API/login here
+      final token = await _repository.login(email, password);
+      if (token != null) {
+        _token = token; // - Save it here
+        await fetchUserDetailsByEmail(email, token);
+        return true;
+      }
+      return false;
+    }catch (e, stackTrace) {
+      debugPrint('Login failed: $e');
+      debugPrint(stackTrace.toString());
+      return false;
+    }
+  }
+
+  // Fetch user details using email
+Future<void> fetchUserDetailsByEmail(String email, String token) async{
+    try{
+      _userInfo = await _repository.fetchUserDetailsByEmail(email,token);
+      if(_userInfo != null){
+        print('User details fetched successfully: ${_userInfo!.toJson()}');
+      }else{
+        print('Failed to fetch user details');
+      }
+      notifyListeners();
+    }catch (e){
+      print('Error fetching user details: $e');
+    }
+}
 }
 
 

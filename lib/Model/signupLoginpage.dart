@@ -19,6 +19,8 @@ class UserInfoModule {
   //final String country;
   final String phoneNumber;
   final Uint8List? personalImage;
+  final String? usertype;
+
 
   UserInfoModule({
     required this.id,
@@ -34,15 +36,17 @@ class UserInfoModule {
    // required this.state,
     //required this.country,
     required this.phoneNumber,
-    required this.personalImage
+    required this.personalImage,
+    required this.usertype
+
   });
 
   factory UserInfoModule.fromJson(Map<String, dynamic> json) {
     // print('[DEBUG] Parsing UserModel from JSON: $json');
     return UserInfoModule(
-      id: json['id'] ?? json['userId'] ?? 0,
-      firstName: json['firstName'] ?? 'Unknown',
-      lastName: json['lastName'] ?? 'Unknown',
+      id: int.tryParse(json['userid'].toString()) ?? 0,
+      firstName: json['first_name'] ?? 'Unknown',
+      lastName: json['last_name'] ?? 'Unknown',
       email: json['email'] ?? '',
       password: json['password'] ?? 'Unknown',
       dob: DateTime.tryParse(json['dob'] ?? '') ?? DateTime(1970),
@@ -52,18 +56,19 @@ class UserInfoModule {
       //postcode: json['postcode'],
       //state: json['state'],
       //country: json['country'],
-      phoneNumber: json['phoneNumber'],
-      personalImage: json['personalimage'] != null
-          ? base64Decode(json['personalimage']) // Decode Base64 to Uint8List
+      phoneNumber: json['phonenumber'],
+      personalImage: json['image'] != null
+          ? base64Decode(json['image']) // Decode Base64 to Uint8List
           : null,
+      usertype: json['usertype'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'userId': id,
-      'firstName': firstName,
-      'lastName': lastName,
+      'userid': id,
+      'first_name': firstName,
+      'last_name': lastName,
       'email': email,
       'password': password,
       'dob': dob,
@@ -73,10 +78,11 @@ class UserInfoModule {
       //'postcode': postcode,
       //'state': state,
       //'country': country,
-      'phoneNumber': phoneNumber,
-      'personalimage': personalImage != null
+      'phonenumber': phoneNumber,
+      'image': personalImage != null
           ? base64Encode(personalImage!) // Encode Uint8List to Base64
           : null,
+      'usertype': usertype
     };
   }
 }

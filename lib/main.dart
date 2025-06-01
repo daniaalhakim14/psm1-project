@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:fyp/View/accountpage.dart';
-import 'package:fyp/View/expenseInput.dart';
 import 'package:fyp/View/firstpage.dart';
-import 'package:fyp/View/homepage.dart';
 import 'package:provider/provider.dart';
-import 'Model/signupLoginpage.dart';
-import 'View/categorypage.dart';
 import 'ViewModel/expense/expense_viewmodel.dart';
-import 'ViewModel/signUpnLogIn/signUpnLogin_viewmodel.dart';
+import 'ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
 
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => expenseViewModel()),
         ChangeNotifierProvider(create: (_) => signUpnLogin_viewmodel()),
+        ChangeNotifierProvider(create: (_) => expenseViewModel()),
       ],
       child: MyApp(),
     ),

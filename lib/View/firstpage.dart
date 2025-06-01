@@ -79,6 +79,7 @@ class _firstpageState extends State<firstpage> {
                   context,
                   MaterialPageRoute(builder: (context) => loginpage()),
                 );
+
               }),
               SizedBox(height: screenHeight * 0.025,),
               _navigationButton('Sign Up', screenWidth, screenHeight, () {

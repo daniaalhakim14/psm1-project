@@ -5,28 +5,6 @@ import 'package:http/http.dart' as http;
 
 class signUpnLogin_callApi{
 
-  Future<http.Response> logIn(String email, String password) async {
-    const String endpoint = '/user/login';
-    print( '${AppConfig.baseUrl}$endpoint');
-    final String url = '${AppConfig.baseUrl}$endpoint';
-    return await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json; charset=UTF-8'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-  }
-
-  // Fetch user details by email
-  Future<http.Response> fetchUserDetailsByEmail(String email) async {
-    final String endpoint = '/user/email/$email'; // Endpoint for fetching user details by email
-    final String url = '${AppConfig.baseUrl}$endpoint';
-
-    return await http.get(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json; charset=UTF-8'},
-    );
-  }
-
   // for user register new account
   Future<http.Response> signUp({
     required firstName,
@@ -46,8 +24,7 @@ class signUpnLogin_callApi{
     final String endpoint = '/user/signUp';
     final String url = '${AppConfig.baseUrl}$endpoint';
 
-    return await http.post(
-      Uri.parse(url),
+    return await http.post(Uri.parse(url),
       headers: {'Content-Type': 'application/json; charset=UTF-8'},
       body: jsonEncode({
         'firstName': firstName,
@@ -63,6 +40,28 @@ class signUpnLogin_callApi{
         //'country': country,
         'phoneNumber':phoneNumber,
       }),
+    );
+  }
+
+  Future<http.Response> login(String email, String password) async {
+    const String endpoint = '/user/login';
+    print( '${AppConfig.baseUrl}$endpoint');
+    final String url = '${AppConfig.baseUrl}$endpoint';
+    return await http.post(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+  }
+
+  // Fetch user details by email
+  Future<http.Response> fetchUserDetailsByEmail(String email,String token) async {
+    final String endpoint = '/user/email/$email'; // Endpoint for fetching user details by email
+    final String url = '${AppConfig.baseUrl}$endpoint';
+
+    return await http.get(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json; charset=UTF-8','Authorization': 'Bearer $token'},
     );
   }
 

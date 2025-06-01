@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:fyp/View/homepage.dart';
 
 import '../Model/signupLoginpage.dart';
+import 'accountpage.dart';
 
 class comparepricepage extends StatefulWidget {
-  const comparepricepage({super.key});
+  final UserInfoModule userInfo;
+  const comparepricepage({super.key,required this.userInfo});
 
   @override
   State<comparepricepage> createState() => _comparepricepageState();
@@ -238,22 +240,28 @@ class _comparepricepageState extends State<comparepricepage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             IconButton(
-              onPressed: () {Navigator.pushReplacement(
+              onPressed: () {
+                Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => homepage(),),
+                MaterialPageRoute(builder: (context) => homepage(userInfo:widget.userInfo,),),
               );},
               icon: Icon(CupertinoIcons.home, size: 45, color: Colors.black),
             ),
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.search, size: 50, color: Colors.black),
+              icon: Icon(CupertinoIcons.search, size: 50, color: Color(0xFFE3ECF5)),
             ),
             IconButton(
               onPressed: () {},
               icon: Icon(CupertinoIcons.doc, size: 45, color: Colors.black),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => accountpage(userInfo: widget.userInfo)),
+                );
+              },
               icon: Icon(
                 CupertinoIcons.profile_circled,
                 size: 48,

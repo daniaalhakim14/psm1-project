@@ -6,7 +6,8 @@ import '../Model/signupLoginpage.dart';
 import 'comparepricepage.dart';
 
 class accountpage extends StatefulWidget {
-  const accountpage({super.key});
+  final UserInfoModule userInfo; // Accept UserModel as a parameter
+  const accountpage({super.key,required this.userInfo});
 
   @override
   State<accountpage> createState() => _accountpageState();
@@ -222,7 +223,7 @@ class _accountpageState extends State<accountpage> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => homepage()
+                  MaterialPageRoute(builder: (context) => homepage(userInfo: widget.userInfo)
                     ,),
                 );
               },
@@ -232,14 +233,14 @@ class _accountpageState extends State<accountpage> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => comparepricepage()),
+                  MaterialPageRoute(builder: (context) => comparepricepage(userInfo: widget.userInfo)),
                 );
               },
               icon: Icon(CupertinoIcons.search, size: 50, color: Colors.black),
             ),
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.doc, size: 45, color: Colors.black),
+              icon: Icon(CupertinoIcons.doc, size: 45, color: Color(0xFFE3ECF5)),
             ),
             IconButton(
               onPressed: () {},

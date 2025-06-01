@@ -15,9 +15,9 @@ import '../ViewModel/receiptParser/receiptParser_viewmodel.dart';
 import 'expenseInput.dart';
 
 class homepage extends StatefulWidget {
-  //final UserInfoModule userInfo; // Accept UserModel as a parameter
-  //const homepage({super.key,required this.userInfo});
-  const homepage({super.key});
+  final UserInfoModule userInfo; // Accept UserModel as a parameter
+  const homepage({super.key,required this.userInfo});
+  //const homepage({super.key});
   @override
   State<homepage> createState() => _homepageState();
 }
@@ -62,7 +62,7 @@ class _homepageState extends State<homepage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = Provider.of<expenseViewModel>(context, listen: false);
       if (!viewModel.fetchingData && viewModel.viewExpense.isEmpty) {
-        viewModel.fetchViewExpense(1);
+        viewModel.fetchViewExpense(widget.userInfo.id);
       }
 
     });
@@ -157,7 +157,7 @@ class _homepageState extends State<homepage> {
 
                                 if (expense.categoryName != null &&
                                     formattedExpenseDate == selectedMonth &&
-                                    expense.userId == 1) {
+                                    expense.userId == widget.userInfo.id) {
                                   if (!aggregatedData.containsKey(
                                     expense.categoryName,
                                   )) {
@@ -460,13 +460,13 @@ class _homepageState extends State<homepage> {
           children: [
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.home, size: 45, color: Colors.black),
+              icon: Icon(CupertinoIcons.home, size: 45, color: Color(0xFFE3ECF5)),
             ),
             IconButton(
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => comparepricepage()),
+                  MaterialPageRoute(builder: (context) => comparepricepage(userInfo: widget.userInfo)),
                 );
               },
               icon: Icon(CupertinoIcons.search, size: 50, color: Colors.black),
@@ -479,7 +479,7 @@ class _homepageState extends State<homepage> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => accountpage()),
+                  MaterialPageRoute(builder: (context) => accountpage(userInfo: widget.userInfo)),
                 );
               },
               icon: Icon(

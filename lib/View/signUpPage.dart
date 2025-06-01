@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fyp/View/loginpage.dart';
-import 'package:fyp/ViewModel/signUpnLogIn/signUpnLogin_viewmodel.dart';
+import 'package:fyp/ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 class signUpPage extends StatefulWidget {
@@ -52,6 +52,7 @@ class _signUpPageState extends State<signUpPage> {
     final String state = _stateController.text;
     final String country = _countryController.text;
     final String phoneNumber = _phoneNumberController.text;
+
 
     final success = await viewModel.signUp(
       firstName: firstName,
@@ -124,7 +125,7 @@ class _signUpPageState extends State<signUpPage> {
       appBar: AppBar(
         backgroundColor: Color(0xFF5A7BE7),
         title: Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold)),
-        //automaticallyImplyLeading: true,
+        automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
         child: Column(
