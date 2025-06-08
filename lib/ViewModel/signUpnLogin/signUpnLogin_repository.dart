@@ -76,5 +76,5 @@ class signUpnLoginRepository {
       print('❌ Response body: ${response.body}');
       return null;
     }
-  }
+}
 }

@@ -29,68 +29,70 @@ class _firstpageState extends State<firstpage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: screenHeight * 0.125),
-                child: Center(
-                  child: CarouselSlider(
-                    items:
-                        imgList
-                            .map(
-                              (e) => Image.asset(
-                                e,
-                                fit: BoxFit.contain,
-                                width: screenWidth * 0.8, // 80% of screen width
-                                height:
-                                    screenHeight * 0.4, // 40% of screen height
-                              ),
-                            )
-                            .toList(),
-                    options: CarouselOptions(
-                      initialPage: 0,
-                      enlargeCenterPage:
-                          true, // enlarges image, make it stand out visually
-                      autoPlay: true, // automatic sliding of carousel image
-                      reverse: false, // false, makes it move left to right
-                      enableInfiniteScroll: true, // true, loop infinitely
-                      autoPlayInterval: Duration(seconds: 3),
-                      autoPlayAnimationDuration: Duration(milliseconds: 1500),
-                      scrollDirection: Axis.horizontal,
-                      onPageChanged: (value, _) {
-                        setState(() {
-                          _currentPage = value;
-                        });
-                      },
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(top: screenHeight * 0.225),
+                  child: Center(
+                    child: CarouselSlider(
+                      items:
+                          imgList
+                              .map(
+                                (e) => Image.asset(
+                                  e,
+                                  fit: BoxFit.contain,
+                                  width: screenWidth * 0.8, // 80% of screen width
+                                  height:
+                                      screenHeight * 0.4, // 40% of screen height
+                                ),
+                              )
+                              .toList(),
+                      options: CarouselOptions(
+                        initialPage: 0,
+                        enlargeCenterPage:
+                            true, // enlarges image, make it stand out visually
+                        autoPlay: true, // automatic sliding of carousel image
+                        reverse: false, // false, makes it move left to right
+                        enableInfiniteScroll: true, // true, loop infinitely
+                        autoPlayInterval: Duration(seconds: 3),
+                        autoPlayAnimationDuration: Duration(milliseconds: 1500),
+                        scrollDirection: Axis.horizontal,
+                        onPageChanged: (value, _) {
+                          setState(() {
+                            _currentPage = value;
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: screenHeight * 0.22),
-          Column(
-            children: [
-              _navigationButton('Login', screenWidth, screenHeight, () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => loginpage()),
-                );
+              ],
+            ),
+            SizedBox(height: screenHeight * 0.22),
+            Column(
+              children: [
+                _navigationButton('Login', screenWidth, screenHeight, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => loginpage()),
+                  );
 
-              }),
-              SizedBox(height: screenHeight * 0.025,),
-              _navigationButton('Sign Up', screenWidth, screenHeight, () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => signUpPage()),
-                );
-              }),
-            ],
-          ),
-        ],
+                }),
+                SizedBox(height: screenHeight * 0.025,),
+                _navigationButton('Sign Up', screenWidth, screenHeight, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => signUpPage()),
+                  );
+                }),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

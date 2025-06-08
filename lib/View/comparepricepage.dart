@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/View/homepage.dart';
-
+import 'package:provider/provider.dart';
 import '../Model/signupLoginpage.dart';
+import '../ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
 import 'accountpage.dart';
 
 class comparepricepage extends StatefulWidget {
@@ -17,21 +20,46 @@ class comparepricepage extends StatefulWidget {
 class _comparepricepageState extends State<comparepricepage> {
   final _textControllerSearch = TextEditingController();
   int _currentPage = 0;
+  final searchController = SearchController();
   final List<Map<String, String>> sliderItems = [
     {'image': 'lib/Stickers/assetmanagement.png', 'title': 'Item 1'},
     {'image': 'lib/Stickers/business.png', 'title': 'Item 2'},
     {'image': 'lib/Stickers/dontletmoneyflyaway.png', 'title': 'Item 3'},
   ];
+  String selectedText = '';
+  Timer? _debounce;
+  String _lastQuery = '';
+
+
+  @override
+  void initState() {
+    super.initState();
+
+  }
+
+  void onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 2000), () {
+      final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false);
+      searchVM.fetchItemSearch(query);
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
+      backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
         title: Text(
           "Compare Prices",
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFF5A7BE7),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -60,47 +88,111 @@ class _comparepricepageState extends State<comparepricepage> {
                     ),
                   ),
                 ),
+                Consumer<itemPrice_viewmodel>(
+                  builder: (context, searchVM, _) {
+                    return SizedBox(
+                      height: screenHeight * 0.05,
+                      width: screenWidth * 0.60,
+                      child: SearchAnchor.bar(
+                        searchController: searchController,
+                        barHintText: 'Search Items',
+                        barTrailing: [
+                          IconButton(
+                            icon: Icon(Icons.clear),
+                            onPressed: () {
+                              searchController.clear();
+                              setState(() {
+                                selectedText = '';
+                                _lastQuery = ''; // reset
+                              });
+                              final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false);
+                              searchVM.fetchItemSearch(''); // clear results
+                            },
+                          ),
+                        ],
+                        barBackgroundColor: WidgetStatePropertyAll(Colors.white),
+                        suggestionsBuilder: (context, controller) {
+                          //onSearchChanged(controller.text);
+                          final query = controller.text;
+                          if (query != _lastQuery) {
+                            _lastQuery = query;
+                            final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false);
+                            searchVM.fetchItemSearch(query);
+                          }
+                          final suggestions = searchVM.itemsearch;
+                          return suggestions.map((item) {
+                            return ListTile(
+                              title: Text(item.itemname),
+                              onTap: () {
+                                setState(() {
+                                  selectedText = item.itemname;
+                                  searchController.closeView(item.itemname);
+                                });
+                              },
+                            );
+                          }).toList();
+                        },
+                        // other properties...
+                      ),
+                    );
+                  },
+                ),
+
                 // search bar
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    width: 210,
-                    height: 35,
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            top: 4.0,
-                            bottom: 4.0,
-                            left: 5.0,
-                          ),
-                          child: Icon(Icons.search),
-                        ),
-                        VerticalDivider(
-                          color: Colors.black54,
-                          thickness: 1.5,
-                          width: 20,
-                        ),
-                        Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: "Search",
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(3.0),
-                          child: Icon(Icons.center_focus_strong),
+                /*
+                SizedBox(
+                  height: screenHeight * 0.05,
+                    width: screenWidth * 0.60,
+                    child:SearchAnchor.bar(
+                      searchController: searchController,
+                      barHintText: 'Search Items',
+                      barTrailing: [
+                        IconButton(
+                          icon: Icon(Icons.clear),
+                          onPressed: () {
+                            searchController.clear();
+                          },
                         ),
                       ],
-                    ),
-                  ),
+                      barBackgroundColor: WidgetStatePropertyAll(Colors.white), // ✅ Background color
+                      suggestionsBuilder: (context, controller) {
+                        onSearchChanged(controller.text); // Debounced API call
+
+                        final suggestions = context.watch<itemPrice_viewmodel>().itemsearch;
+                        if (suggestions.isEmpty) {
+                          return [ListTile(title: Text("No results"))];
+                        }else{
+                          print('yaaaaa');
+                        }
+
+                        return suggestions.map((item) {
+                          return ListTile(
+                            title: Text(item.itemname),
+                            onTap: () {
+                              setState(() {
+                                selectedText = item.itemname;
+                                searchController.closeView(item.itemname);
+                              });
+                            },
+                          );
+                        }).toList();
+                      },
+                      // For shape, wrap it inside a ClipRRect if needed
+                    )
+                    /*SearchBar(
+                      leading: const Icon(Icons.search),
+                      hintText: 'Search Item',
+                      shape: WidgetStatePropertyAll(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0)
+                        )
+                      ),
+                      backgroundColor: WidgetStatePropertyAll(Colors.white)
+                    )
+
+                     */
                 ),
+                */
                 // filter button
                 Padding(
                   padding: const EdgeInsets.all(4.0),

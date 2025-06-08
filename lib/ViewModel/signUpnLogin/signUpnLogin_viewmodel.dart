@@ -198,6 +198,7 @@ Future<void> fetchUserDetailsByEmail(String email, String token) async{
       print('Error fetching user details: $e');
     }
 }
+
 }
 
 
