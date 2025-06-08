@@ -14,13 +14,13 @@ class ReceiptParserViewModel extends ChangeNotifier {
   String? errorMessage;
 
   /// Upload PDF and return success or error info
-  Future<bool> uploadPdf(File pdfFile) async {
+  Future<bool> uploadPdf(File pdfFile, String token) async {
     isLoading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      final parsed = await _repository.uploadReceiptPdf(pdfFile);
+      final parsed = await _repository.uploadReceiptPdf(pdfFile,token);
       if (parsed != null) {
         _parsedResult = parsed;
         uploadSuccess = true;
@@ -38,11 +38,11 @@ class ReceiptParserViewModel extends ChangeNotifier {
     return uploadSuccess;
   }
 
-  Future<void> parseText(String text) async {
+  Future<void> parseText(String text,String token) async {
     isLoading = true;
     notifyListeners();
 
-    _parsedResult = await _repository.parseReceipt(text);
+    _parsedResult = await _repository.parseReceipt(text,token);
 
     isLoading = false;
     notifyListeners();

@@ -14,7 +14,7 @@ class expenseCategoryRepository{
     if (response.statusCode == 200) {
 
       final data = jsonDecode(response.body);
-      print('Decoded Categories: $data');
+      //print('Decoded Categories: $data');
       return List<Category>.from(
           data.map((x) => Category.fromJson(x))
       );
@@ -24,28 +24,57 @@ class expenseCategoryRepository{
     }
   }
 
-  Future<void> addExpense(AddExpense expense) async{
-    final response = await _service.addExpense(expense.toMap());
-
+  Future<void> addExpense(AddExpense expense,String token) async{
+    final response = await _service.addExpense(expense.toMap(),token);
+    final data = jsonDecode(response.body);
     // Log the response for debugging
     // print("Response status: ${response.statusCode}");
     //print("Response body: ${response.body}");
-
     if (response.statusCode != 201) {
       throw Exception('Failed to add expense to database: ${response.body}');
     }
   }
 
-  Future<List<ViewExpense>> getViewExpense(int userid) async{
-    final response = await _service.fetchViewExpense(userid);
+  Future<List<ViewExpense>> getViewExpense(int userid, String token) async {
+    final response = await _service.fetchViewExpense(userid, token);
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body); // This is a list of maps
-      print('Decoded Transaction Expense: $data'); // Debugging log
-      return List<ViewExpense>.from(
-          data.map((x) => ViewExpense.fromJson(x)) // Map each item
+
+      // Print raw JSON response from backend
+      // print('Raw Expense Data from API: ${response.body}');
+      final expenses = List<ViewExpense>.from(
+        data.map((x) => ViewExpense.fromJson(x)),
       );
+      /*
+      for (var expense in expenses) {
+        print(
+          'Expense -> id: ${expense.expenseid}, amount: ${expense.expenseAmount}, category: ${expense.categoryname}, date: ${expense.expenseDate}, iconData: ${expense.iconData}, iconcolour: ${expense.iconColor}',
+        );
+      }
+      */
+      return expenses;
     } else {
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
       throw Exception('Failed to load Transaction Expense');
+    }
+  }
+
+  Future<List<ListExpense>> getListExpense(int userid, String token)async{
+    try{
+      final response = await _service.fetchListExpense(userid, token);
+
+      if(response.statusCode == 200){
+        final data = jsonDecode(response.body);
+        return List<ListExpense>.from(data.map((x) => ListExpense.fromJson(x)));
+      }else {
+        print('API Error: ${response.body}');
+        throw Exception('Failed to load Expense List');
+      }
+    }catch (e) {
+      print('Error fetching Expense List: $e');
+      rethrow; // Allow ViewModel to handle it
     }
   }
   // Add a dispose method to clean up resources

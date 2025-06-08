@@ -17,6 +17,8 @@ class expenseViewModel extends ChangeNotifier{
   List<Category> get category => _category;
   List<ViewExpense> _ViewExpense = [];
   List<ViewExpense> get viewExpense => _ViewExpense;
+  List<ListExpense> _listExpense = [];
+  List<ListExpense> get listExpense => _listExpense;
 
   Future<void> fetchCategories() async {
     fetchingData = true;
@@ -34,25 +36,38 @@ class expenseViewModel extends ChangeNotifier{
     }
   }
 
-  Future<void> addExpense(AddExpense expense) async{
+  Future<void> addExpense(AddExpense expense, String token) async{
     try{
-      await repository.addExpense(expense);
+      await repository.addExpense(expense,token);
     }catch (e){
       print('Failed to add new expense: $e');
     }
   }
 
-  Future<void> fetchViewExpense(int userid) async {
+  Future<void> fetchViewExpense(int userid, String token) async {
     fetchingData = true; // Indicate that data fetching is in progress
     notifyListeners();
-
     try {
-      _ViewExpense = await repository.getViewExpense(userid);
+      _ViewExpense = await repository.getViewExpense(userid,token);
     } catch (e) {
       print('Failed to load transaction expenses: $e');
       _ViewExpense = [];
     } finally {
       fetchingData = false; // Data fetching completed
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchListExpense(int userid, String token) async{
+    fetchingData = true;
+    notifyListeners();
+    try{
+      _listExpense = await repository.getListExpense(userid, token);
+    }catch(e){
+      print('Failed to load list expense: $e');
+      _listExpense = [];
+    } finally{
+      fetchingData = false;
       notifyListeners();
     }
   }

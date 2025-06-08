@@ -61,7 +61,8 @@ class signUpnLogin_callApi{
 
     return await http.get(
       Uri.parse(url),
-      headers: {'Content-Type': 'application/json; charset=UTF-8','Authorization': 'Bearer $token'},
+      headers: {'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token'},
     );
   }
 

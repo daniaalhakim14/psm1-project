@@ -52,7 +52,7 @@ class signUpnLoginRepository {
       final data = jsonDecode(response.body);
       //print('Login successful: ${data['user']}');
       final token = data['token']; // <-- get token here
-      print('✅ Token received: $token');
+      //print('Token received: $token');
       return token;
     } else {
       print('Login failed with status: ${response.statusCode}');
@@ -62,16 +62,19 @@ class signUpnLoginRepository {
   }
 
   //  Fetch user details using email
-Future<UserInfoModule?> fetchUserDetailsByEmail(String email,String token) async{
-    final response = await _service.fetchUserDetailsByEmail(email,token);
-    if (response.statusCode == 200){
+  Future<UserInfoModule?> fetchUserDetailsByEmail(
+    String email,
+    String token,
+  ) async {
+    final response = await _service.fetchUserDetailsByEmail(email, token);
+    if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      print('Fetched User Details: ${data['user']}');
+      //print('Fetched User Details: ${data['user']}');
       return UserInfoModule.fromJson(data['user']);
-    }else{
+    } else {
       print('Failed to fetch user details with status: ${response.statusCode}');
       print('❌ Response body: ${response.body}');
       return null;
     }
-}
+  }
 }

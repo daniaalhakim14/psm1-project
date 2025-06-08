@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import '../ViewModel/expense/expense_viewmodel.dart';
+import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
 import 'categorypage.dart';
 
 // Global Variable
@@ -31,7 +32,7 @@ class expenseInput extends StatefulWidget {
   @override
   State<expenseInput> createState() => _expenseInputState();
 }
-
+final TextEditingController _expenseNameController = TextEditingController();
 DateTime selectedDate = DateTime.now().toUtc().add(Duration(hours: 8));
 late String todayDate = 'Today';
 late String yesterdayDate = 'Yesterday';
@@ -80,7 +81,7 @@ class _expenseInputState extends State<expenseInput> {
 
         if (extracted['date'] != null && extracted['date'] is String) {
           try {
-            selectedDate = DateTime.parse(extracted['date']).toLocal();
+            selectedDate = DateFormat('dd/MM/yyyy').parse(extracted['date']).toLocal();
             textdate = DateFormat('dd-MM-yyyy').format(selectedDate);
           } catch (e) {
             print("Error parsing date: $e");
@@ -524,7 +525,8 @@ class _expenseInputState extends State<expenseInput> {
           children: [
             GestureDetector(
               onTap: () async {
-                final viewModel = expenseViewModel();
+                final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
+                final viewModel = Provider.of<expenseViewModel>(context, listen: false);
                 final pdfBytes = await _uploadedPdf!.readAsBytes();
                 final base64Pdf = base64Encode(pdfBytes);
 
@@ -533,29 +535,43 @@ class _expenseInputState extends State<expenseInput> {
                   expenseDate: selectedDate,
                   expenseDescription: _textControllerDescription.text,
                   financialPlatform: 1,
-                  receiptPdf: base64Pdf,
-                  userId: 1, // need to change
+                  receiptPdf: base64Pdf, userId: Provider.of<signUpnLogin_viewmodel>(context, listen: false).userInfo?.id,
                   categoryId: _selectedCategory!['categoryId']
                 );
                 try{
-                  await viewModel.addExpense(expense);
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Success'),
-                        content: const Text('Expense added successfully!'),
-                        actions: [
-                          TextButton(
-                            child: const Text('OK'),
-                            onPressed: () {
-                              Navigator.of(context).pop(); // close dialog
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  if (token != null) {
+                    await viewModel.addExpense(expense, token);
+
+                    bool dismissedByTimer = true;
+
+                    await showDialog(
+                      context: context,
+                      barrierDismissible: false, // Prevent dismiss by tapping outside
+                      builder: (BuildContext context) {
+                        // Start a delayed close
+                        Future.delayed(Duration(seconds: 3), () {
+                          if (dismissedByTimer && Navigator.canPop(context)) {
+                            Navigator.of(context).pop(); // Auto close after 3s
+                          }
+                        });
+
+                        return AlertDialog(
+                          title: const Text('Success'),
+                          content: const Text('Expense added successfully!'),
+                          actions: [
+                            TextButton(
+                              child: const Text('OK'),
+                              onPressed: () {
+                                dismissedByTimer = false; // User pressed manually
+                                Navigator.of(context).pop(); // Close dialog
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    Navigator.pop(context); // Return to previous screen
+                  }
                   // Navigate back on success
                 } catch (e) {
                   print("Failed to add Expense: $e");

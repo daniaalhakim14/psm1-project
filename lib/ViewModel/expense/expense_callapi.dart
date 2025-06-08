@@ -17,16 +17,17 @@ class expense_callApi {
     return await http.get(Uri.parse(url));
   }
 
-  Future<http.Response> addExpense(Map<String, dynamic> expenseData) async {
+  Future<http.Response> addExpense(Map<String, dynamic> expenseData, String token) async {
     // change to Expense
     String endpoint = '/expense'; // Update this to match your API endpoint
     String url = '${AppConfig.baseUrl}$endpoint';
 
-    print("Sending transaction data: $expenseData"); // Log the data being sent
+    //print("Sending transaction data: $expenseData"); // Log the data being sent
 
     final response = await http.post(
       Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token'},
       body: jsonEncode(expenseData),
     );
 
@@ -36,11 +37,23 @@ class expense_callApi {
     return response;
   }
 
-  Future<http.Response> fetchViewExpense(int userid) async {
+  Future<http.Response> fetchViewExpense(int userid, String token) async {
     // change to Expense
     String endpoint = '/expense/$userid';
     String url = '${AppConfig.baseUrl}$endpoint';
-    return await http.get(Uri.parse(url));
+    return await http.get(Uri.parse(url),
+    headers: {'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'}
+    );
+  }
+
+  Future<http.Response> fetchListExpense(int userid, String token) async{
+    String endpoint = '/listExpense/$userid';
+    String url = '${AppConfig.baseUrl}$endpoint';
+    return await http.get(Uri.parse(url),
+    headers: {'Content-Type': 'application/json',
+      'Authorization' : 'Bearer $token'}
+    );
   }
 
   // Add a dispose method to clean up

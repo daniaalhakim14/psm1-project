@@ -46,7 +46,7 @@ class _taxExemptState extends State<taxExempt> {
             ),
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.doc, size: 45, color: Color(0xFFE3ECF5)),
+              icon: Icon(CupertinoIcons.doc, size: 45, color: Color(0xFF5A7BE7)),
             ),
             IconButton(
               onPressed: () {

@@ -249,7 +249,7 @@ class _comparepricepageState extends State<comparepricepage> {
             ),
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.search, size: 50, color: Color(0xFFE3ECF5)),
+              icon: Icon(CupertinoIcons.search, size: 50, color: Color(0xFF5A7BE7)),
             ),
             IconButton(
               onPressed: () {},

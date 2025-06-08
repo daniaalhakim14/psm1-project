@@ -5,8 +5,8 @@ import 'receiptParser_callApi.dart';
 class ReceiptParserRepository {
   final ReceiptParserApiService _service = ReceiptParserApiService();
 
-  Future<Map<String, dynamic>?> parseReceipt(String text) async {
-    final response = await _service.sendReceiptText(text);
+  Future<Map<String, dynamic>?> parseReceipt(String text,String token) async {
+    final response = await _service.sendReceiptText(text,token);
 
     if (response.statusCode == 200) {
       final result = json.decode(response.body);
@@ -17,9 +17,9 @@ class ReceiptParserRepository {
     }
   }
 
-  Future<Map<String, dynamic>?> uploadReceiptPdf(File pdfFile) async {
+  Future<Map<String, dynamic>?> uploadReceiptPdf(File pdfFile, String token) async {
     try {
-      final response = await _service.uploadPdf(pdfFile);
+      final response = await _service.uploadPdf(pdfFile,token);
 
       if (response.statusCode == 200) {
         final result = json.decode(response.body);
