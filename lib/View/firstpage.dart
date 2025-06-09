@@ -78,9 +78,22 @@ class _firstpageState extends State<firstpage> {
                 _navigationButton('Login', screenWidth, screenHeight, () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => loginpage()),
-                  );
+                    PageRouteBuilder(
+                      transitionDuration: Duration(milliseconds: 800), // 🔧 Adjust timer here
+                      pageBuilder: (context, animation, secondaryAnimation) => loginpage(),
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(1.0, 0.0); // Start off-screen to the right
+                        const end = Offset.zero;
+                        const curve = Curves.ease;
 
+                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                        return SlideTransition(
+                          position: animation.drive(tween),
+                          child: child,
+                        );
+                      },
+                    ),
+                  );
                 }),
                 SizedBox(height: screenHeight * 0.025,),
                 _navigationButton('Sign Up', screenWidth, screenHeight, () {

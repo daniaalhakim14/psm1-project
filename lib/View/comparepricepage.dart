@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/View/homepage.dart';
+import 'package:fyp/View/selectitempage.dart';
 import 'package:provider/provider.dart';
 import '../Model/signupLoginpage.dart';
 import '../ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
@@ -111,6 +112,12 @@ class _comparepricepageState extends State<comparepricepage> {
                           ),
                         ],
                         barBackgroundColor: WidgetStatePropertyAll(Colors.white),
+                        barShape: WidgetStatePropertyAll(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12), // <-- radius value
+                            side: BorderSide(color: Colors.blue), // optional: border color
+                          ),
+                        ),
                         suggestionsBuilder: (context, controller) {
                           //onSearchChanged(controller.text);
                           final query = controller.text;
@@ -120,6 +127,19 @@ class _comparepricepageState extends State<comparepricepage> {
                             searchVM.fetchItemSearch(query);
                           }
                           final suggestions = searchVM.itemsearch;
+                          if (suggestions.isEmpty && query.isNotEmpty) {
+                            // Show fallback if nothing is found
+                            return [
+                              ListTile(
+                                title: Text(
+                                  'Item not available',
+                                  style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold),
+                                ),
+                                leading: Icon(Icons.info_outline, color: Colors.grey),
+                              )
+                            ];
+                          }
+                          // Otherwise show matching results
                           return suggestions.map((item) {
                             return ListTile(
                               title: Text(item.itemname),
@@ -127,6 +147,7 @@ class _comparepricepageState extends State<comparepricepage> {
                                 setState(() {
                                   selectedText = item.itemname;
                                   searchController.closeView(item.itemname);
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => selectitempage()));
                                 });
                               },
                             );
@@ -138,61 +159,6 @@ class _comparepricepageState extends State<comparepricepage> {
                   },
                 ),
 
-                // search bar
-                /*
-                SizedBox(
-                  height: screenHeight * 0.05,
-                    width: screenWidth * 0.60,
-                    child:SearchAnchor.bar(
-                      searchController: searchController,
-                      barHintText: 'Search Items',
-                      barTrailing: [
-                        IconButton(
-                          icon: Icon(Icons.clear),
-                          onPressed: () {
-                            searchController.clear();
-                          },
-                        ),
-                      ],
-                      barBackgroundColor: WidgetStatePropertyAll(Colors.white), // ✅ Background color
-                      suggestionsBuilder: (context, controller) {
-                        onSearchChanged(controller.text); // Debounced API call
-
-                        final suggestions = context.watch<itemPrice_viewmodel>().itemsearch;
-                        if (suggestions.isEmpty) {
-                          return [ListTile(title: Text("No results"))];
-                        }else{
-                          print('yaaaaa');
-                        }
-
-                        return suggestions.map((item) {
-                          return ListTile(
-                            title: Text(item.itemname),
-                            onTap: () {
-                              setState(() {
-                                selectedText = item.itemname;
-                                searchController.closeView(item.itemname);
-                              });
-                            },
-                          );
-                        }).toList();
-                      },
-                      // For shape, wrap it inside a ClipRRect if needed
-                    )
-                    /*SearchBar(
-                      leading: const Icon(Icons.search),
-                      hintText: 'Search Item',
-                      shape: WidgetStatePropertyAll(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0)
-                        )
-                      ),
-                      backgroundColor: WidgetStatePropertyAll(Colors.white)
-                    )
-
-                     */
-                ),
-                */
                 // filter button
                 Padding(
                   padding: const EdgeInsets.all(4.0),

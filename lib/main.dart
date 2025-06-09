@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fyp/View/expenseInput.dart';
 import 'package:fyp/View/firstpage.dart';
+import 'package:fyp/View/selectitempage.dart';
 import 'package:fyp/ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'ViewModel/expense/expense_viewmodel.dart';
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: firstpage(),
+      //home: selectitempage(),
     );
   }
 }
