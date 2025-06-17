@@ -99,7 +99,7 @@ class ItemCard extends StatelessWidget {
                 color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(8),
                 image: DecorationImage(
-                  image: AssetImage('lib/Icons/no_picture.png'),
+                  image: AssetImage('assets/Icons/no_picture.png'),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -154,7 +154,7 @@ class ItemCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
-                      'lib/Icons/compare_icon.png',
+                      'assets/Icons/compare_icon.png',
                       width: 35,
                       height: 35,
                     ),

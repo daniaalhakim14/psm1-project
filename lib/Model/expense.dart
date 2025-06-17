@@ -133,16 +133,42 @@ class ListExpense{
     categoryname: json['categoryname'],
     expenseDescription: json['description'],
     paymenttype: json['paymenttype'],
-    userId: json['userid'],
-    iconData: (json['codepoint'] != null && json['fontfamily'] != null)
+    userId: int.tryParse(json["userid"].toString()),
+    iconData:
+    (json['iconcodepoint'] != null && json['iconfontfamily'] != null)
         ? IconData(
-      json['codepoint'],
-      fontFamily: json['fontfamily'],
+      // Safely parse codepoint: supports both int and string
+      json['iconcodepoint'] is int
+          ? json['iconcodepoint']
+          : int.tryParse(json['iconcodepoint'].toString()) ?? 0,
+      fontFamily: json['iconfontfamily'],
     )
         : null,
-    iconColor: json['color'] != null
-        ? Color(int.tryParse(json['color']) ?? 0) // Safely parse the color string
+    iconColor: json['iconcolor'] != null
+        ? Color(int.tryParse(json['iconcolor']) ?? 0) // Safely parse the color string
         : null,
   );
 
+}
+
+class DeleteExpense {
+  final int expenseId; // The ID of the expense to be deleted
+
+  DeleteExpense({
+    required this.expenseId,
+  });
+
+  // Construct a DeleteExpense instance from JSON
+  factory DeleteExpense.fromJson(Map<String, dynamic> json) {
+    return DeleteExpense(
+      expenseId: json['expenseid'],
+    );
+  }
+
+  // Convert DeleteExpense object to a Map for API requests
+  Map<String, dynamic> toMap() {
+    return {
+      'expenseid': expenseId,
+    };
+  }
 }

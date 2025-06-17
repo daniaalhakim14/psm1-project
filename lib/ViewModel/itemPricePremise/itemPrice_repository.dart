@@ -25,13 +25,27 @@ class itemPrice_repositoryClass{
     final response = await _service.fetchItemSearch(searchTerm);
     if (response.statusCode == 200){
       final data = jsonDecode(response.body);
-      print('Decoded search item: $data');
+      //print('Decoded search item: $data');
       return List<itemSearch>.from(
           data.map((x) => itemSearch.fromJson(x))
       );
     }else{
       print('API Error: ${response.body}');
       throw Exception('Failed to load item Search');
+    }
+  }
+
+  Future<List<itemPrice>> getBestDeals() async{
+    final response = await _service.fetchBestDeals();
+    if (response.statusCode == 200){
+      final data = jsonDecode(response.body);
+      //print('Decoded search item: $data');
+      return List<itemPrice>.from(
+          data.map((x) => itemPrice.fromJson(x))
+      );
+    }else{
+      print('API Error: ${response.body}');
+      throw Exception('Failed to load best deals');
     }
   }
 

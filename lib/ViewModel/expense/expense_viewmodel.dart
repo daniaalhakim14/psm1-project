@@ -71,12 +71,24 @@ class expenseViewModel extends ChangeNotifier{
       notifyListeners();
     }
   }
-
   @override
   void dispose() {
     _repository.dispose(); // Call repository's dispose method
     super.dispose();
     print("ViewModel disposed.");
+  }
+
+  Future<void> deleteExpense(int expenseId,int userid,String token) async {
+    try {
+      await repository.deleteExpense(DeleteExpense(expenseId: expenseId),userid,token);
+      print('Transaction deleted successfully!');
+
+      // Refresh the transaction list after deletion
+      await fetchListExpense(userid,token);
+      await fetchViewExpense(userid,token);
+    } catch (e) {
+      print('Failed to delete transaction: $e');
+    }
   }
 
 

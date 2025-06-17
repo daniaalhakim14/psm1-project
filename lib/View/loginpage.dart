@@ -22,58 +22,11 @@ class _loginpageState extends State<loginpage> {
   String errorText = 'Wrong username or password';
   bool isLoading = false;
   final List<String> imgList = [
-    'lib/Stickers/assetmanagement.png',
-    'lib/Stickers/business.png',
-    'lib/Stickers/dontletmoneyflyaway.png',
-    'lib/Stickers/financialgoals.png',
+    'assets/Stickers/assetmanagement.png',
+    'assets/Stickers/business.png',
+    'assets/Stickers/dontletmoneyflyaway.png',
+    'assets/Stickers/financialgoals.png',
   ];
-
-  Future<void> _login() async {
-    final viewModel = Provider.of<signUpnLogin_viewmodel>(
-      context,
-      listen: false,
-    );
-
-    final String email = _emailController.text;
-    final String password = _passwordController.text;
-
-    final success = await viewModel.login(email, password, context);
-    if (success) {
-      if (_stayLogin) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedin', true);
-        await prefs.setString('userEmail', email);
-        await prefs.setString('userPassword', password);
-      }
-
-      // Fecth user details
-      if (viewModel.userInfo != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => homepage(userInfo: viewModel.userInfo!),
-          ),
-        );
-      }
-    } else {
-      // Display errors if validation fails
-      setState(() {}); // Refresh UI to show validation errors
-      AlertDialog(
-        title: const Text('Login failed'),
-        content: const Text(
-          'Login failed. Please check the errors and try again.',
-        ),
-        actions: [
-          TextButton(
-            child: const Text("Try Again"),
-            onPressed: () {
-              Navigator.of(context).pop(); // close dialog
-            },
-          ),
-        ],
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,41 +98,103 @@ class _loginpageState extends State<loginpage> {
                   _passwordController,
                   viewModel.passwordError,
                 ),
+                Padding(
+                  padding: EdgeInsets.only(left: 8.0),
+                  child: CheckboxListTile(
+                    title: Text('Remember me?'),
+                    controlAffinity: ListTileControlAffinity.trailing,
+                    value: _stayLogin,
+                    // user checks, the box value = true, _stayLogin = true
+                    // user unchecks, the box value = false,_stayLogin = false
+                    onChanged: (value) {
+                      setState(() {
+                        _stayLogin = value!;
+                      });
+                    },
+                  ),
+                ),
               ],
             ),
             // floating action button
-            Padding(
-              padding: EdgeInsets.only(top: screenHeight * 0.035),
-              child: GestureDetector(
-                onTap: () async {
-                  setState(() {
-                    isLoading = true;
-                  });
-                  await _login();
-                  setState(() {
-                    isLoading = false;
-                  });
-                },
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    top: screenHeight * 0.04,
-                    bottom: screenHeight * 0.0,
-                  ),
-                  child: Container(
-                    width: screenWidth * 0.85,
-                    height: screenHeight * 0.055,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Color(0xFF5A7BE7),
+            GestureDetector(
+              onTap: () async {
+                setState(() {
+                  isLoading = true;
+                });
+                final viewModel = Provider.of<signUpnLogin_viewmodel>(
+                  context,
+                  listen: false,
+                );
+                final success = await viewModel.login(
+                  _emailController.text,
+                  _passwordController.text,
+                  context,
+                );
+                if (success) {
+                  if (_stayLogin) {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('isLoggedin', true);
+                    await prefs.setString(
+                      'userEmail',
+                      _emailController.text,
+                    );
+                    await prefs.setString(
+                      'authToken',
+                      viewModel.authToken ?? '',
+                    );
+                  }
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => homepage(userInfo: viewModel.userInfo!),
                     ),
-                    child: Center(
-                      child: Text(
-                        'Login',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                  );
+                } else {
+                  // Display errors if validation fails
+                  setState(() {}); // Refresh UI to show validation errors
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: const Text('Login failed'),
+                          content: const Text(
+                            'Login failed. Please check the errors and try again.',
+                          ),
+                          actions: [
+                            TextButton(
+                              child: const Text("Try Again"),
+                              onPressed: () {
+                                Navigator.of(context).pop(); // close dialog
+                              },
+                            ),
+                          ],
                         ),
+                  );
+                }
+                setState(() {
+                  isLoading = false;
+                });
+              },
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: screenHeight * 0.02,
+                  bottom: screenHeight * 0.0,
+                ),
+                child: Container(
+                  width: screenWidth * 0.85,
+                  height: screenHeight * 0.055,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Color(0xFF5A7BE7),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Login',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -229,11 +244,11 @@ class _loginpageState extends State<loginpage> {
   ) {
     final screenSize = MediaQuery.of(context).size;
     final double horizontalPadding = screenSize.width;
-    final double verticalPadding = screenSize.height * 0.015;
+    final double verticalPadding = screenSize.height;
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: horizontalPadding * 0.05,
-        vertical: verticalPadding * 0.015,
+        vertical: verticalPadding * 0.0002,
       ),
       child: TextField(
         controller: controller,

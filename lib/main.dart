@@ -33,8 +33,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: firstpage(),
-      //home: selectitempage(),
+      //home: firstpage(),
+      home: expenseInput(),
     );
   }
 }

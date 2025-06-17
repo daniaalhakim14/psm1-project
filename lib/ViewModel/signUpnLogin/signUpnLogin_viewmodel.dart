@@ -10,9 +10,9 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
   UserInfoModule? get userInfo => _userInfo;
 
   String? _token;
-  String? get authToken  => _token;
+  String? get authToken => _token;
 
-  bool _isLoading = false ;
+  bool _isLoading = false;
   bool get isLoading => _isLoading;
 
   String? firstNameError;
@@ -29,7 +29,7 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
   //String? countryError;
   String? phoneNumberError;
 
-  void resetErrors(){
+  void resetErrors() {
     firstNameError = null;
     lastNameError = null;
     emailError = null;
@@ -60,15 +60,20 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     //required String state,
     //required String country,
     required String phoneNumber,
-}) async{
+  }) async {
     resetErrors();
-    if(firstName.isEmpty || firstName.length <3){
-      firstNameError = 'First name cannot be empty and must be at least 3 characters';
+    if (firstName.isEmpty || firstName.length < 3) {
+      firstNameError =
+          'First name cannot be empty and must be at least 3 characters';
     }
-    if(lastName.isEmpty || lastName.length < 3){
-      lastNameError = 'Last name cannot be empty and must be at least 3 characters';
+    if (lastName.isEmpty || lastName.length < 3) {
+      lastNameError =
+          'Last name cannot be empty and must be at least 3 characters';
     }
-    if(email.isEmpty || !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(email)){
+    if (email.isEmpty ||
+        !RegExp(
+          r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+        ).hasMatch(email)) {
       emailError = 'Enter a valid email';
     }
     if (password.isEmpty || password.length < 6) {
@@ -77,10 +82,10 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     if (repeatPassword.isEmpty || password != repeatPassword) {
       repeatPasswordError = 'Passwords do not match';
     }
-    if(dob.isEmpty){
+    if (dob.isEmpty) {
       dobError = 'Please enter a valid date of birth';
     }
-    if(gender.isEmpty){
+    if (gender.isEmpty) {
       genderError = 'Please enter your gender';
     }
     if (address.isEmpty) {
@@ -128,18 +133,18 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
 
     try {
       final response = await _repository.signUp(
-          firstName: firstName,
-          lastName: lastName,
-          email: email,
-          password: password,
-          dob: dob,
-          gender: gender,
-          address: address,
-          //city: city,
-          //postcode: postcode,
-          //state: state,
-          //country: country,
-          phoneNumber: phoneNumber
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        dob: dob,
+        gender: gender,
+        address: address,
+        //city: city,
+        //postcode: postcode,
+        //state: state,
+        //country: country,
+        phoneNumber: phoneNumber,
       );
       _isLoading = false;
       notifyListeners();
@@ -151,9 +156,16 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     }
   }
 
-  Future<bool> login(String email,String password, BuildContext context) async{
+  Future<bool> login(
+    String email,
+    String password,
+    BuildContext context,
+  ) async {
     resetErrors();
-    if(email.isEmpty || !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(email)){
+    if (email.isEmpty ||
+        !RegExp(
+          r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+        ).hasMatch(email)) {
       emailError = 'Enter a valid email';
     }
     if (password.isEmpty || password.length < 6) {
@@ -168,7 +180,7 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    try{
+    try {
       // call your login API/login here
       final token = await _repository.login(email, password);
       if (token != null) {
@@ -177,7 +189,7 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
         return true;
       }
       return false;
-    }catch (e, stackTrace) {
+    } catch (e, stackTrace) {
       debugPrint('Login failed: $e');
       debugPrint(stackTrace.toString());
       return false;
@@ -185,21 +197,30 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
   }
 
   // Fetch user details using email
-Future<void> fetchUserDetailsByEmail(String email, String token) async{
-    try{
-      _userInfo = await _repository.fetchUserDetailsByEmail(email,token);
-      if(_userInfo != null){
+  Future<void> fetchUserDetailsByEmail(String email, String token) async {
+    try {
+      _userInfo = await _repository.fetchUserDetailsByEmail(email, token);
+      /*
+      if (_userInfo != null) {
         print('User details fetched successfully: ${_userInfo!.toJson()}');
-      }else{
+      } else {
         print('Failed to fetch user details');
       }
+       */
       notifyListeners();
-    }catch (e){
+    } catch (e) {
       print('Error fetching user details: $e');
     }
+  }
+
+  Future<bool> autoLoginWithPrefs(String email,String token)async{
+    try{
+      _token = token;
+      await fetchUserDetailsByEmail(email, token);
+      return _userInfo != null;
+    }catch (e){
+      print("shared preferences failed: $e");
+      return false;
+    }
+  }
 }
-
-}
-
-
-

@@ -47,9 +47,8 @@ dependencies:
   image_cropper: ^8.1.0
   open_file: ^3.5.10
   shared_preferences: ^2.5.3
-
-
-
+  flutter_native_splash: ^2.4.6
+  loading_animation_widget: ^1.3.0
 
 dev_dependencies:
   flutter_test:
@@ -73,12 +72,19 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+
+
   # To add assets to your application, add an assets section, like this:
   assets:
-    - lib/Icons/
-    - lib/Gifs/
-    - lib/Stickers/
+    - assets/Icons/
+    - assets/Gifs/
+    - assets/Stickers/
   #   - images/a_dot_ham.jpeg
+
+flutter_native_splash:
+  android: true
+  ios: true
+  color: #E3ECF5
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -105,3 +111,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+
+

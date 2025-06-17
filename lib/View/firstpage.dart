@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:fyp/View/loadingPage.dart';
 import 'package:fyp/View/signUpPage.dart';
-
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
+import 'homepage.dart';
 import 'loginpage.dart';
 
 class firstpage extends StatefulWidget {
@@ -13,13 +17,46 @@ class firstpage extends StatefulWidget {
 
 class _firstpageState extends State<firstpage> {
   final List<String> imgList = [
-    'lib/Stickers/assetmanagement.png',
-    'lib/Stickers/business.png',
-    'lib/Stickers/dontletmoneyflyaway.png',
-    'lib/Stickers/financialgoals.png',
+    'assets/Stickers/assetmanagement.png',
+    'assets/Stickers/business.png',
+    'assets/Stickers/dontletmoneyflyaway.png',
+    'assets/Stickers/financialgoals.png',
   ];
 
   int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    loadingPage();
+    _checkAutoLogin();
+  }
+
+  Future<void> _checkAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedin') ?? false;
+    final email = prefs.getString('userEmail');
+    final token = prefs.getString('authToken');
+
+    if (isLoggedIn && email != null && token != null) {
+      final viewModel = Provider.of<signUpnLogin_viewmodel>(
+        context,
+        listen: false,
+      );
+      final success = await viewModel.autoLoginWithPrefs(email, token);
+
+      if (success) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => homepage(userInfo: viewModel.userInfo!),
+          ),
+        );
+      } else {
+        debugPrint("Stored credentials invalid or expired.");
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +82,11 @@ class _firstpageState extends State<firstpage> {
                                 (e) => Image.asset(
                                   e,
                                   fit: BoxFit.contain,
-                                  width: screenWidth * 0.8, // 80% of screen width
+                                  width:
+                                      screenWidth * 0.8, // 80% of screen width
                                   height:
-                                      screenHeight * 0.4, // 40% of screen height
+                                      screenHeight *
+                                      0.4, // 40% of screen height
                                 ),
                               )
                               .toList(),
@@ -79,14 +118,29 @@ class _firstpageState extends State<firstpage> {
                   Navigator.push(
                     context,
                     PageRouteBuilder(
-                      transitionDuration: Duration(milliseconds: 800), // 🔧 Adjust timer here
-                      pageBuilder: (context, animation, secondaryAnimation) => loginpage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        const begin = Offset(1.0, 0.0); // Start off-screen to the right
+                      transitionDuration: Duration(
+                        milliseconds: 800,
+                      ), // 🔧 Adjust timer here
+                      pageBuilder:
+                          (context, animation, secondaryAnimation) =>
+                              loginpage(),
+                      transitionsBuilder: (
+                        context,
+                        animation,
+                        secondaryAnimation,
+                        child,
+                      ) {
+                        const begin = Offset(
+                          1.0,
+                          0.0,
+                        ); // Start off-screen to the right
                         const end = Offset.zero;
                         const curve = Curves.ease;
 
-                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                        var tween = Tween(
+                          begin: begin,
+                          end: end,
+                        ).chain(CurveTween(curve: curve));
                         return SlideTransition(
                           position: animation.drive(tween),
                           child: child,
@@ -95,7 +149,7 @@ class _firstpageState extends State<firstpage> {
                     ),
                   );
                 }),
-                SizedBox(height: screenHeight * 0.025,),
+                SizedBox(height: screenHeight * 0.025),
                 _navigationButton('Sign Up', screenWidth, screenHeight, () {
                   Navigator.push(
                     context,

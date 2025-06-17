@@ -76,5 +76,9 @@ class signUpnLoginRepository {
       print('❌ Response body: ${response.body}');
       return null;
     }
-}
+  }
+
+  Future<UserInfoModule?> fetchSavedUser(String email, String token) async {
+    return await fetchUserDetailsByEmail(email, token);
+  }
 }

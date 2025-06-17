@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/View/homepage.dart';
+import 'package:fyp/View/taxexempt.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Model/signupLoginpage.dart';
 import 'comparepricepage.dart';
@@ -53,7 +55,7 @@ class _accountpageState extends State<accountpage> {
                         shape: BoxShape.circle,
                         image: DecorationImage(
                           fit: BoxFit.cover,
-                          image: AssetImage('lib/Stickers/profile_male.png'),
+                          image: AssetImage('assets/Stickers/profile_male.png'),
                         ),
                       ),
                     ),
@@ -92,21 +94,21 @@ class _accountpageState extends State<accountpage> {
               child: Column(
                 children: [
                   AccountOptionTile(
-                    iconPath: 'lib/Icons/edit_profile2.png',
+                    iconPath: 'assets/Icons/edit_profile2.png',
                     label: 'Edit Profile Information',
                     onTap: () {
                       // navigate
                     },
                   ),
                   AccountOptionTile(
-                    iconPath: 'lib/Icons/notification2.png',
+                    iconPath: 'assets/Icons/notification2.png',
                     label: 'Notification',
                     onTap: () {
                       // navigate
                     },
                   ),
                   AccountOptionTile(
-                    iconPath: 'lib/Icons/feedback2.png',
+                    iconPath: 'assets/Icons/feedback2.png',
                     label: 'Feeback',
                     onTap: () {
                       // toggle theme
@@ -127,21 +129,21 @@ class _accountpageState extends State<accountpage> {
               child: Column(
                 children: [
                   AccountOptionTile(
-                    iconPath: 'lib/Icons/budget3.png',
+                    iconPath: 'assets/Icons/budget3.png',
                     label: 'Monthly Budget Settings',
                     onTap: () {
                       // navigate
                     },
                   ),
                   AccountOptionTile(
-                    iconPath: 'lib/Icons/preferences.png',
+                    iconPath: 'assets/Icons/preferences.png',
                     label: 'Preferences',
                     onTap: () {
                       // navigate
                     },
                   ),
                   AccountOptionTile(
-                    iconPath: 'lib/Icons/report.png',
+                    iconPath: 'assets/Icons/report.png',
                     label: 'Generate Report',
                     onTap: () {
                       // toggle theme
@@ -162,21 +164,21 @@ class _accountpageState extends State<accountpage> {
               child: Column(
                 children: [
                   AccountOptionTile(
-                    iconPath: 'lib/Icons/lock.png',
+                    iconPath: 'assets/Icons/lock.png',
                     label: 'Change Password',
                     onTap: () {
                       // navigate
                     },
                   ),
                   AccountOptionTile(
-                    iconPath: 'lib/Icons/family.png',
+                    iconPath: 'assets/Icons/family.png',
                     label: 'Family Sharing',
                     onTap: () {
                       // navigate
                     },
                   ),
                   AccountOptionTile(
-                    iconPath: 'lib/Icons/delete.png',
+                    iconPath: 'assets/Icons/delete.png',
                     label: 'Delete Account',
                     onTap: () {
                       // toggle theme
@@ -188,7 +190,9 @@ class _accountpageState extends State<accountpage> {
             SizedBox(height: 15),
             // Logout Button
             GestureDetector(
-              onTap: () {
+              onTap: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear(); // or remove specific keys like prefs.remove('authToken')
                 // Logout
               },
               child: Container(
@@ -239,7 +243,15 @@ class _accountpageState extends State<accountpage> {
               icon: Icon(CupertinoIcons.search, size: 50, color: Colors.black),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => taxExempt(userInfo: widget.userInfo),
+                  ),
+                );
+              },
               icon: Icon(CupertinoIcons.doc, size: 45, color: Color(0xFF5A7BE7)),
             ),
             IconButton(

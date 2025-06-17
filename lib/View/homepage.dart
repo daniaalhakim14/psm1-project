@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
 import 'package:fyp/View/accountpage.dart';
 import 'package:fyp/View/comparepricepage.dart';
+import 'package:fyp/View/taxexempt.dart';
 import 'package:provider/provider.dart';
 import '../Model/expense.dart';
 import '../Model/signupLoginpage.dart';
 import '../ViewModel/expense/expense_viewmodel.dart';
 import '../ViewModel/receiptParser/receiptParser_viewmodel.dart';
 import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
+import 'expenseDetails.dart';
 import 'expenseInput.dart';
 
 class homepage extends StatefulWidget {
@@ -29,7 +31,8 @@ class _homepageState extends State<homepage> {
   int _currentPage = 0;
   File? _uploadedPdf;
   late ScrollController _scrollController;
-  List<DateTime> months = []; // Declare list months and initialise to months to be empty
+  List<DateTime> months =
+      []; // Declare list months and initialise to months to be empty
   late Timer _timer;
 
   String _monthNamePieChart(int month) {
@@ -75,46 +78,28 @@ class _homepageState extends State<homepage> {
   }
    */
   String _formatMonth(DateTime date) {
-    //DateTime malaysiaTime = date.toUtc().add(Duration(hours: 8));
     DateTime malaysiaTime = date.toLocal();
     return "${_monthNamePieChart(malaysiaTime.month)} ${malaysiaTime.year}";
   }
+
 
   String _formatFullDate(DateTime date) {
     DateTime local = date.toLocal(); // use local time
     return "${local.day.toString().padLeft(2, '0')} ${_monthNameTransactionList(local.month)} ${local.year}";
   }
 
-
   String selectedMonth = ''; // Declare variable selectedMonth to store selectedMonth
   bool showDailySpending = true;
   List<Widget> carouselItem = [];
 
-  @override
-  void initState() {
-    super.initState(); // ← Missing in your code!
-    selectedMonth = _formatMonth(DateTime.now());
-    _scrollController = ScrollController(); // instance created to manage horizontal behavior of the months Listview
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final token =
-          Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
-      if (token != null) {
-        final viewModel = Provider.of<expenseViewModel>(context, listen: false);
-        viewModel.fetchViewExpense(widget.userInfo.id, token);
-      } else {
-        print("Token is null — skipping fetchViewExpense");
-      }
-    });
-    // Start a timer to check for month changes
-    _startMonthCheckTimer();
-  }
-  void _initializeMonths() {  // Populates list with the past 12 months, starting from current months
+  void _initializeMonths() {
+    // Populates list with the past 12 months, starting from current months
     DateTime now = DateTime.now();
     for (int i = 0; i < 12; i++) {
       months.add(DateTime(now.year, now.month - i));
     }
-    months = months.reversed.toList(); // Reverse the order to show the newest months
+    months =
+        months.reversed.toList(); // Reverse the order to show the newest months
   }
 
   void _startMonthCheckTimer() {
@@ -131,24 +116,49 @@ class _homepageState extends State<homepage> {
     return months.any((month) => _formatMonth(month) == currentMonthFormatted);
   }
 
-  void _updateMonths() {  //  checks hourly if a new month has arrived. Updates the months list by removing the oldest month and adding the next month
+  void _updateMonths() {
+    //  checks hourly if a new month has arrived. Updates the months list by removing the oldest month and adding the next month
     setState(() {
       months.removeAt(0); // Remove the first (oldest) month
       DateTime lastMonth = months.last;
-      months.add(DateTime(lastMonth.year, lastMonth.month + 1)); // Add the next month
+      months.add(
+        DateTime(lastMonth.year, lastMonth.month + 1),
+      ); // Add the next month
     });
   }
 
-  void scrollToMonth(String month) {  // this methods automatically scrolls to selected months
+  void scrollToMonth(String month) {
+    // this methods automatically scrolls to selected months
     int index = months.indexWhere((date) => _formatMonth(date) == month);
     if (index != -1) {
-      double offset = index * 90.0; // Adjust offset based on item width and padding
+      double offset =
+          index * 90.0; // Adjust offset based on item width and padding
       _scrollController.animateTo(
         offset,
         duration: Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    selectedMonth = _formatMonth(DateTime.now());
+    _scrollController = ScrollController(); // instance created to manage horizontal behavior of the months Listview
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
+      if (token != null) {
+        final viewModel = Provider.of<expenseViewModel>(context, listen: false);
+        viewModel.fetchViewExpense(widget.userInfo.id, token);
+        final viewModel_listexpense = Provider.of<expenseViewModel>(context, listen: false);
+        viewModel_listexpense.fetchListExpense(widget.userInfo.id,token);
+      } else {
+        print("Token is null — skipping fetchViewExpense");
+      }
+    });
+    // Start a timer to check for month changes
+    _startMonthCheckTimer();
   }
 
   @override
@@ -210,11 +220,10 @@ class _homepageState extends State<homepage> {
                                   DateTime utcTime = DateTime.parse(isoFormatDate);
                                   DateTime localTime = utcTime.toLocal();
                                   String formattedExpenseDate = _formatMonth(localTime);
-                                  // Format expense.date
+                                  print(formattedExpenseDate);
+                                  //Format expense.date
 
-                                  if (expense.categoryname != null &&
-                                      formattedExpenseDate == selectedMonth &&
-                                      expense.userId == widget.userInfo.id) {
+                                  if (expense.categoryname != null && formattedExpenseDate == selectedMonth && expense.userId == widget.userInfo.id) {
                                     if (!aggregatedData.containsKey(
                                       expense.categoryname,
                                     )) {
@@ -232,25 +241,16 @@ class _homepageState extends State<homepage> {
                                     totalAmount +=
                                         (expense.expenseAmount ??
                                             0.0); // Sum up total expenses
-                                  } else {
-                                    print('expense.categoryname is empty');
-                                    print(expense.categoryname);
-                                    print('selected month');
-                                    print(selectedMonth);
-                                    print(expense.userId);
-                                    print(widget.userInfo.id);
-                                    debugPrint('formattedExpenseDate: [$formattedExpenseDate]');
-                                    debugPrint('selectedMonth: [$selectedMonth]');
-
                                   }
-                                }
 
+                                }
                                 // Check if there's any data to display
+
                                 if (aggregatedData.isEmpty) {
                                   return Column(
                                     children: [
                                       Image.asset(
-                                        'lib/Icons/statistics.png',
+                                        'assets/Icons/statistics.png',
                                         width: screenWidth * 0.4,
                                         height: screenHeight * 0.2,
                                       ),
@@ -328,7 +328,6 @@ class _homepageState extends State<homepage> {
                                             1.38, // Position badges outside
                                       );
                                     }).toList();
-
                                 // To display Pie chart
                                 return Stack(
                                   alignment: Alignment.center,
@@ -405,69 +404,12 @@ class _homepageState extends State<homepage> {
                           ),
                         ),
                       ),
-                      // Horizontal scroll months syntax
-                      Center(
-                        child: Column(
-                          children: [
-                            // Horizontal scrollable months
-                            SizedBox(
-                              height: 40,
-                              child: ListView.builder(  // creates a horizontal scrollable list of months
-                                controller: _scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: months.length,
-                                itemBuilder: (context, index) {
+                      /*
+                      CarouselSlider(items: [
+                        _monthNamePieChart(month),
+                      ], options: options),
 
-                                  if (index == 0) {
-                                    // Scroll to selected month when ListView is built
-                                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                                      if (_scrollController.hasClients) {
-                                        scrollToMonth(selectedMonth);
-                                      }
-                                    });
-                                  }
-
-                                  final month = months[index];
-                                  final monthString = _formatMonth(month);
-                                  final isSelected = monthString == selectedMonth;
-
-                                  return GestureDetector( // lets users select a month
-                                    onTap: () {
-                                      setState(() {
-                                        selectedMonth = monthString;
-                                      });
-                                      scrollToMonth(monthString);
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            monthString,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                              color: isSelected ? Colors.black : Colors.grey,
-                                            ),
-                                          ),
-                                          if (isSelected)
-                                            Container(
-                                              width: 30,
-                                              height: 2,
-                                              color: Colors.black,
-                                              margin: const EdgeInsets.only(top: 4),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                       */
                       carouselindicator(),
                       SizedBox(height: 10),
                     ],
@@ -476,6 +418,7 @@ class _homepageState extends State<homepage> {
               ),
 
               SizedBox(height: screenHeight * 0.025),
+
               Column(
                 children: [
                   Row(
@@ -511,7 +454,7 @@ class _homepageState extends State<homepage> {
                               children: [
                                 Text(
                                   'Recent spending: RM',
-                                  style: TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
@@ -520,41 +463,41 @@ class _homepageState extends State<homepage> {
                               thickness: 3, // Thickness of the line
                               color: Colors.grey, // Optional: set color
                             ),
+                            SizedBox(height: 8),
+                            // latest transaction list
                             Consumer<expenseViewModel>(
-                              builder: (context, viewModel, child) {
-                                List<ListExpense> listExpense =
-                                    viewModel.listExpense;
-
-                                if (viewModel.fetchingData) {
-                                  return Container(
-                                    width: 250,
-                                    height: 250,
+                              builder: (context, viewModel_listexpense, child) {
+                                List<ListExpense> listExpense = viewModel_listexpense.listExpense;
+                                if (viewModel_listexpense.fetchingData) {
+                                  return SizedBox(
+                                    width: 220,
+                                    height: 220,
                                     child: const Center(
                                       child: CircularProgressIndicator(),
                                     ),
                                   );
                                 }
+                                print("Fetched ListExpense Count: ${viewModel_listexpense.listExpense.length}");
+
                                 // Filter list expense by the selected month
                                 final filteredExpense =
                                     listExpense.where((expense) {
                                       String isoFormatDate = expense.expenseDate.toString();
-                                      DateTime utcTime = DateTime.parse(isoFormatDate);
+                                      DateTime utcTime = DateTime.parse(isoFormatDate,);
                                       DateTime localTime = utcTime.toLocal();
                                       String formattedExpenseDate = _formatMonth(localTime);
-
                                       return formattedExpenseDate == selectedMonth;
                                     }).toList();
-
                                 if (filteredExpense.isEmpty) {
                                   return Column(
                                     children: [
                                       Image.asset(
-                                        'lib/Icons/statistics.png',
+                                        'assets/Icons/statistics.png',
                                         width: 190,
-                                        height: 190,
+                                        height: 180,
                                         fit: BoxFit.contain,
                                       ),
-                                      const SizedBox(height: 20),
+                                      const SizedBox(height: 10),
                                       Center(
                                         child: Text(
                                           'No transactions for $selectedMonth',
@@ -568,139 +511,127 @@ class _homepageState extends State<homepage> {
                                     ],
                                   );
                                 }
+                                return Expanded(
+                                  child: SizedBox(
+                                    height: MediaQuery.of(context).size.height * 0.43,
+                                    child: ListView.builder(
+                                      itemCount: filteredExpense.length,
+                                      itemBuilder: (context, index) {
+                                        final expense = filteredExpense[index];
 
-                                return SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.43,
-                                  child: ListView.builder(
-                                    itemCount: filteredExpense.length,
-                                    itemBuilder: (context, index) {
-                                      final expense = filteredExpense[index];
+                                        String isoFormatDate = expense.expenseDate.toString();
+                                        DateTime utcTime = DateTime.parse(isoFormatDate,);
+                                        DateTime localTime = utcTime.toLocal();
+                                        String formattedExpenseDate = _formatMonth(localTime);
+                                        
+                                        // Format transaction.date
+                                        return GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (
+                                                      context,
+                                                    ) => expenseDetails(
+                                                      userid: widget.userInfo.id,
+                                                      expensedetail: expense, // Pass the single transaction object
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                          child: Column(
+                                            children: [
+                                              // List Header
+                                              if (index == 0 || filteredExpense[index - 1].expenseDate != expense.expenseDate)
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey[200],
 
-                                      String isoFormatDate = expense.expenseDate.toString();
-                                      DateTime utcTime = DateTime.parse(isoFormatDate);
-                                      DateTime localTime = utcTime.toLocal();
-                                      String formattedExpenseDate = _formatMonth(localTime);
-                                      // Format transaction.date
-
-                                      return GestureDetector(
-                                        onTap: () {
-                                          /*
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (
-                                                    context,
-                                                  ) => TransactionDetailScreen(
-                                                    userid: widget.userInfo.id,
-                                                    listDetail:
-                                                        transaction, // Pass the single transaction object
                                                   ),
-                                            ),
-                                          );
-                                          */
-                                        },
-                                        child: Column(
-                                          children: [
-                                            // List Header
-                                            if (index == 0 ||
-                                                filteredExpense[index - 1]
-                                                        .expenseDate !=
-                                                    expense.expenseDate)
+                                                  height: 30.0,
+                                                  width: double.infinity,
+                                                  child: Padding(padding: const EdgeInsets.all(4.0,),
+                                                    child: Text(
+                                                      formattedExpenseDate,
+                                                      // Display the transaction date
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              // Transaction Details
                                               Container(
                                                 decoration: BoxDecoration(
-                                                  color: Colors.grey[200],
-                                                ),
-                                                height: 30.0,
-                                                width: double.infinity,
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    4.0,
+                                                  border: Border.all(
+                                                    color: Colors.grey,
+                                                    // Border color
+                                                    width: 1.0, // Border width
                                                   ),
-                                                  child: Text(
-                                                    formattedExpenseDate,
-                                                    // Display the transaction date
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
+                                                  color: Colors.white,// Optional: Rounded corners
+                                                ),
+                                                child: ListTile(
+                                                  leading: CircleAvatar(
+                                                    backgroundColor:
+                                                        expense.iconColor,
+                                                    child: Icon(
+                                                      expense.iconData,
+                                                      color: Colors.white,
                                                     ),
                                                   ),
-                                                ),
-                                              ),
-
-                                            // Transaction Details
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  color: Colors.grey,
-                                                  // Border color
-                                                  width: 1.0, // Border width
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                      0.0,
-                                                    ), // Optional: Rounded corners
-                                              ),
-                                              child: ListTile(
-                                                leading: CircleAvatar(
-                                                  backgroundColor:
-                                                      expense.iconColor,
-                                                  child: Icon(
-                                                    expense.iconData,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                                title: Text(
-                                                  expense.categoryname
-                                                      .toString(),
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        Colors
-                                                            .white, // Dynamic color based on dark mode
-                                                  ),
-                                                ),
-                                                subtitle: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      expense.expenseDescription
-                                                          .toString(),
-                                                      style: const TextStyle(
-                                                        color: Colors.grey,
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                trailing: Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        left: 8.0,
-                                                      ),
-                                                  child: Text(
-                                                    'RM ${expense.expenseAmount}',
-                                                    // Format the amount
+                                                  title: Text(
+                                                    expense.categoryname
+                                                        .toString(),
                                                     style: TextStyle(
-                                                      color:
-                                                          Colors
-                                                              .white, // Dynamic color
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors
+                                                              .black, // Dynamic color based on dark mode
+                                                    ),
+                                                  ),
+                                                  subtitle: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        expense.expenseDescription
+                                                            .toString(),
+                                                        style: const TextStyle(
+                                                          color: Colors.grey,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  trailing: Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          left: 8.0,
+                                                        ),
+                                                    child: Text(
+                                                      'RM ${expense.expenseAmount}',
+                                                      // Format the amount
+                                                      style: TextStyle(
+                                                        color:
+                                                            Colors
+                                                                .black, // Dynamic color
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
                                 );
                               },
                             ),
+                            SizedBox(height: 8),
                           ],
                         ),
                       ),
@@ -801,7 +732,14 @@ class _homepageState extends State<homepage> {
               icon: Icon(CupertinoIcons.search, size: 50, color: Colors.black),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => taxExempt(userInfo: widget.userInfo),
+                  ),
+                );
+              },
               icon: Icon(CupertinoIcons.doc, size: 45, color: Colors.black),
             ),
             IconButton(

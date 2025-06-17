@@ -42,7 +42,7 @@ class expenseCategoryRepository{
       final data = jsonDecode(response.body); // This is a list of maps
 
       // Print raw JSON response from backend
-      // print('Raw Expense Data from API: ${response.body}');
+      //print('Raw Expense Data from API: ${response.body}');
       final expenses = List<ViewExpense>.from(
         data.map((x) => ViewExpense.fromJson(x)),
       );
@@ -77,6 +77,17 @@ class expenseCategoryRepository{
       rethrow; // Allow ViewModel to handle it
     }
   }
+
+  Future<void> deleteExpense(DeleteExpense deleteExpense, int userid, String token) async {
+    final response = await _service.deleteExpense(deleteExpense.expenseId,userid,token);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete expense: ${response.body}');
+    }
+
+    print('Expense deleted successfully');
+  }
+
   // Add a dispose method to clean up resources
   void dispose() {
     _service.dispose(); // Call dispose in the service

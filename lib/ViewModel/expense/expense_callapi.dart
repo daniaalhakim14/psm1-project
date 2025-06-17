@@ -48,13 +48,31 @@ class expense_callApi {
   }
 
   Future<http.Response> fetchListExpense(int userid, String token) async{
-    String endpoint = '/listExpense/$userid';
+    String endpoint = '/expense/listExpense/$userid';
     String url = '${AppConfig.baseUrl}$endpoint';
     return await http.get(Uri.parse(url),
     headers: {'Content-Type': 'application/json',
       'Authorization' : 'Bearer $token'}
     );
   }
+
+  Future<http.Response> deleteExpense(int expenseId, int userid,String token) async {
+    String endpoint = '/expense/expenseDelete/$expenseId';
+    String url = '${AppConfig.baseUrl}$endpoint';
+    //print("Deleting expense with ID: $expenseId");
+
+    final response = await http.delete(Uri.parse(url),
+        headers: {'Content-Type': 'application/json',
+          'Authorization' : 'Bearer $token'}
+        );
+
+    print("Response status: ${response.statusCode}");
+    print("Response body: ${response.body}");
+
+    return response;
+  }
+
+
 
   // Add a dispose method to clean up
   void dispose() {

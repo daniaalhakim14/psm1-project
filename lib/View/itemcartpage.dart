@@ -138,7 +138,7 @@ class ItemCard extends StatelessWidget {
                 color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(8),
                 image: DecorationImage(
-                  image: AssetImage('lib/Icons/no_picture.png'),
+                  image: AssetImage('assets/Icons/no_picture.png'),
                   fit: BoxFit.cover,
                 ),
               ),

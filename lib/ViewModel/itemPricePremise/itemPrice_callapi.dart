@@ -17,4 +17,10 @@ class itemPrice_callapi {
     String url = '${AppConfig.baseUrl}$endpoint';
     return await http.get(Uri.parse(url));
   }
+
+  Future<http.Response> fetchBestDeals() async {
+    String endpoint = '/itemPrice/bestDeals';
+    String url = '${AppConfig.baseUrl}$endpoint';
+    return await http.get(Uri.parse(url));
+  }
 }

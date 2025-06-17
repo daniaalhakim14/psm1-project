@@ -36,7 +36,7 @@ class itemPrice {
 
   factory itemPrice.fromJson(Map<String, dynamic> json) {
     return itemPrice(
-      itemcode: json['itemcode'],
+      itemcode: int.parse(json['itemcode'].toString()),
       itemname: json['itemname'],
       unit: json['unit'],
       itemgroup: json['itemgroup'],
@@ -45,7 +45,7 @@ class itemPrice {
           json['itemimage'] != null
               ? base64Decode(json['itemimage']) // Decode Base64 to Uint8List
               : null,
-      premiseid: json['premiseid'],
+      premiseid: int.parse(json['premiseid'].toString()),
       price: (json['price'] as num).toDouble(),
       premisename: json['premisename'],
       address: json['address'],
@@ -62,7 +62,8 @@ class itemPrice {
       'unit': unit,
       'itemgroup': itemgroup,
       'itemcategory': itemcategory,
-      'image': itemimage, // Consider converting to base64 if sending as JSON string
+      'image':
+          itemimage, // Consider converting to base64 if sending as JSON string
       'premiseid': premiseid,
       'price': price,
       'premisename': premisename,
@@ -75,7 +76,7 @@ class itemPrice {
 }
 
 // for item to be search in search bar
-class itemSearch{
+class itemSearch {
   final int itemcode;
   final String itemname;
   final Uint8List? image;
@@ -84,15 +85,15 @@ class itemSearch{
     required this.itemcode,
     required this.itemname,
     required this.image,
-});
+  });
   factory itemSearch.fromJson(Map<String, dynamic> json) {
     return itemSearch(
-        itemcode:int.parse(json['itemcode'].toString()),
-        itemname: json['itemname'],
-        image:
-        json['itemimage'] != null
-            ? base64Decode(json['itemimage']) // Decode Base64 to Uint8List
-            : null
+      itemcode: int.parse(json['itemcode'].toString()),
+      itemname: json['itemname'],
+      image:
+          json['itemimage'] != null
+              ? base64Decode(json['itemimage']) // Decode Base64 to Uint8List
+              : null,
     );
   }
 }
