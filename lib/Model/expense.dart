@@ -111,6 +111,7 @@ class ListExpense{
   final String? categoryname;
   final String? expenseDescription;
   final String? paymenttype;
+  final String? receiptPdf;
   final int? userId;
   final IconData? iconData;
   final Color? iconColor;
@@ -122,6 +123,7 @@ class ListExpense{
     this.categoryname,
     this.expenseDescription,
     this.paymenttype,
+    this.receiptPdf,
     this.userId,
     this.iconData,
     this.iconColor
@@ -133,6 +135,7 @@ class ListExpense{
     categoryname: json['categoryname'],
     expenseDescription: json['description'],
     paymenttype: json['paymenttype'],
+    receiptPdf: json['receipt'],
     userId: int.tryParse(json["userid"].toString()),
     iconData:
     (json['iconcodepoint'] != null && json['iconfontfamily'] != null)

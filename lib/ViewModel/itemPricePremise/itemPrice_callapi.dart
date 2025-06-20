@@ -23,4 +23,12 @@ class itemPrice_callapi {
     String url = '${AppConfig.baseUrl}$endpoint';
     return await http.get(Uri.parse(url));
   }
+
+  Future<http.Response> fetchStoreLocation() async{
+    String endpoint = '/itemPrice/storeLocation';
+    String url = '${AppConfig.baseUrl}$endpoint';
+    print('store location: $url');
+    return await http.get(Uri.parse(url));
+  }
+
 }

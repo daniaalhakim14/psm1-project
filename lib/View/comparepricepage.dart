@@ -1,11 +1,11 @@
 import 'dart:async';
-
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/View/homepage.dart';
 import 'package:fyp/View/selectitempage.dart';
 import 'package:fyp/View/taxexempt.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../Model/signupLoginpage.dart';
 import '../ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
@@ -13,7 +13,7 @@ import 'accountpage.dart';
 
 class comparepricepage extends StatefulWidget {
   final UserInfoModule userInfo;
-  const comparepricepage({super.key,required this.userInfo});
+  const comparepricepage({super.key, required this.userInfo});
 
   @override
   State<comparepricepage> createState() => _comparepricepageState();
@@ -23,27 +23,10 @@ class _comparepricepageState extends State<comparepricepage> {
   final _textControllerSearch = TextEditingController();
   int _currentPage = 0;
   final searchController = SearchController();
-  final List<Map<String, String>> sliderItems = [
-    {'image': 'assets/Stickers/assetmanagement.png', 'title': 'Item 1'},
-    {'image': 'assets/Stickers/business.png', 'title': 'Item 2'},
-    {'image': 'assets/Stickers/dontletmoneyflyaway.png', 'title': 'Item 3'},
-  ];
   String selectedText = '';
   Timer? _debounce;
   String _lastQuery = '';
-
-
-  @override
-  void initState() {
-    super.initState();
-    // Trigger fetching best deals once this widget is initialized
-    Future.microtask(() {
-      final viewModel = Provider.of<itemPrice_viewmodel>(context, listen: false);
-      viewModel.fetchBestDeals();
-    });
-
-  }
-
+  LatLng? _currentPosition;
 
   void onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
@@ -53,7 +36,56 @@ class _comparepricepageState extends State<comparepricepage> {
     });
   }
 
+  // Request Location Permission
 
+  Future<Position> getUserLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled');
+    }
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permissions are denied.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Location permissions are permanently denied.');
+    }
+
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+
+  Future<void> _initLocation() async {
+    try {
+      Position position = await getUserLocation();
+      setState(() {
+        _currentPosition = LatLng(position.latitude, position.longitude);
+      });
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Trigger fetching best deals once this widget is initialized
+    Future.microtask(() {
+      final viewModel = Provider.of<itemPrice_viewmodel>(
+        context,
+        listen: false,
+      );
+      viewModel.fetchBestDeals();
+      viewModel.fetchStoreLocation();
+    });
+
+    _initLocation();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,16 +145,25 @@ class _comparepricepageState extends State<comparepricepage> {
                                 selectedText = '';
                                 _lastQuery = ''; // reset
                               });
-                              final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false);
+                              final searchVM = Provider.of<itemPrice_viewmodel>(
+                                context,
+                                listen: false,
+                              );
                               searchVM.fetchItemSearch(''); // clear results
                             },
                           ),
                         ],
-                        barBackgroundColor: WidgetStatePropertyAll(Colors.white),
+                        barBackgroundColor: WidgetStatePropertyAll(
+                          Colors.white,
+                        ),
                         barShape: WidgetStatePropertyAll(
                           RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12), // <-- radius value
-                            side: BorderSide(color: Colors.blue), // optional: border color
+                            borderRadius: BorderRadius.circular(
+                              12,
+                            ), // <-- radius value
+                            side: BorderSide(
+                              color: Colors.blue,
+                            ), // optional: border color
                           ),
                         ),
                         suggestionsBuilder: (context, controller) {
@@ -130,7 +171,10 @@ class _comparepricepageState extends State<comparepricepage> {
                           final query = controller.text;
                           if (query != _lastQuery) {
                             _lastQuery = query;
-                            final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false);
+                            final searchVM = Provider.of<itemPrice_viewmodel>(
+                              context,
+                              listen: false,
+                            );
                             searchVM.fetchItemSearch(query);
                           }
                           final suggestions = searchVM.itemsearch;
@@ -140,10 +184,16 @@ class _comparepricepageState extends State<comparepricepage> {
                               ListTile(
                                 title: Text(
                                   'Item not available',
-                                  style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                                leading: Icon(Icons.info_outline, color: Colors.grey),
-                              )
+                                leading: Icon(
+                                  Icons.info_outline,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ];
                           }
                           // Otherwise show matching results
@@ -154,7 +204,12 @@ class _comparepricepageState extends State<comparepricepage> {
                                 setState(() {
                                   selectedText = item.itemname;
                                   searchController.closeView(item.itemname);
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => selectitempage()));
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => selectitempage(),
+                                    ),
+                                  );
                                 });
                               },
                             );
@@ -206,7 +261,10 @@ class _comparepricepageState extends State<comparepricepage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 12.0),
-                  child: Text("Best Deals",style: TextStyle(fontWeight: FontWeight.bold),),
+                  child: Text(
+                    "Best Deals",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(right: 24.0),
@@ -224,146 +282,105 @@ class _comparepricepageState extends State<comparepricepage> {
             ),
             SizedBox(height: 10),
             Consumer<itemPrice_viewmodel>(
-              builder: (context, searchVM, child) {
-                if (searchVM.fetchingData) {
+              builder: (context, viewModel, child) {
+                if (viewModel.fetchingData) {
                   return Center(child: CircularProgressIndicator());
                 }
-                final deals = searchVM.bestdeals;
+                final deals = viewModel.bestdeals;
                 if (deals.isEmpty) {
                   return Center(child: Text("No best deals available."));
                 }
-                return CarouselSlider(
-                  items: deals.map((item) {
-                    return Builder(
-                      builder: (BuildContext context) {
-                        return Container(
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          margin: EdgeInsets.symmetric(horizontal: 8.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.blue, width: 1.5),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    children:
+                        deals.map((item) {
+                          return Container(
+                            width: MediaQuery.of(context).size.width * 0.40,
+                            height: 240,
+                            margin: EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                              vertical: 8.0,
+                            ),
+                            padding: EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
+                                color: Colors.blue,
+                                width: 1.5,
                               ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
                             child: Column(
                               children: [
                                 item.itemimage != null
                                     ? Image.memory(item.itemimage!, height: 80)
-                                    : Image.asset('assets/Icons/no_picture.png', height: 80),
+                                    : Image.asset(
+                                      'assets/Icons/no_picture.png',
+                                      height: 80,
+                                    ),
                                 SizedBox(height: 6),
                                 Text(
                                   item.itemname,
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'RM${item.price.toStringAsFixed(2)}',
-                                  style: TextStyle(fontSize: 14, color: Colors.blue, fontWeight: FontWeight.bold),
+                                  'RM${item.price}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 SizedBox(height: 4),
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.green[100],
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
                                     'Cheapest in this store',
-                                    style: TextStyle(fontSize: 10, color: Colors.green[800]),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.green[800],
+                                    ),
                                   ),
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  item.premisename,
-                                  style: TextStyle(fontSize: 10, color: Colors.black),
+                                  item.premisename.toString(),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.black,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  }).toList(),
-                  options: CarouselOptions(
-                    height: 200,
-                    enlargeCenterPage: true,
-                    autoPlay: true,
-                    enableInfiniteScroll: true,
-                    autoPlayInterval: Duration(seconds: 4),
-                    autoPlayAnimationDuration: Duration(milliseconds: 800),
+                          );
+                        }).toList(),
                   ),
                 );
               },
             ),
-
-            /*
-            CarouselSlider(
-              items:
-                  sliderItems.map((item) {
-                    return Builder(
-                      builder: (BuildContext context) {
-                        return Container(
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          margin: EdgeInsets.symmetric(horizontal: 8.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(item['image']!, height: 80),
-                              SizedBox(height: 10),
-                              Text(
-                                item['title']!,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  }).toList(),
-              options: CarouselOptions(
-                initialPage: 0,
-                enlargeCenterPage:
-                    true, // enlarges image, make it stand out visually
-                autoPlay: true, // automatic sliding of carousel image
-                reverse: false, // false, makes it move left to right
-                enableInfiniteScroll: true, // true, loop infinitely
-                autoPlayInterval: Duration(seconds: 3),
-                autoPlayAnimationDuration: Duration(milliseconds: 1500),
-                scrollDirection: Axis.horizontal,
-                onPageChanged: (value, _) {
-                  setState(() {
-                    _currentPage = value;
-                  });
-                },
-              ),
-            ),
-
-             */
             SizedBox(height: 15),
             Padding(
               padding: const EdgeInsets.only(left: 12.0),
@@ -373,7 +390,7 @@ class _comparepricepageState extends State<comparepricepage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 15.0),
+              padding: const EdgeInsets.only(left: 15.0,right: 15.0),
               child: Container(
                 width: 350,
                 height: 200,
@@ -381,8 +398,68 @@ class _comparepricepageState extends State<comparepricepage> {
                   color: Colors.grey,
                   borderRadius: BorderRadius.circular(10),
                 ),
+                child:
+                    _currentPosition == null
+                        ? Center(child: CircularProgressIndicator())
+                        : Consumer<itemPrice_viewmodel>(
+                          builder: (context, viewModel, child) {
+                            if (viewModel.fetchingData) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+                            final premiseInfo = viewModel.storelocation;
+                            //print("Premises received: ${premiseInfo.length}");
+                            Set<Marker> storeMarkers = premiseInfo
+                                    .where((location) {
+                                      if (_currentPosition == null ||
+                                          location.latitude == null ||
+                                          location.longitude == null) {
+                                        print('failed to show marker');
+                                        return false;
+                                      }
+
+                                      double distanceInMeters =
+                                          Geolocator.distanceBetween(
+                                            _currentPosition!.latitude,
+                                            _currentPosition!.longitude,
+                                            location.latitude!,
+                                            location.longitude!,
+                                          );
+
+                                      return distanceInMeters <= 10000; // Only within 10km
+                                    })
+                                    .map((location) {
+                                      return Marker(
+                                        markerId: MarkerId(
+                                          location.premiseid.toString(),
+                                        ),
+                                        position: LatLng(
+                                          location.latitude!,
+                                          location.longitude!,
+                                        ),
+                                        infoWindow: InfoWindow(
+                                          title:
+                                              location.premisename ??
+                                              'Not Available',
+                                          snippet:
+                                              'Store Type: ${location.premisetype ?? 'Unknown'}',
+                                        ),
+                                      );
+                                    })
+                                    .toSet();
+
+                            return GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                target: _currentPosition!,
+                                zoom: 15,
+                              ),
+                              markers: storeMarkers,
+                              myLocationEnabled: true,
+                              myLocationButtonEnabled: true,
+                            );
+                          },
+                        ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -394,22 +471,28 @@ class _comparepricepageState extends State<comparepricepage> {
             IconButton(
               onPressed: () {
                 Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => homepage(userInfo:widget.userInfo,),),
-              );},
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => homepage(userInfo: widget.userInfo),
+                  ),
+                );
+              },
               icon: Icon(CupertinoIcons.home, size: 45, color: Colors.black),
             ),
             IconButton(
               onPressed: () {},
-              icon: Icon(CupertinoIcons.search, size: 50, color: Color(0xFF5A7BE7)),
+              icon: Icon(
+                CupertinoIcons.search,
+                size: 50,
+                color: Color(0xFF5A7BE7),
+              ),
             ),
             IconButton(
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (context) => taxExempt(userInfo: widget.userInfo),
+                    builder: (context) => taxExempt(userInfo: widget.userInfo),
                   ),
                 );
               },
@@ -419,7 +502,10 @@ class _comparepricepageState extends State<comparepricepage> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => accountpage(userInfo: widget.userInfo)),
+                  MaterialPageRoute(
+                    builder:
+                        (context) => accountpage(userInfo: widget.userInfo),
+                  ),
                 );
               },
               icon: Icon(

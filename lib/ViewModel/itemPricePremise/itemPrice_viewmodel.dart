@@ -14,8 +14,10 @@ class itemPrice_viewmodel extends ChangeNotifier{
   List<itemSearch> _itemsearch = [];
   List<itemSearch> get itemsearch => _itemsearch;
   // use the same model class as itemPrice
-  List<itemPrice> _bestdeals = [];
-  List<itemPrice> get bestdeals => _bestdeals;
+  List<itemBestDeals> _bestdeals = [];
+  List<itemBestDeals> get bestdeals => _bestdeals;
+  List<storeLocation> _storelocation = [];
+  List<storeLocation> get storelocation => _storelocation;
 
   Future<void> fetchItemPrice() async{
     fetchingData = true;
@@ -53,9 +55,22 @@ class itemPrice_viewmodel extends ChangeNotifier{
     try{
       _bestdeals = await itemPriceRepository.getBestDeals();
     } catch(e){
-      print('Failed to load item price: $e');
+      print('Failed to load item deals: $e');
       _bestdeals = [];
     } finally{
+      fetchingData = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchStoreLocation() async{
+    fetchingData = true;
+    notifyListeners();
+    try{
+      _storelocation =await itemPriceRepository.getStoreLocation();
+    } catch(e){
+      print('Failed to get premise location information: $e');
+    }finally{
       fetchingData = false;
       notifyListeners();
     }
