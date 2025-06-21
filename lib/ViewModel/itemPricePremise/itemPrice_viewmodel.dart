@@ -75,4 +75,11 @@ class itemPrice_viewmodel extends ChangeNotifier{
       notifyListeners();
     }
   }
+  // Set Default
+  double distanceRadius = 10000.0;
+  void setDistanceRadius(double radius) {
+    distanceRadius = radius;
+    notifyListeners(); // ensures UI updates
+  }
+
 }

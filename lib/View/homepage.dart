@@ -26,7 +26,7 @@ class homepage extends StatefulWidget {
   State<homepage> createState() => _homepageState();
 }
 
-class _homepageState extends State<homepage> {
+class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
   int _selectedButtonIndex = 0;
   int _currentPage = 0;
   File? _uploadedPdf;
@@ -142,6 +142,9 @@ class _homepageState extends State<homepage> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
     selectedMonth = _formatMonth(DateTime.now());
@@ -163,6 +166,7 @@ class _homepageState extends State<homepage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // <--- this is required
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -720,7 +724,7 @@ class _homepageState extends State<homepage> {
             ),
             IconButton(
               onPressed: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder:
