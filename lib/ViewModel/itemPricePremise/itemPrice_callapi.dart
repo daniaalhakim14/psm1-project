@@ -5,27 +5,44 @@ import '../../configure_api.dart';
 class itemPrice_callapi {
   final http.Client _httpClient = http.Client();
 
+  /*
+  Future<http.Response> fetchItemPrice() async {
+    String endpoint = '/itemPrice';
+    String url = '${AppConfig.baseUrl}$endpoint';
+    return await http.get(Uri.parse(url));
+  }*/
+
   Future<http.Response> fetchItemPrice() async {
     String endpoint = '/itemPrice';
     String url = '${AppConfig.baseUrl}$endpoint';
     return await http.get(Uri.parse(url));
   }
 
-  Future<http.Response> fetchItemSearch(String searchTerm) async {
+
+  Future<http.Response> fetchItemSearch(String searchTerm,double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async {
     //String endpoint = '/itemSearch?searchTerm=$searchTerm';
-    String endpoint = '/itemPrice/itemSearch?searchTerm=$searchTerm';
+    final encodedStoreType = Uri.encodeQueryComponent(storeType);
+    final encodedPriceRange = Uri.encodeQueryComponent(priceRange);
+    final encodedItemGroup = Uri.encodeQueryComponent(itemGroup);
+
+    String endpoint = '/itemPrice/itemSearch?searchTerm=$searchTerm&lat=$lat&lng=$lng&radius=$radius&type=$encodedStoreType&priceRange=$encodedPriceRange&itemGroup$encodedItemGroup';
     String url = '${AppConfig.baseUrl}$endpoint';
     return await http.get(Uri.parse(url));
   }
 
-  Future<http.Response> fetchBestDeals() async {
-    String endpoint = '/itemPrice/bestDeals';
+  Future<http.Response> fetchBestDeals(double lat, double lng, double radius, String storeType) async {
+    // Encode storeType to handle spaces/special characters in URL
+    final encodedStoreType = Uri.encodeQueryComponent(storeType);
+    String endpoint = '/itemPrice/bestDeals?lat=$lat&lng=$lng&radius=$radius&type=$encodedStoreType';
     String url = '${AppConfig.baseUrl}$endpoint';
-    return await http.get(Uri.parse(url));
+    //print('bestdeals url: $url');
+    return await _httpClient.get(Uri.parse(url));
   }
 
-  Future<http.Response> fetchStoreLocation() async{
-    String endpoint = '/itemPrice/storeLocation';
+  Future<http.Response> fetchStoreLocation(double lat, double lng, double radius, String storeType) async{
+    // Encode storeType to handle spaces/special characters in URL
+    final encodedStoreType = Uri.encodeQueryComponent(storeType);
+    String endpoint = '/itemPrice/storeLocation?lat=$lat&lng=$lng&radius=$radius&type=$encodedStoreType';
     String url = '${AppConfig.baseUrl}$endpoint';
     print('store location: $url');
     return await http.get(Uri.parse(url));

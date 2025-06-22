@@ -8,6 +8,7 @@ import '../../Model/itemPricePremise.dart';
 class itemPrice_repositoryClass{
   final itemPrice_callapi _service = itemPrice_callapi();
 
+  /*
   Future<List<itemPrice>> getItemPrice() async{
     final response = await _service.fetchItemPrice();
     if (response.statusCode == 200){
@@ -19,10 +20,24 @@ class itemPrice_repositoryClass{
       print('API Error: ${response.body}');
       throw Exception('Failed to load item price');
     }
+  }*/
+
+  Future<List<itemPrice>> getItemPrice() async{
+    final response = await _service.fetchItemPrice();
+    if (response.statusCode == 200){
+      final data = jsonDecode(response.body);
+      return List<itemPrice>.from(
+          data.map((x) => itemPrice.fromJson(x))
+      );
+    }else{
+      print('API Error: ${response.body}');
+      throw Exception('Failed to load item price');
+    }
   }
 
-  Future<List<itemSearch>> getItemSearch(String searchTerm) async{
-    final response = await _service.fetchItemSearch(searchTerm);
+
+  Future<List<itemSearch>> getItemSearch(String searchTerm,double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async{
+    final response = await _service.fetchItemSearch(searchTerm,lat, lng, radius, storeType,priceRange,itemGroup);
     if (response.statusCode == 200){
       final data = jsonDecode(response.body);
       //print('Decoded search item: $data');
@@ -35,8 +50,8 @@ class itemPrice_repositoryClass{
     }
   }
 
-  Future<List<itemBestDeals>> getBestDeals() async{
-    final response = await _service.fetchBestDeals();
+  Future<List<itemBestDeals>> getBestDeals(double lat, double lng, double radius, String storeType) async {
+    final response = await _service.fetchBestDeals(lat, lng, radius,storeType);
     if (response.statusCode == 200){
       final data = jsonDecode(response.body);
       // print('Decoded best deals item: $data');
@@ -49,11 +64,11 @@ class itemPrice_repositoryClass{
     }
   }
 
-  Future<List<storeLocation>> getStoreLocation() async{
-    final response = await _service.fetchStoreLocation();
+  Future<List<storeLocation>> getStoreLocation(double lat, double lng, double radius, String storeType) async{
+    final response = await _service.fetchStoreLocation(lat,lng,radius,storeType);
     if (response.statusCode == 200){
       final data = jsonDecode(response.body);
-      print('Decoded premise location information item: $data');
+      //print('Decoded premise location information item: $data');
       return List<storeLocation>.from(
           data.map((x) => storeLocation.fromJSON(x))
       );

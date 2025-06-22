@@ -19,7 +19,8 @@ class comparepricepage extends StatefulWidget {
   State<comparepricepage> createState() => _comparepricepageState();
 }
 
-class _comparepricepageState extends State<comparepricepage> with AutomaticKeepAliveClientMixin{
+class _comparepricepageState extends State<comparepricepage>
+    with AutomaticKeepAliveClientMixin {
   final _textControllerSearch = TextEditingController();
   int _currentPage = 0;
   // search bar
@@ -30,23 +31,32 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
 
   // new variables for temporary filter states
   double _tempDistanceRadius = 10000.0; // temporary distance filter
-  String _tempStoreType = 'All'; // temporary store type filter
+  String _tempStoreType = ''; // temporary store type filter
+  String _tempPriceRange = '';
+  String _tempItemGroup = '';
   // To get Location
   LatLng? _currentPosition;
-  String storeType = 'All';
+  String storeType = '';
   // For filter dropdown usage
   bool _showFilterDropdown = false;
   OverlayEntry? _dropdownOverlay;
   // To select filter
   int _selectedFilterIndex = 0;
 
-
   // if user change letters or words in search bar
   void onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 2000), () {
       final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false);
-      searchVM.fetchItemSearch(query);
+      searchVM.fetchItemSearch(
+        query,
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+        searchVM.distanceRadius,
+        searchVM.storeType,
+        searchVM.priceRange,
+        searchVM.itemGroup,
+      );
     });
   }
 
@@ -60,8 +70,6 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
 
     final double appBarHeight = Scaffold.of(context).appBarMaxHeight ?? 65;
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double value = appBarHeight + MediaQuery.of(context).padding.top;
-    print('value: $screenWidth');
 
     _dropdownOverlay = OverlayEntry(
       builder: (context) {
@@ -162,16 +170,18 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                               // Right Section: Filter Options
                               SizedBox(
                                 width: 240,
-                                height: 180, // limit the height only for the right panel content
+                                height:
+                                    180, // limit the height only for the right panel content
                                 child: ListView(
                                   padding: const EdgeInsets.all(12),
                                   children: [
                                     _selectedFilterIndex == 0
+                                        // Has filter options for Store & Item
                                         ? _buildStoreFilter(setOverlayState)
                                         : _buildItemFilter(setOverlayState),
                                   ],
                                 ),
-                              )
+                              ),
                             ],
                           ),
                           Padding(
@@ -180,13 +190,40 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 GestureDetector(
-                                  onTap: () {
+                                  onTap: () async {
                                     // Apply logic - update the actual filters
-                                    final viewModel = Provider.of<itemPrice_viewmodel>(context, listen: false);
-                                    viewModel.setDistanceRadius(_tempDistanceRadius);
+                                    final viewModel =
+                                        Provider.of<itemPrice_viewmodel>(
+                                          context,
+                                          listen: false,
+                                        );
+                                    viewModel.setDistanceRadius(
+                                      _tempDistanceRadius,
+                                    );
+                                    viewModel.setStoreType(_tempStoreType);
+                                    viewModel.setPriceRange(_tempPriceRange);
+                                    viewModel.setItemGroup(_tempItemGroup);
+                                    // Fetch updated best deals after changing radius
+                                    final position =
+                                        _currentPosition; // assuming you store it from Geolocator
+                                    if (position != null) {
+                                      await viewModel.fetchBestDeals(
+                                        position.latitude,
+                                        position.longitude,
+                                        _tempDistanceRadius,
+                                        _tempStoreType,
+                                      );
+                                      await viewModel.fetchStoreLocation(
+                                        position.latitude,
+                                        position.longitude,
+                                        _tempDistanceRadius,
+                                        _tempStoreType,
+                                      );
+                                    }
                                     setState(() {
                                       storeType = _tempStoreType;
                                     });
+
                                     _dropdownOverlay?.remove();
                                     _showFilterDropdown = false;
                                   },
@@ -208,15 +245,43 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                                   ),
                                 ),
                                 GestureDetector(
-                                  onTap: () {
-                                    // Reset logic - reset to default values
+                                  onTap: () async {
                                     setOverlayState(() {
                                       _selectedFilterIndex = 0;
                                       _tempDistanceRadius = 10000.0;
-                                      final viewModel = Provider.of<itemPrice_viewmodel>(context, listen: false);
-                                      viewModel.setDistanceRadius(_tempDistanceRadius);// default distance
-                                      _tempStoreType = 'All'; // default store type
+                                      _tempStoreType = '';
                                     });
+
+                                    final viewModel =
+                                        Provider.of<itemPrice_viewmodel>(
+                                          context,
+                                          listen: false,
+                                        );
+                                    viewModel.setDistanceRadius(
+                                      _tempDistanceRadius,
+                                    );
+                                    viewModel.setStoreType(_tempStoreType);
+                                    viewModel.setPriceRange(_tempPriceRange);
+                                    viewModel.setItemGroup(_tempItemGroup);
+
+                                    // 🔁 Trigger updated fetch for best deals
+                                    if (_currentPosition != null) {
+                                      await viewModel.fetchBestDeals(
+                                        _currentPosition!.latitude,
+                                        _currentPosition!.longitude,
+                                        _tempDistanceRadius,
+                                        _tempStoreType,
+                                      );
+                                      await viewModel.fetchStoreLocation(
+                                        _currentPosition!.latitude,
+                                        _currentPosition!.longitude,
+                                        _tempDistanceRadius,
+                                        _tempStoreType,
+                                      );
+                                    } else
+                                      (print('dfsfdsfdsgfdsg'));
+                                    _dropdownOverlay?.remove();
+                                    _showFilterDropdown = false;
                                   },
                                   child: Container(
                                     width: 140,
@@ -279,8 +344,26 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
     try {
       Position position = await getUserLocation();
       setState(() {
+        // get users current position
         _currentPosition = LatLng(position.latitude, position.longitude);
       });
+
+      final viewModel = Provider.of<itemPrice_viewmodel>(
+        context,
+        listen: false,
+      );
+      viewModel.fetchBestDeals(
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+        viewModel.distanceRadius,
+        viewModel.storeType,
+      );
+      viewModel.fetchStoreLocation(
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+        viewModel.distanceRadius,
+        viewModel.storeType,
+      );
     } catch (e) {
       print('Error: $e');
     }
@@ -289,20 +372,9 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
   @override
   bool get wantKeepAlive => true;
 
-
   @override
   void initState() {
     super.initState();
-    // Trigger fetching best deals once this widget is initialized
-    Future.microtask(() {
-      final viewModel = Provider.of<itemPrice_viewmodel>(
-        context,
-        listen: false,
-      );
-      viewModel.fetchBestDeals();
-      viewModel.fetchStoreLocation();
-    });
-
     _initLocation();
   }
 
@@ -343,7 +415,15 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                                 context,
                                 listen: false,
                               );
-                              searchVM.fetchItemSearch(''); // clear results
+                              searchVM.fetchItemSearch(
+                                '',
+                                _currentPosition!.latitude,
+                                _currentPosition!.longitude,
+                                _tempDistanceRadius,
+                                _tempStoreType,
+                                _tempPriceRange,
+                                _tempItemGroup,
+                              ); // clear results
                             },
                           ),
                         ],
@@ -361,7 +441,6 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                           ),
                         ),
                         suggestionsBuilder: (context, controller) {
-                          //onSearchChanged(controller.text);
                           final query = controller.text;
                           if (query != _lastQuery) {
                             _lastQuery = query;
@@ -369,11 +448,20 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                               context,
                               listen: false,
                             );
-                            searchVM.fetchItemSearch(query);
+                            searchVM.fetchItemSearch(
+                              query,
+                              _currentPosition!.latitude,
+                              _currentPosition!.longitude,
+                              _tempDistanceRadius,
+                              _tempStoreType,
+                              _tempPriceRange,
+                              _tempItemGroup,
+                            );
                           }
+
                           final suggestions = searchVM.itemsearch;
+
                           if (suggestions.isEmpty && query.isNotEmpty) {
-                            // Show fallback if nothing is found
                             return [
                               ListTile(
                                 title: Text(
@@ -390,25 +478,45 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                               ),
                             ];
                           }
-                          // Otherwise show matching results
+
                           return suggestions.map((item) {
-                            return ListTile(
-                              title: Text(item.itemname),
-                              onTap: () {
-                                setState(() {
-                                  selectedText = item.itemname;
-                                  searchController.closeView(item.itemname);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => selectitempage(),
-                                    ),
-                                  );
-                                });
-                              },
+                            return Column(
+                              children: [
+                                ListTile(
+                                  title: Text(item.itemname),
+                                  onTap: () {
+                                    setState(() {
+                                      selectedText = item.itemname;
+                                      searchController.closeView(item.itemname);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => selectitempage(),
+                                        ),
+                                      );
+                                    });
+                                  },
+                                ),
+                                Divider(height: 1, color: Colors.grey.shade300),
+                              ],
                             );
                           }).toList();
                         },
+                        // when enter press will go to selectitempage
+                        onSubmitted: (value) {
+                          setState(() {
+                            selectedText = value;
+                            searchController.closeView(value);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => selectitempage(),
+                              ),
+                            );
+                          });
+                        },
+
                         // other properties...
                       ),
                     );
@@ -437,7 +545,6 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                       ),
                 ),
               ),
-
               // Cart Button
               Padding(
                 padding: EdgeInsets.only(left: 12.0),
@@ -550,81 +657,182 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                     children:
                         deals.map((item) {
                           return Container(
-                            width: MediaQuery.of(context).size.width * 0.40,
+                            width: MediaQuery.of(context).size.width * 0.45,
                             height: 240,
                             margin: EdgeInsets.symmetric(
                               horizontal: 6.0,
                               vertical: 8.0,
                             ),
-                            padding: EdgeInsets.all(8.0),
+                            padding: EdgeInsets.all(10.0),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               border: Border.all(
-                                color: Colors.blue,
+                                color: Colors.blueAccent,
                                 width: 1.5,
                               ),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black12,
-                                  blurRadius: 6,
-                                  offset: Offset(0, 2),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
                                 ),
                               ],
                             ),
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                item.itemimage != null
-                                    ? Image.memory(item.itemimage!, height: 80)
-                                    : Image.asset(
-                                      'assets/Icons/no_picture.png',
-                                      height: 80,
-                                    ),
-                                SizedBox(height: 6),
-                                Text(
-                                  item.itemname,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                /* for images (for future use)
+                              item.itemimage != null
+                              ? Image.memory(item.itemimage!, height: 80)
+                              : Image.asset(
+                              'assets/Icons/no_picture.png',
+                              height: 80,
+                              ),
+                              SizedBox(height: 6),
+                               */
+                                // Item name container
+                                Container(
+                                  width: 130,
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
+                                  child: Center(
+                                    child: Text(
+                                      item.itemname,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                    ),
+                                  ),
                                 ),
-                                SizedBox(height: 4),
+
+                                // Item price
                                 Text(
-                                  'RM${item.price}',
+                                  'RM${item.price?.toStringAsFixed(2) ?? '0.00'}',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 16,
                                     color: Colors.blue,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                // "Cheapest in your area" tag
                                 Container(
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
+                                    horizontal: 8,
+                                    vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
                                     color: Colors.green[100],
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    'Cheapest in this store',
+                                    'Cheapest in your area',
                                     style: TextStyle(
                                       fontSize: 10,
                                       color: Colors.green[800],
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(
-                                  item.premisename.toString(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.black,
+                                // Premise name container
+                                Container(
+                                  width: 130,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  textAlign: TextAlign.center,
+                                  child: Center(
+                                    child: Text(
+                                      item.premisename.toString(),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    // Direction Button
+                                    SizedBox(
+                                      width: 75,
+                                      height: 34,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/directionPage',
+                                            arguments: {
+                                              'storeName': item.premisename,
+                                              'lat': item.latitude,
+                                              'lng': item.longitude,
+                                            },
+                                          );
+                                        },
+                                        icon: Icon(Icons.directions, size: 12),
+                                        label: Text(
+                                          'Direction',
+                                          style: TextStyle(fontSize: 10),
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.blueAccent,
+                                          foregroundColor: Colors.white,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 2),
+                                    // Add to Cart Button
+                                    SizedBox(
+                                      width: 60,
+                                      height: 34,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {
+                                          // TODO: Add to cart logic
+                                        },
+                                        icon: Icon(
+                                          Icons.add_shopping_cart,
+                                          size: 12,
+                                        ),
+                                        label: Text(
+                                          'Add',
+                                          style: TextStyle(fontSize: 10),
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          foregroundColor: Colors.white,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -664,45 +872,27 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
                             final premiseInfo = viewModel.storelocation;
                             //print("Premises received: ${premiseInfo.length}");
                             Set<Marker> storeMarkers =
-                                premiseInfo
-                                    .where((location) {
-                                      if (_currentPosition == null ||
-                                          location.latitude == null ||
-                                          location.longitude == null) {
-                                        print('failed to show marker');
-                                        return false;
-                                      }
-
-                                      double distanceInMeters =
-                                          Geolocator.distanceBetween(
-                                            _currentPosition!.latitude,
-                                            _currentPosition!.longitude,
-                                            location.latitude!,
-                                            location.longitude!,
-                                          );
-
-                                      return distanceInMeters <=
-                                          viewModel.distanceRadius; // from declaration
-                                    })
-                                    .map((location) {
-                                      return Marker(
-                                        markerId: MarkerId(
-                                          location.premiseid.toString(),
-                                        ),
-                                        position: LatLng(
-                                          location.latitude!,
-                                          location.longitude!,
-                                        ),
-                                        infoWindow: InfoWindow(
-                                          title:
-                                              location.premisename ??
-                                              'Not Available',
-                                          snippet:
-                                              'Store Type: ${location.premisetype ?? 'Unknown'}',
-                                        ),
-                                      );
-                                    })
-                                    .toSet();
+                                viewModel.storelocation.map((location) {
+                                  return Marker(
+                                    markerId: MarkerId(
+                                      location.premiseid.toString(),
+                                    ),
+                                    position: LatLng(
+                                      location.latitude!,
+                                      location.longitude!,
+                                    ),
+                                    icon: getMarkerColorByType(
+                                      location.premisetype,
+                                    ),
+                                    infoWindow: InfoWindow(
+                                      title:
+                                          location.premisename ??
+                                          'Not Available',
+                                      snippet:
+                                          'Store Type: ${location.premisetype ?? 'Unknown'}',
+                                    ),
+                                  );
+                                }).toSet();
 
                             return GoogleMap(
                               initialCameraPosition: CameraPosition(
@@ -805,19 +995,34 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildStoreType('All', 'All', setOverlayState),
             _buildStoreType('Borong', 'Borong', setOverlayState),
             _buildStoreType('Foodcourt', 'Foodcourt', setOverlayState),
             _buildStoreType('Hypermarket', 'Hypermarket', setOverlayState),
             _buildStoreType('Kedai Runcit', 'Kedai Runcit', setOverlayState),
-            _buildStoreType('Kedai Serbaneka', 'Kedai Serbaneka', setOverlayState),
+            _buildStoreType(
+              'Kedai Serbaneka',
+              'Kedai Serbaneka',
+              setOverlayState,
+            ),
             _buildStoreType('Medan Selera', 'Medan Selera', setOverlayState),
             _buildStoreType('Pasar Basah', 'Pasar Basah', setOverlayState),
             _buildStoreType('Pasar Mini', 'Pasar Mini', setOverlayState),
-            _buildStoreType('Pasar Raya / Supermarket', 'Pasar Raya / Supermarket', setOverlayState),
+            _buildStoreType(
+              'Pasar Raya / Supermarket',
+              'Pasar Raya / Supermarket',
+              setOverlayState,
+            ),
             _buildStoreType('Restoran Cina', 'Restoran Cina', setOverlayState),
-            _buildStoreType('Restoran India Muslim', 'Restoran India Muslim', setOverlayState),
-            _buildStoreType('Restoran Melayu', 'Restoran Melayu', setOverlayState),
+            _buildStoreType(
+              'Restoran India Muslim',
+              'Restoran India Muslim',
+              setOverlayState,
+            ),
+            _buildStoreType(
+              'Restoran Melayu',
+              'Restoran Melayu',
+              setOverlayState,
+            ),
           ],
         ),
       ],
@@ -831,20 +1036,48 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Store Type', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('Price Range', style: TextStyle(fontWeight: FontWeight.bold)),
+        SizedBox(height: 2),
         Wrap(
           spacing: 8,
+          runSpacing: 8,
           children: [
-            Text("egg"),
-            Text("Hypermarket"),
-            Text("Mini Mart"),
+            _buildPriceRange('Low to High', 'ASC', setOverlayState),
+            _buildPriceRange('High to Low', 'DESC', setOverlayState),
+          ],
+        ),
+        Divider(color: Colors.grey[400], thickness: 1),
+        Text('Item Group', style: TextStyle(fontWeight: FontWeight.bold)),
+        SizedBox(height: 2),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildItemGroup(
+              'Berbungkus',
+              'BARANGAN BERBUNGKUS',
+              setOverlayState,
+            ),
+            _buildItemGroup('Kering', 'BARANGAN KERING', setOverlayState),
+            _buildItemGroup('Segar', 'BARANGAN SEGAR', setOverlayState),
+            _buildItemGroup('Minuman', 'MINUMAN', setOverlayState),
+            _buildItemGroup('Kebersihan', 'PRODUK KEBERSIHAN', setOverlayState),
+            _buildItemGroup(
+              'Bayi & Susu',
+              'SUSU DAN BARANGAN BAYI',
+              setOverlayState,
+            ),
           ],
         ),
       ],
     ),
   );
 
-  Widget _buildDistanceButton(String label, double radius, StateSetter setOverlayState) {
+  Widget _buildDistanceButton(
+    String label,
+    double radius,
+    StateSetter setOverlayState,
+  ) {
     // Use temporary filter state instead of viewModel state
     bool isSelected = _tempDistanceRadius == radius;
 
@@ -856,7 +1089,7 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
         });
       },
       child: Container(
-        width: 80,
+        width: 90,
         height: 40,
         decoration: BoxDecoration(
           color: isSelected ? Color(0xFF5A7BE7) : Colors.grey[300],
@@ -876,8 +1109,11 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
     );
   }
 
-  // Update your _buildStoreType method - needs setOverlayState parameter
-  Widget _buildStoreType(String label, String type, StateSetter setOverlayState) {
+  Widget _buildStoreType(
+    String label,
+    String type,
+    StateSetter setOverlayState,
+  ) {
     bool isSelected = _tempStoreType == type;
     return GestureDetector(
       onTap: () {
@@ -886,7 +1122,7 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
         });
       },
       child: Container(
-        width: 80,
+        width: 90,
         height: 40,
         decoration: BoxDecoration(
           color: isSelected ? Color(0xFF5A7BE7) : Colors.grey[300],
@@ -898,14 +1134,124 @@ class _comparepricepageState extends State<comparepricepage> with AutomaticKeepA
             child: Text(
               label,
               style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10
+                color: isSelected ? Colors.white : Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
               ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildPriceRange(
+    String label,
+    String range,
+    StateSetter setOverlayState,
+  ) {
+    bool isSelected = _tempPriceRange == range;
+    return GestureDetector(
+      onTap: () {
+        setOverlayState(() {
+          _tempPriceRange = range;
+        });
+      },
+      child: Container(
+        width: 90,
+        height: 40,
+        decoration: BoxDecoration(
+          color: isSelected ? Color(0xFF5A7BE7) : Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemGroup(
+    String label,
+    String group,
+    StateSetter setOverlayState,
+  ) {
+    bool isSelected = _tempItemGroup == group;
+    return GestureDetector(
+      onTap: () {
+        setOverlayState(() {
+          _tempItemGroup = group;
+        });
+      },
+      child: Container(
+        width: 90,
+        height: 40,
+        decoration: BoxDecoration(
+          color: isSelected ? Color(0xFF5A7BE7) : Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Colour the marker in googlemaps
+  BitmapDescriptor getMarkerColorByType(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'pasar raya / supermarket':
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+      case 'hypermarket':
+        return BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueOrange,
+        );
+      case 'pasar mini':
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
+      case 'kedai runcit':
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+      case 'pasar basah':
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
+      case 'borong':
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
+      case 'medan selera':
+        return BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueMagenta,
+        );
+      case 'kedai serbaneka':
+        return BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueViolet,
+        );
+      case 'foodcourt':
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
+      case 'restoran cina':
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose);
+      case 'restoran india muslim':
+        return BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueRed,
+        ); // reused
+      case 'restoran melayu':
+        return BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueYellow,
+        ); // reused
+      default:
+        return BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueRed,
+        ); // fallback
+    }
   }
 }
