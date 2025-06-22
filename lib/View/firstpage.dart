@@ -92,8 +92,7 @@ class _firstpageState extends State<firstpage> {
                               .toList(),
                       options: CarouselOptions(
                         initialPage: 0,
-                        enlargeCenterPage:
-                            true, // enlarges image, make it stand out visually
+                        enlargeCenterPage: true, // enlarges image, make it stand out visually
                         autoPlay: true, // automatic sliding of carousel image
                         reverse: false, // false, makes it move left to right
                         enableInfiniteScroll: true, // true, loop infinitely

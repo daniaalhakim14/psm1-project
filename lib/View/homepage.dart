@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
+import 'package:intl/intl.dart'; // Make sure this is imported
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
@@ -26,34 +26,21 @@ class homepage extends StatefulWidget {
   State<homepage> createState() => _homepageState();
 }
 
-class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
+class _homepageState extends State<homepage>
+    with AutomaticKeepAliveClientMixin {
   int _selectedButtonIndex = 0;
   int _currentPage = 0;
   File? _uploadedPdf;
   late ScrollController _scrollController;
-  List<DateTime> months =
-      []; // Declare list months and initialise to months to be empty
+  List<DateTime> Months = []; // Declare list months and initialise to months to be empty
   late Timer _timer;
+  String selectedMonth = ''; // Declare variable selectedMonth to store selectedMonth
+  bool showDailySpending = true;
+  List<String> months = [];
+  int _selectedMonthIndex = 0;
+
 
   String _monthNamePieChart(int month) {
-    const monthNames = [
-      "JAN",
-      "FEB",
-      "MAR",
-      "APR",
-      "MAY",
-      "JUN",
-      "JUL",
-      "AUG",
-      "SEP",
-      "OCT",
-      "NOV",
-      "DEC",
-    ];
-    return monthNames[month - 1];
-  }
-
-  String _monthNameTransactionList(int month) {
     const monthNames = [
       "Jan",
       "Feb",
@@ -71,35 +58,9 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
     return monthNames[month - 1];
   }
 
-  /*
-  String _formatMonth(DateTime date) {
-    DateTime malaysiaTime = date.toUtc().add(Duration(hours: 8));
-    return "${_monthNamePieChart(malaysiaTime.month)} ${malaysiaTime.year}";
-  }
-   */
   String _formatMonth(DateTime date) {
     DateTime malaysiaTime = date.toLocal();
-    return "${_monthNamePieChart(malaysiaTime.month)} ${malaysiaTime.year}";
-  }
-
-
-  String _formatFullDate(DateTime date) {
-    DateTime local = date.toLocal(); // use local time
-    return "${local.day.toString().padLeft(2, '0')} ${_monthNameTransactionList(local.month)} ${local.year}";
-  }
-
-  String selectedMonth = ''; // Declare variable selectedMonth to store selectedMonth
-  bool showDailySpending = true;
-  List<Widget> carouselItem = [];
-
-  void _initializeMonths() {
-    // Populates list with the past 12 months, starting from current months
-    DateTime now = DateTime.now();
-    for (int i = 0; i < 12; i++) {
-      months.add(DateTime(now.year, now.month - i));
-    }
-    months =
-        months.reversed.toList(); // Reverse the order to show the newest months
+    return '${_monthNamePieChart(malaysiaTime.month)} ${malaysiaTime.year}';
   }
 
   void _startMonthCheckTimer() {
@@ -113,33 +74,32 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
 
   bool _isMonthInList(DateTime now) {
     String currentMonthFormatted = _formatMonth(now);
-    return months.any((month) => _formatMonth(month) == currentMonthFormatted);
+    return Months.any((month) => _formatMonth(month) == currentMonthFormatted);
   }
 
   void _updateMonths() {
-    //  checks hourly if a new month has arrived. Updates the months list by removing the oldest month and adding the next month
     setState(() {
-      months.removeAt(0); // Remove the first (oldest) month
-      DateTime lastMonth = months.last;
-      months.add(
-        DateTime(lastMonth.year, lastMonth.month + 1),
-      ); // Add the next month
+      months.removeAt(0);
+      final last = months.last;
+      DateTime lastMonthDate = DateFormat('MMM yyyy').parse(last);
+      DateTime nextMonthDate = DateTime(lastMonthDate.year, lastMonthDate.month + 1);
+      String formatted = DateFormat('MMM yyyy').format(nextMonthDate);
+      months.add(formatted);
     });
   }
 
-  void scrollToMonth(String month) {
-    // this methods automatically scrolls to selected months
-    int index = months.indexWhere((date) => _formatMonth(date) == month);
-    if (index != -1) {
-      double offset =
-          index * 90.0; // Adjust offset based on item width and padding
-      _scrollController.animateTo(
-        offset,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
+
+  // month scroll slider
+  List<String> getLast12Months() {
+    final now = DateTime.now();
+    final formatter = DateFormat('MMM yyyy'); // e.g. "Jun 2025"
+    final months = List.generate(12, (i) {
+      final date = DateTime(now.year, now.month - i, 1);
+      return formatter.format(date);
+    });
+    return months.reversed.toList(); // So latest month is at the end
   }
+
 
   @override
   bool get wantKeepAlive => true;
@@ -147,21 +107,28 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
   @override
   void initState() {
     super.initState();
-    selectedMonth = _formatMonth(DateTime.now());
+    months = getLast12Months(); // Store in state
+    _selectedMonthIndex = months.length - 1; // Select current month
+    selectedMonth = months[_selectedMonthIndex];
+    // Start a timer to check for month changes
+    _startMonthCheckTimer();
     _scrollController = ScrollController(); // instance created to manage horizontal behavior of the months Listview
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
+      final token =
+          Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
       if (token != null) {
         final viewModel = Provider.of<expenseViewModel>(context, listen: false);
         viewModel.fetchViewExpense(widget.userInfo.id, token);
-        final viewModel_listexpense = Provider.of<expenseViewModel>(context, listen: false);
-        viewModel_listexpense.fetchListExpense(widget.userInfo.id,token);
+        final viewModel_listexpense = Provider.of<expenseViewModel>(
+          context,
+          listen: false,
+        );
+        viewModel_listexpense.fetchListExpense(widget.userInfo.id, token);
       } else {
         print("Token is null — skipping fetchViewExpense");
       }
     });
-    // Start a timer to check for month changes
-    _startMonthCheckTimer();
+
   }
 
   @override
@@ -200,6 +167,7 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                       Expanded(
                         child: CarouselSlider(
                           items: [
+                            // pie chart
                             Consumer<expenseViewModel>(
                               builder: (context, viewModel, child) {
                                 if (viewModel.fetchingData) {
@@ -220,14 +188,21 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
 
                                 // Date conversion
                                 for (var expense in viewModel.viewExpense) {
-                                  String isoFormatDate = expense.expenseDate.toString();
-                                  DateTime utcTime = DateTime.parse(isoFormatDate);
+                                  String isoFormatDate =
+                                      expense.expenseDate.toString();
+                                  DateTime utcTime = DateTime.parse(
+                                    isoFormatDate,
+                                  );
                                   DateTime localTime = utcTime.toLocal();
-                                  String formattedExpenseDate = _formatMonth(localTime);
+                                  String formattedExpenseDate = _formatMonth(
+                                    localTime,
+                                  );
                                   print(formattedExpenseDate);
                                   //Format expense.date
 
-                                  if (expense.categoryname != null && formattedExpenseDate == selectedMonth && expense.userId == widget.userInfo.id) {
+                                  if (expense.categoryname != null &&
+                                      formattedExpenseDate == selectedMonth &&
+                                      expense.userId == widget.userInfo.id) {
                                     if (!aggregatedData.containsKey(
                                       expense.categoryname,
                                     )) {
@@ -246,7 +221,6 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                                         (expense.expenseAmount ??
                                             0.0); // Sum up total expenses
                                   }
-
                                 }
                                 // Check if there's any data to display
 
@@ -396,10 +370,11 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                                 );
                               },
                             ),
-                            Text("data"),
+                            Image.asset('assets/Stickers/business.png'),
                           ],
                           options: CarouselOptions(
                             initialPage: 0,
+                            viewportFraction: 1.0, // 👈 Makes the item take full width (no edge bleed)
                             onPageChanged: (value, _) {
                               setState(() {
                                 _currentPage = value;
@@ -408,14 +383,53 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                           ),
                         ),
                       ),
-                      /*
-                      CarouselSlider(items: [
-                        _monthNamePieChart(month),
-                      ], options: options),
-
-                       */
+                      // months slider
+                      CarouselSlider(
+                        items: months.map((month) {
+                      bool isSelected = month == selectedMonth;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedMonth = month;
+                              });
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  month,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    color: isSelected ? Colors.black : Colors.grey,
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Container(
+                                    height: 2,
+                                    width: 30,
+                                    margin: const EdgeInsets.only(top: 4),
+                                    color: Colors.black,
+                                  ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        options: CarouselOptions(
+                          height: 50,
+                          viewportFraction: 0.3,
+                          enlargeCenterPage: true, // enlarges image, make it stand out visually
+                          enableInfiniteScroll: false,
+                          initialPage: months.length - 1,
+                          onPageChanged: (index, reason) {
+                            setState(() {
+                              selectedMonth = months[index];
+                            });
+                          },
+                        ),
+                      ),
                       carouselindicator(),
-                      SizedBox(height: 10),
+                      SizedBox(height: 8),
                     ],
                   ),
                 ),
@@ -471,7 +485,8 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                             // latest transaction list
                             Consumer<expenseViewModel>(
                               builder: (context, viewModel_listexpense, child) {
-                                List<ListExpense> listExpense = viewModel_listexpense.listExpense;
+                                List<ListExpense> listExpense =
+                                    viewModel_listexpense.listExpense;
                                 if (viewModel_listexpense.fetchingData) {
                                   return SizedBox(
                                     width: 220,
@@ -481,16 +496,23 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                                     ),
                                   );
                                 }
-                                print("Fetched ListExpense Count: ${viewModel_listexpense.listExpense.length}");
+                                print(
+                                  "Fetched ListExpense Count: ${viewModel_listexpense.listExpense.length}",
+                                );
 
                                 // Filter list expense by the selected month
                                 final filteredExpense =
                                     listExpense.where((expense) {
-                                      String isoFormatDate = expense.expenseDate.toString();
-                                      DateTime utcTime = DateTime.parse(isoFormatDate,);
+                                      String isoFormatDate =
+                                          expense.expenseDate.toString();
+                                      DateTime utcTime = DateTime.parse(
+                                        isoFormatDate,
+                                      );
                                       DateTime localTime = utcTime.toLocal();
-                                      String formattedExpenseDate = _formatMonth(localTime);
-                                      return formattedExpenseDate == selectedMonth;
+                                      String formattedExpenseDate =
+                                          _formatMonth(localTime);
+                                      return formattedExpenseDate ==
+                                          selectedMonth;
                                     }).toList();
                                 if (filteredExpense.isEmpty) {
                                   return Column(
@@ -517,17 +539,23 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                                 }
                                 return Expanded(
                                   child: SizedBox(
-                                    height: MediaQuery.of(context).size.height * 0.43,
+                                    height:
+                                        MediaQuery.of(context).size.height *
+                                        0.43,
                                     child: ListView.builder(
                                       itemCount: filteredExpense.length,
                                       itemBuilder: (context, index) {
                                         final expense = filteredExpense[index];
 
-                                        String isoFormatDate = expense.expenseDate.toString();
-                                        DateTime utcTime = DateTime.parse(isoFormatDate,);
+                                        String isoFormatDate =
+                                            expense.expenseDate.toString();
+                                        DateTime utcTime = DateTime.parse(
+                                          isoFormatDate,
+                                        );
                                         DateTime localTime = utcTime.toLocal();
-                                        String formattedExpenseDate = _formatMonth(localTime);
-                                        
+                                        String formattedExpenseDate =
+                                            _formatMonth(localTime);
+
                                         // Format transaction.date
                                         return GestureDetector(
                                           onTap: () {
@@ -535,11 +563,11 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                                               context,
                                               MaterialPageRoute(
                                                 builder:
-                                                    (
-                                                      context,
-                                                    ) => expenseDetails(
-                                                      userid: widget.userInfo.id,
-                                                      expensedetail: expense, // Pass the single transaction object
+                                                    (context) => expenseDetails(
+                                                      userid:
+                                                          widget.userInfo.id,
+                                                      expensedetail:
+                                                          expense, // Pass the single transaction object
                                                     ),
                                               ),
                                             );
@@ -547,15 +575,21 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                                           child: Column(
                                             children: [
                                               // List Header
-                                              if (index == 0 || filteredExpense[index - 1].expenseDate != expense.expenseDate)
+                                              if (index == 0 ||
+                                                  filteredExpense[index - 1]
+                                                          .expenseDate !=
+                                                      expense.expenseDate)
                                                 Container(
                                                   decoration: BoxDecoration(
                                                     color: Colors.grey[200],
-
                                                   ),
                                                   height: 30.0,
                                                   width: double.infinity,
-                                                  child: Padding(padding: const EdgeInsets.all(4.0,),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          4.0,
+                                                        ),
                                                     child: Text(
                                                       formattedExpenseDate,
                                                       // Display the transaction date
@@ -575,7 +609,9 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                                                     // Border color
                                                     width: 1.0, // Border width
                                                   ),
-                                                  color: Colors.white,// Optional: Rounded corners
+                                                  color:
+                                                      Colors
+                                                          .white, // Optional: Rounded corners
                                                 ),
                                                 child: ListTile(
                                                   leading: CircleAvatar(
@@ -590,17 +626,21 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin{
                                                     expense.categoryname
                                                         .toString(),
                                                     style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          Colors
                                                               .black, // Dynamic color based on dark mode
                                                     ),
                                                   ),
                                                   subtitle: Column(
                                                     crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Text(
-                                                        expense.expenseDescription
+                                                        expense
+                                                            .expenseDescription
                                                             .toString(),
                                                         style: const TextStyle(
                                                           color: Colors.grey,
