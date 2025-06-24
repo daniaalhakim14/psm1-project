@@ -52,6 +52,8 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^29.2.11
   google_maps_flutter: ^2.12.3
   geolocator: ^14.0.1
+  file_picker: ^10.2.0
+  printing: ^5.14.2
 
 dev_dependencies:
   flutter_test:

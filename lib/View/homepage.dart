@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart'; // Make sure this is imported
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -32,13 +35,14 @@ class _homepageState extends State<homepage>
   int _currentPage = 0;
   File? _uploadedPdf;
   late ScrollController _scrollController;
-  List<DateTime> Months = []; // Declare list months and initialise to months to be empty
+  List<DateTime> Months =
+      []; // Declare list months and initialise to months to be empty
   late Timer _timer;
-  String selectedMonth = ''; // Declare variable selectedMonth to store selectedMonth
+  String selectedMonth =
+      ''; // Declare variable selectedMonth to store selectedMonth
   bool showDailySpending = true;
   List<String> months = [];
   int _selectedMonthIndex = 0;
-
 
   String _monthNamePieChart(int month) {
     const monthNames = [
@@ -63,6 +67,13 @@ class _homepageState extends State<homepage>
     return '${_monthNamePieChart(malaysiaTime.month)} ${malaysiaTime.year}';
   }
 
+  String _formatFullDate(DateTime date) {
+    // ensure local time
+    final local = date.toLocal();
+    // e.g. "06 Jun 2025"
+    return DateFormat('dd MMM yyyy').format(local);
+  }
+
   void _startMonthCheckTimer() {
     _timer = Timer.periodic(Duration(hours: 1), (_) {
       DateTime now = DateTime.now();
@@ -82,12 +93,14 @@ class _homepageState extends State<homepage>
       months.removeAt(0);
       final last = months.last;
       DateTime lastMonthDate = DateFormat('MMM yyyy').parse(last);
-      DateTime nextMonthDate = DateTime(lastMonthDate.year, lastMonthDate.month + 1);
+      DateTime nextMonthDate = DateTime(
+        lastMonthDate.year,
+        lastMonthDate.month + 1,
+      );
       String formatted = DateFormat('MMM yyyy').format(nextMonthDate);
       months.add(formatted);
     });
   }
-
 
   // month scroll slider
   List<String> getLast12Months() {
@@ -100,7 +113,6 @@ class _homepageState extends State<homepage>
     return months.reversed.toList(); // So latest month is at the end
   }
 
-
   @override
   bool get wantKeepAlive => true;
 
@@ -112,7 +124,8 @@ class _homepageState extends State<homepage>
     selectedMonth = months[_selectedMonthIndex];
     // Start a timer to check for month changes
     _startMonthCheckTimer();
-    _scrollController = ScrollController(); // instance created to manage horizontal behavior of the months Listview
+    _scrollController =
+        ScrollController(); // instance created to manage horizontal behavior of the months Listview
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final token =
           Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
@@ -128,7 +141,6 @@ class _homepageState extends State<homepage>
         print("Token is null — skipping fetchViewExpense");
       }
     });
-
   }
 
   @override
@@ -139,6 +151,10 @@ class _homepageState extends State<homepage>
     return Scaffold(
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
+        title: Text(
+          'MyManageMate',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF5A7BE7),
       ),
@@ -374,7 +390,8 @@ class _homepageState extends State<homepage>
                           ],
                           options: CarouselOptions(
                             initialPage: 0,
-                            viewportFraction: 1.0, // 👈 Makes the item take full width (no edge bleed)
+                            viewportFraction:
+                                1.0, // 👈 Makes the item take full width (no edge bleed)
                             onPageChanged: (value, _) {
                               setState(() {
                                 _currentPage = value;
@@ -385,40 +402,48 @@ class _homepageState extends State<homepage>
                       ),
                       // months slider
                       CarouselSlider(
-                        items: months.map((month) {
-                      bool isSelected = month == selectedMonth;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedMonth = month;
-                              });
-                            },
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  month,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    color: isSelected ? Colors.black : Colors.grey,
-                                  ),
+                        items:
+                            months.map((month) {
+                              bool isSelected = month == selectedMonth;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedMonth = month;
+                                  });
+                                },
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      month,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight:
+                                            isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                        color:
+                                            isSelected
+                                                ? Colors.black
+                                                : Colors.grey,
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      Container(
+                                        height: 2,
+                                        width: 30,
+                                        margin: const EdgeInsets.only(top: 4),
+                                        color: Colors.black,
+                                      ),
+                                  ],
                                 ),
-                                if (isSelected)
-                                  Container(
-                                    height: 2,
-                                    width: 30,
-                                    margin: const EdgeInsets.only(top: 4),
-                                    color: Colors.black,
-                                  ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
+                              );
+                            }).toList(),
                         options: CarouselOptions(
                           height: 50,
                           viewportFraction: 0.3,
-                          enlargeCenterPage: true, // enlarges image, make it stand out visually
+                          enlargeCenterPage:
+                              true, // enlarges image, make it stand out visually
                           enableInfiniteScroll: false,
                           initialPage: months.length - 1,
                           onPageChanged: (index, reason) {
@@ -434,9 +459,8 @@ class _homepageState extends State<homepage>
                   ),
                 ),
               ),
-
               SizedBox(height: screenHeight * 0.025),
-
+              // Spending table
               Column(
                 children: [
                   Row(
@@ -496,10 +520,6 @@ class _homepageState extends State<homepage>
                                     ),
                                   );
                                 }
-                                print(
-                                  "Fetched ListExpense Count: ${viewModel_listexpense.listExpense.length}",
-                                );
-
                                 // Filter list expense by the selected month
                                 final filteredExpense =
                                     listExpense.where((expense) {
@@ -546,16 +566,10 @@ class _homepageState extends State<homepage>
                                       itemCount: filteredExpense.length,
                                       itemBuilder: (context, index) {
                                         final expense = filteredExpense[index];
-
-                                        String isoFormatDate =
-                                            expense.expenseDate.toString();
-                                        DateTime utcTime = DateTime.parse(
-                                          isoFormatDate,
-                                        );
-                                        DateTime localTime = utcTime.toLocal();
-                                        String formattedExpenseDate =
-                                            _formatMonth(localTime);
-
+                                        final localTime =
+                                            expense.expenseDate!.toLocal();
+                                        final formattedExpenseDate =
+                                            _formatFullDate(localTime);
                                         // Format transaction.date
                                         return GestureDetector(
                                           onTap: () {
@@ -623,7 +637,7 @@ class _homepageState extends State<homepage>
                                                     ),
                                                   ),
                                                   title: Text(
-                                                    expense.categoryname
+                                                    expense.expenseName
                                                         .toString(),
                                                     style: TextStyle(
                                                       fontWeight:
@@ -688,67 +702,139 @@ class _homepageState extends State<homepage>
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        shape: CircleBorder(),
-        backgroundColor: Colors.white,
-        onPressed: () async {
-          final result = await FlutterDocScanner().getScannedDocumentAsPdf();
+      floatingActionButton: GestureDetector(
+          onLongPress: () async {
+            final result = await FilePicker.platform.pickFiles(
+              type: FileType.custom,
+              allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+            );
 
-          //print("Scanner result: $result");
+            if (result != null && result.files.single.path != null) {
+              File file = File(result.files.single.path!);
 
-          if (result != null && result is Map) {
-            final uriString = result['pdfUri'] as String?;
-            final pdfPath = uriString?.replaceFirst(
-              'file://',
-              '',
-            ); // ✅ strip prefix
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (_) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+              // Check extension
+              final extension = result.files.single.extension?.toLowerCase();
+              if (extension == 'jpg' || extension == 'jpeg' || extension == 'png') {
+                // Convert image to PDF
+                final pdf = pw.Document();
+                final image = pw.MemoryImage(await file.readAsBytes());
 
-            if (pdfPath != null && pdfPath.isNotEmpty) {
-              setState(() {
-                _uploadedPdf = File(
-                  pdfPath,
-                ); // ✅ This updates the UI to show the preview
-              });
-              File pdfFile = File(pdfPath);
-              final token =
-                  Provider.of<signUpnLogin_viewmodel>(
-                    context,
-                    listen: false,
-                  ).authToken;
-              final receiptParserVM =
-                  ReceiptParserViewModel(); // or get from Provider if already registered
-              final success = await receiptParserVM.uploadPdf(pdfFile, token!);
+                pdf.addPage(
+                  pw.Page(
+                    build: (pw.Context context) => pw.Center(child: pw.Image(image)),
+                  ),
+                );
+
+                final tempDir = await getTemporaryDirectory();
+                final converted = File('${tempDir.path}/converted_receipt.pdf');
+                await converted.writeAsBytes(await pdf.save());
+
+                file = converted; // Use converted PDF file
+              }
+
+              final token = Provider.of<signUpnLogin_viewmodel>(
+                context,
+                listen: false,
+              ).authToken;
+
+              final receiptParserVM = ReceiptParserViewModel();
+              final success = await receiptParserVM.uploadPdf(file, token!);
+              Navigator.of(context).pop(); // ✅ Dismiss loading dialog
 
               if (success && receiptParserVM.parsedResult != null) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (_) => expenseInput(
-                          parsedData: receiptParserVM.parsedResult,
-                          pdfFile: pdfFile,
-                        ),
+                    builder: (_) => expenseInput(
+                      parsedData: receiptParserVM.parsedResult,
+                      pdfFile: file,
+                    ),
                   ),
                 );
               } else {
-                print("Upload failed: ${receiptParserVM.errorMessage}");
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                      receiptParserVM.errorMessage ?? 'Upload failed.',
-                    ),
+                    content: Text(receiptParserVM.errorMessage ?? 'Upload failed.'),
                   ),
                 );
               }
             } else {
-              print("No valid PDF path found in pdfUri.");
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No file selected.')),
+              );
             }
-          } else {
-            print("Document scan failed or returned unexpected format.");
-          }
-        },
-        child: Icon(CupertinoIcons.qrcode_viewfinder, size: 40),
+          },
+
+        child: FloatingActionButton(
+          shape: const CircleBorder(),
+          backgroundColor: Colors.white,
+          onPressed: () async {
+            final result = await FlutterDocScanner().getScannedDocumentAsPdf();
+            if (result != null && result is Map) {
+              final uriString = result['pdfUri'] as String?;
+              final pdfPath = uriString?.replaceFirst('file://', '');
+
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (_) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+
+              if (pdfPath != null && pdfPath.isNotEmpty) {
+                setState(() {
+                  _uploadedPdf = File(pdfPath);
+                });
+                File pdfFile = File(pdfPath);
+                final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
+                final receiptParserVM = ReceiptParserViewModel();
+                final success = await receiptParserVM.uploadPdf(
+                  pdfFile,
+                  token!,
+                );
+                Navigator.of(context).pop(); // ✅ Dismiss loading dialog
+                if (success && receiptParserVM.parsedResult != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => expenseInput(
+                            parsedData: receiptParserVM.parsedResult,
+                            pdfFile: pdfFile,
+                          ),
+                    ),
+                  );
+                } else {
+                  print("Upload failed: ${receiptParserVM.errorMessage}");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        receiptParserVM.errorMessage ?? 'Upload failed.',
+                      ),
+                    ),
+                  );
+                }
+              } else {
+                print("No valid PDF path found in pdfUri.");
+              }
+            } else {
+              print("Document scan failed or returned unexpected format.");
+            }
+          },
+          child: const Icon(CupertinoIcons.qrcode_viewfinder, size: 40),
+        ),
       ),
+
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
         child: Row(

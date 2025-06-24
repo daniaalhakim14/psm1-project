@@ -65,7 +65,7 @@ class _firstpageState extends State<firstpage> {
     final double screenHeight = screenSize.height;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFE3ECF5),
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -92,7 +92,8 @@ class _firstpageState extends State<firstpage> {
                               .toList(),
                       options: CarouselOptions(
                         initialPage: 0,
-                        enlargeCenterPage: true, // enlarges image, make it stand out visually
+                        enlargeCenterPage:
+                            true, // enlarges image, make it stand out visually
                         autoPlay: true, // automatic sliding of carousel image
                         reverse: false, // false, makes it move left to right
                         enableInfiniteScroll: true, // true, loop infinitely
@@ -110,7 +111,35 @@ class _firstpageState extends State<firstpage> {
                 ),
               ],
             ),
-            SizedBox(height: screenHeight * 0.22),
+            SizedBox(height: screenHeight * 0.02),
+            Text(
+              'MyManageMate',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                fontSize: 30,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                height: 80,
+                width: screenWidth * 0.9,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.black26, width: 1.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    '💸 Take control of your spending, 🛍️ discover smart deals, and 🧾 simplify your tax relief tracking. All in one place!',
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: screenHeight * 0.10),
             Column(
               children: [
                 _navigationButton('Login', screenWidth, screenHeight, () {

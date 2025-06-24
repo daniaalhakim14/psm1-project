@@ -478,7 +478,6 @@ class _comparepricepageState extends State<comparepricepage>
                               ),
                             ];
                           }
-
                           return suggestions.map((item) {
                             return Column(
                               children: [
@@ -574,42 +573,33 @@ class _comparepricepageState extends State<comparepricepage>
           children: <Widget>[
             // Page description
             Padding(
-              padding: EdgeInsets.only(top: 8.0),
+              padding: EdgeInsets.only(top: 8.0,left: 8.0,right: 8.0),
               child: Container(
-                padding: EdgeInsets.all(10),
-                margin: EdgeInsets.symmetric(horizontal: 12),
+                width: screenWidth * 0.95,
+                height: screenHeight * 0.10,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
+                  // fully transparent:
+                  color: Colors.white.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: Colors.black26,
+                    width: 1.0,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(width: 6),
+                    Image.asset('assets/Icons/information.png',scale: 12,),
+                    SizedBox(width: 6),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Compare Prices 🔍', style: TextStyle(fontWeight: FontWeight.bold),),
+                        Text('Explore store offers and find the best\ndeals near you.',),
+                      ],
                     ),
                   ],
-                ),
-                child: RichText(
-                  text: TextSpan(
-                    style: TextStyle(fontSize: 14, color: Colors.black87),
-                    children: [
-                      TextSpan(text: '🔍  Compare '),
-                      TextSpan(
-                        text: 'prices',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      TextSpan(text: ', explore '),
-                      TextSpan(
-                        text: 'store offers',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      TextSpan(text: ', and find the '),
-                      TextSpan(
-                        text: 'best deals near you.',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ),
@@ -639,7 +629,6 @@ class _comparepricepageState extends State<comparepricepage>
                 // Carousel
               ],
             ),
-            SizedBox(height: 10),
             // Best deals cardholders
             Consumer<itemPrice_viewmodel>(
               builder: (context, viewModel, child) {
@@ -842,7 +831,7 @@ class _comparepricepageState extends State<comparepricepage>
                 );
               },
             ),
-            SizedBox(height: 15),
+            SizedBox(height: 5),
             // Store Near You wordings
             Padding(
               padding: const EdgeInsets.only(left: 12.0),

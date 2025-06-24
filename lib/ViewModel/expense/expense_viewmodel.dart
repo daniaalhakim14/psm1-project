@@ -23,7 +23,6 @@ class expenseViewModel extends ChangeNotifier{
   Future<void> fetchCategories() async {
     fetchingData = true;
     notifyListeners();
-
     try {
       _category = await repository.getCategories();
       //print('Loaded Categories: $_category');
@@ -49,6 +48,10 @@ class expenseViewModel extends ChangeNotifier{
     notifyListeners();
     try {
       _ViewExpense = await repository.getViewExpense(userid,token);
+      // ✅ Print each expense (or just selected fields)
+      for (var expense in _ViewExpense) {
+        print('📌 ExpenseID: ${expense.expenseid}, Name: ${expense.expenseName}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate}');
+      }
     } catch (e) {
       print('Failed to load transaction expenses: $e');
       _ViewExpense = [];
@@ -62,6 +65,9 @@ class expenseViewModel extends ChangeNotifier{
     fetchingData = true;
     notifyListeners();
     try{
+      for (var expense in _listExpense) {
+        print('📌 ExpenseID: ${expense.expenseid}, Name: ${expense.expenseName}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate}');
+      }
       _listExpense = await repository.getListExpense(userid, token);
     }catch(e){
       print('Failed to load list expense: $e');
@@ -82,7 +88,6 @@ class expenseViewModel extends ChangeNotifier{
     try {
       await repository.deleteExpense(DeleteExpense(expenseId: expenseId),userid,token);
       print('Transaction deleted successfully!');
-
       // Refresh the transaction list after deletion
       await fetchListExpense(userid,token);
       await fetchViewExpense(userid,token);

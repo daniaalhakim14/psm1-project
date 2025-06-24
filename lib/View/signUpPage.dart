@@ -124,7 +124,7 @@ class _signUpPageState extends State<signUpPage> {
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
         backgroundColor: Color(0xFF5A7BE7),
-        title: Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white)),
         automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(

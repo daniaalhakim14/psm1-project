@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 class AddExpense {
   final double? expenseAmount;
   final DateTime? expenseDate;
+  final String? expenseName;
   final String? expenseDescription;
   final int? financialPlatform;
   final int? userId;
@@ -14,6 +15,7 @@ class AddExpense {
   AddExpense({
     this.expenseAmount,
     this.expenseDate,
+    this.expenseName,
     this.expenseDescription,
     this.financialPlatform,
     this.userId,
@@ -25,6 +27,7 @@ class AddExpense {
     expenseAmount: json["amount"],
     expenseDate: DateTime.parse(json["date"]),
     // Parse string to DateTime
+    expenseName: json['expensename'],
     expenseDescription: json["description"],
     financialPlatform: json["platformId"],
     userId: json["userId"],
@@ -35,6 +38,7 @@ class AddExpense {
     return {
       "amount": expenseAmount,
       "date": expenseDate?.toIso8601String(), // Convert DateTime to string
+      "expensename": expenseName,
       "description": expenseDescription,
       "platformId": financialPlatform,
       "userId": userId,
@@ -47,6 +51,7 @@ class AddExpense {
 class ViewExpense{
   final int? expenseid;
   final double? expenseAmount;
+  final String? expenseName;
   final DateTime? expenseDate;
   final String? expenseDescription;
   final int? financialPlatform;
@@ -61,6 +66,7 @@ class ViewExpense{
     this.expenseid,
     this.expenseAmount,
     this.expenseDate,
+    this.expenseName,
     this.expenseDescription,
     this.financialPlatform,
     this.userId,
@@ -75,6 +81,7 @@ class ViewExpense{
     expenseid: int.tryParse(json['expenseid'].toString().trim()) ?? 0,
     expenseAmount: double.parse(json['amount']),
     expenseDate: DateTime.parse(json["date"]),
+    expenseName: json['expensename'],
     // Parse string to DateTime
     expenseDescription: json["description"],
     financialPlatform: int.tryParse(json["platformId"].toString()),
@@ -108,6 +115,7 @@ class ListExpense{
   final int? expenseid;
   final double? expenseAmount;
   final DateTime? expenseDate;
+  final String? expenseName;
   final String? categoryname;
   final String? expenseDescription;
   final String? paymenttype;
@@ -120,6 +128,7 @@ class ListExpense{
     this.expenseid,
     this.expenseAmount,
     this.expenseDate,
+    this.expenseName,
     this.categoryname,
     this.expenseDescription,
     this.paymenttype,
@@ -132,6 +141,7 @@ class ListExpense{
     expenseid: int.tryParse(json['expenseid'].toString().trim()) ?? 0,
     expenseAmount: double.parse(json['amount']),
     expenseDate: DateTime.parse(json["date"]),
+    expenseName: json['expensename'],
     categoryname: json['categoryname'],
     expenseDescription: json['description'],
     paymenttype: json['paymenttype'],

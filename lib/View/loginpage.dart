@@ -40,7 +40,7 @@ class _loginpageState extends State<loginpage> {
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
         backgroundColor: Color(0xFF5A7BE7),
-        title: Text("Login", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text("Login", style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white)),
       ),
       body: SingleChildScrollView(
         child: Column(

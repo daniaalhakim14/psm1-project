@@ -26,9 +26,8 @@ class _accountpageState extends State<accountpage> {
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
         backgroundColor: Color(0xFF5A7BE7),
-        title: Center(
-          child: Text("Account", style: TextStyle(fontWeight: FontWeight.bold)),
-        ),
+        title: Text("Account", style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white)),
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -252,14 +251,14 @@ class _accountpageState extends State<accountpage> {
                   ),
                 );
               },
-              icon: Icon(CupertinoIcons.doc, size: 45, color: Color(0xFF5A7BE7)),
+              icon: Icon(CupertinoIcons.doc, size: 45,color: Colors.black,),
             ),
             IconButton(
               onPressed: () {},
               icon: Icon(
                 CupertinoIcons.profile_circled,
                 size: 48,
-                color: Colors.black,
+                color: Color(0xFF5A7BE7),
               ),
             ),
           ],
