@@ -411,10 +411,7 @@ class _comparepricepageState extends State<comparepricepage>
                                 selectedText = '';
                                 _lastQuery = ''; // reset
                               });
-                              final searchVM = Provider.of<itemPrice_viewmodel>(
-                                context,
-                                listen: false,
-                              );
+                              final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false,);
                               searchVM.fetchItemSearch(
                                 '',
                                 _currentPosition!.latitude,
@@ -427,9 +424,7 @@ class _comparepricepageState extends State<comparepricepage>
                             },
                           ),
                         ],
-                        barBackgroundColor: WidgetStatePropertyAll(
-                          Colors.white,
-                        ),
+                        barBackgroundColor: WidgetStatePropertyAll(Colors.white,),
                         barShape: WidgetStatePropertyAll(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
@@ -448,19 +443,9 @@ class _comparepricepageState extends State<comparepricepage>
                               context,
                               listen: false,
                             );
-                            searchVM.fetchItemSearch(
-                              query,
-                              _currentPosition!.latitude,
-                              _currentPosition!.longitude,
-                              _tempDistanceRadius,
-                              _tempStoreType,
-                              _tempPriceRange,
-                              _tempItemGroup,
-                            );
+                            searchVM.fetchItemSearch(query, _currentPosition!.latitude, _currentPosition!.longitude, _tempDistanceRadius, _tempStoreType, _tempPriceRange, _tempItemGroup,);
                           }
-
                           final suggestions = searchVM.itemsearch;
-
                           if (suggestions.isEmpty && query.isNotEmpty) {
                             return [
                               ListTile(
@@ -492,6 +477,7 @@ class _comparepricepageState extends State<comparepricepage>
                                         MaterialPageRoute(
                                           builder:
                                               (context) => selectitempage(),
+                                             // (context) => selectitempage(item.itemname),
                                         ),
                                       );
                                     });
@@ -632,9 +618,6 @@ class _comparepricepageState extends State<comparepricepage>
             // Best deals cardholders
             Consumer<itemPrice_viewmodel>(
               builder: (context, viewModel, child) {
-                if (viewModel.fetchingData) {
-                  return Center(child: CircularProgressIndicator());
-                }
                 final deals = viewModel.bestdeals;
                 if (deals.isEmpty) {
                   return Center(child: Text("No best deals available."));
@@ -855,9 +838,6 @@ class _comparepricepageState extends State<comparepricepage>
                         ? Center(child: CircularProgressIndicator())
                         : Consumer<itemPrice_viewmodel>(
                           builder: (context, viewModel, child) {
-                            if (viewModel.fetchingData) {
-                              return Center(child: CircularProgressIndicator());
-                            }
                             final premiseInfo = viewModel.storelocation;
                             //print("Premises received: ${premiseInfo.length}");
                             Set<Marker> storeMarkers =

@@ -50,7 +50,7 @@ class signUpnLoginRepository {
     final response = await _service.login(email, password);
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      //print('Login successful: ${data['user']}');
+      print('Login successful: ${data['user']}');
       final token = data['token']; // <-- get token here
       //print('Token received: $token');
       return token;

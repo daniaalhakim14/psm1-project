@@ -1,6 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp/View/individualRelief.dart';
+import 'package:fyp/ViewModel/expense/expense_viewmodel.dart';
+import 'package:provider/provider.dart';
 import '../Model/signupLoginpage.dart';
+import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
+import '../ViewModel/taxRelief/taxRelief_viewmodel.dart';
 import 'accountpage.dart';
 import 'comparepricepage.dart';
 import 'homepage.dart';
@@ -15,6 +20,19 @@ class taxExempt extends StatefulWidget {
 
 class _taxExemptState extends State<taxExempt> {
   @override
+  void initState(){
+    final token =
+        Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
+    if (token != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final viewModel = Provider.of<TaxReliefViewModel>(context, listen: false);
+        viewModel.fetchTaxReliefs(token);
+      });
+
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -23,7 +41,7 @@ class _taxExemptState extends State<taxExempt> {
       appBar: AppBar(
         title: Text(
           'Eligible Tax Relief',
-          style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF5A7BE7),
@@ -51,7 +69,8 @@ class _taxExemptState extends State<taxExempt> {
                 child: Row(
                   children: [
                     Column(
-                      mainAxisAlignment: MainAxisAlignment.center, // Center row content
+                      mainAxisAlignment:
+                          MainAxisAlignment.center, // Center row content
                       children: [
                         Row(
                           children: [
@@ -88,7 +107,10 @@ class _taxExemptState extends State<taxExempt> {
                             ),
                             Column(
                               children: [
-                                Text('Remaining Relief:', style: TextStyle(fontWeight: FontWeight.bold),),
+                                Text(
+                                  'Remaining Relief:',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                                 Text('RM28,169.60'),
                               ],
                             ),
@@ -107,22 +129,24 @@ class _taxExemptState extends State<taxExempt> {
                   // fully transparent:
                   color: Colors.white.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: Colors.black26,
-                    width: 1.0,
-                  ),
+                  border: Border.all(color: Colors.black26, width: 1.0),
                 ),
                 child: Row(
                   children: [
                     SizedBox(width: 6),
-                    Image.asset('assets/Icons/information.png',scale: 10,),
+                    Image.asset('assets/Icons/information.png', scale: 10),
                     SizedBox(width: 6),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Track your tax reliefs', style: TextStyle(fontWeight: FontWeight.bold),),
-                        Text('Automatically maps you receipts to\neligible tax relief',),
+                        Text(
+                          'Track your tax reliefs',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Automatically maps you receipts to\neligible tax relief',
+                        ),
                       ],
                     ),
                   ],
@@ -130,57 +154,71 @@ class _taxExemptState extends State<taxExempt> {
               ),
 
               SizedBox(height: 8),
+              Consumer<TaxReliefViewModel>(
+                  builder: (contenxt,viewModel,child){
+                    return Column(
+                      children: [
+                        _buildTaxExempt(
+                          imagePath: 'assets/Icons/man.png',
+                          title: 'Individual Relief',
+                          subtitle: 'Up to RM9,000',
+                          used: 750.00,
+                          limit: 9000.00,
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => individualRelief(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildTaxExempt(
+                          imagePath: 'assets/Icons/medical.png',
+                          title: 'Medical & Special Needs',
+                          subtitle: 'Up to RM10,000',
+                          used: 2345.42,
+                          limit: 10000.00,
+                          onTap: () {
+                            // another detail page maybe
+                          },
+                        ),
+                        _buildTaxExempt(
+                          imagePath: 'assets/Icons/lifestyle.png',
+                          title: 'Lifestyle',
+                          subtitle: 'Up to RM3,500',
+                          used: 435.03,
+                          limit: 3500.00,
+                          onTap: () {
+                            // another detail page maybe
+                          },
+                        ),
+                        _buildTaxExempt(
+                          imagePath: 'assets/Icons/children.png',
+                          title: 'Child Relief',
+                          subtitle: 'Up to RM8,000',
+                          used: 3567.27,
+                          limit: 8000.00,
+                          onTap: () {
+                            // another detail page maybe
+                          },
+                        ),
+                        _buildTaxExempt(
+                          imagePath: 'assets/Icons/secure.png',
+                          title: 'Insurances',
+                          subtitle: 'Up to RM10,000',
+                          used: 5232.68,
+                          limit: 10000.00,
+                          onTap: () {
+                            // another detail page maybe
+                          },
+                        ),
+                      ],
+                    );
+                  })
               // Tax category
-              _buildTaxExempt(
-                imagePath: 'assets/Icons/man.png',
-                title: 'Individual Relief',
-                subtitle: 'Up to RM9,000',
-                used: 750.00,
-                limit: 9000.00,
-                onTap: () {
-                  // Navigate or handle tap
-                },
-              ),
-              _buildTaxExempt(
-                imagePath: 'assets/Icons/medical.png',
-                title: 'Medical & Special Needs',
-                subtitle: 'Up to RM10,000',
-                used: 2345.42,
-                limit: 10000.00,
-                onTap: () {
-                  // another detail page maybe
-                },
-              ),
-              _buildTaxExempt(
-                imagePath: 'assets/Icons/lifestyle.png',
-                title: 'Lifestyle',
-                subtitle: 'Up to RM3,500',
-                used: 435.03,
-                limit: 3500.00,
-                onTap: () {
-                  // another detail page maybe
-                },
-              ),
-              _buildTaxExempt(
-                imagePath: 'assets/Icons/secure.png',
-                title: 'Child Relief',
-                subtitle: 'Up to RM8,000',
-                used: 3567.27,
-                limit: 8000.00,
-                onTap: () {
-                  // another detail page maybe
-                },
-              ),
-              _buildTaxExempt(
-                imagePath: 'assets/Icons/lifestyle.png',
-                title: 'Lifestyle',
-                subtitle: 'Up to RM10,000',
-                used: 5232.68,
-                limit: 10000.00,
-                onTap: () {
-                  // another detail page maybe
-                },
-              ),
+
             ],
           ),
         ),

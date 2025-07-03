@@ -3,6 +3,7 @@ import 'package:fyp/View/expenseInput.dart';
 import 'package:fyp/View/firstpage.dart';
 import 'package:fyp/View/selectitempage.dart';
 import 'package:fyp/ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
+import 'package:fyp/ViewModel/taxRelief/taxRelief_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'ViewModel/expense/expense_viewmodel.dart';
 import 'ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
@@ -14,7 +15,8 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => signUpnLogin_viewmodel()),
         ChangeNotifierProvider(create: (_) => expenseViewModel()),
-        ChangeNotifierProvider(create: (_) => itemPrice_viewmodel())
+        ChangeNotifierProvider(create: (_) => itemPrice_viewmodel()),
+        ChangeNotifierProvider(create: (_) => TaxReliefViewModel())
       ],
       child: MyApp(),
     ),

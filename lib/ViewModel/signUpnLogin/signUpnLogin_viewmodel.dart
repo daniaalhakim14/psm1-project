@@ -156,16 +156,9 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     }
   }
 
-  Future<bool> login(
-    String email,
-    String password,
-    BuildContext context,
-  ) async {
+  Future<bool> login(String email, String password, BuildContext context,) async {
     resetErrors();
-    if (email.isEmpty ||
-        !RegExp(
-          r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-        ).hasMatch(email)) {
+    if (email.isEmpty || !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",).hasMatch(email)) {
       emailError = 'Enter a valid email';
     }
     if (password.isEmpty || password.length < 6) {

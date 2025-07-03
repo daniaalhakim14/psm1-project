@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp/View/firstpage.dart';
 import 'package:fyp/View/homepage.dart';
 import 'package:fyp/View/taxexempt.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -191,7 +192,13 @@ class _accountpageState extends State<accountpage> {
             GestureDetector(
               onTap: () async {
                 final prefs = await SharedPreferences.getInstance();
-                await prefs.clear(); // or remove specific keys like prefs.remove('authToken')
+                await prefs.clear();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => firstpage()
+                    ,),
+                );
+                // or remove specific keys like prefs.remove('authToken')
                 // Logout
               },
               child: Container(
