@@ -7,6 +7,8 @@ class itemPrice {
   final int itemcode;
   final String itemname;
   final String? unit;
+  final String? brand;
+  final String? description;
   final String? itemgroup;
   final String? itemcategory;
   final Uint8List? itemimage;
@@ -22,6 +24,8 @@ class itemPrice {
     required this.itemcode,
     required this.itemname,
     required this.unit,
+    required this.brand,
+    required this.description,
     required this.itemgroup,
     required this.itemcategory,
     required this.itemimage,
@@ -39,6 +43,8 @@ class itemPrice {
       itemcode: int.parse(json['itemcode'].toString()),
       itemname: json['itemname'],
       unit: json['unit'],
+      brand: json['brand'],
+      description: json['description'],
       itemgroup: json['itemgroup'],
       itemcategory: json['itemcategory'],
       itemimage:
@@ -46,7 +52,7 @@ class itemPrice {
               ? base64Decode(json['itemimage']) // Decode Base64 to Uint8List
               : null,
       premiseid: int.parse(json['premiseid'].toString()),
-      price: (json['price'] as num).toDouble(),
+      price: double.parse(json['price'].toString()),
       premisename: json['premisename'],
       address: json['address'],
       premisetype: json['premisetype'],
@@ -60,6 +66,7 @@ class itemPrice {
       'itemcode': itemcode,
       'itemname': itemname,
       'unit': unit,
+      'brand': brand,
       'itemgroup': itemgroup,
       'itemcategory': itemcategory,
       'image':
@@ -79,22 +86,77 @@ class itemPrice {
 class itemSearch {
   final int itemcode;
   final String itemname;
-  final Uint8List? image;
+  final String? unit;
+  final String? brand;
+  final String? description;
+  final String? itemgroup;
+  final String? itemcategory;
+  final Uint8List? itemimage;
+  final int premiseid;
+  final double? price;
+  final String? premisename;
+  final String? address;
+  final String? premisetype;
+  final String? state;
+  final String? district;
 
   itemSearch({
     required this.itemcode,
     required this.itemname,
-    required this.image,
+    required this.unit,
+    required this.brand,
+    required this.description,
+    required this.itemgroup,
+    required this.itemcategory,
+    required this.itemimage,
+    required this.premiseid,
+    required this.price,
+    required this.premisename,
+    required this.address,
+    required this.premisetype,
+    required this.state,
+    required this.district,
   });
   factory itemSearch.fromJson(Map<String, dynamic> json) {
     return itemSearch(
       itemcode: int.parse(json['itemcode'].toString()),
       itemname: json['itemname'],
-      image:
-          json['itemimage'] != null
-              ? base64Decode(json['itemimage']) // Decode Base64 to Uint8List
-              : null,
+      unit: json['unit'],
+      brand: json['brand'],
+      description: json['description'],
+      itemgroup: json['itemgroup'],
+      itemcategory: json['itemcategory'],
+      itemimage:
+      json['itemimage'] != null
+          ? base64Decode(json['itemimage']) // Decode Base64 to Uint8List
+          : null,
+      premiseid: int.parse(json['premiseid'].toString()),
+      price: double.parse(json['price'].toString()),
+      premisename: json['premisename'],
+      address: json['address'],
+      premisetype: json['premisetype'],
+      state: json['state'],
+      district: json['district'],
     );
+  }  Map<String, dynamic> toJson() {
+    return {
+      'itemcode': itemcode,
+      'itemname': itemname,
+      'unit': unit,
+      'brand': brand,
+      'description': description,
+      'itemgroup': itemgroup,
+      'itemcategory': itemcategory,
+      'image':
+      itemimage, // Consider converting to base64 if sending as JSON string
+      'premiseid': premiseid,
+      'price': price,
+      'premisename': premisename,
+      'address': address,
+      'premisetype': premisetype,
+      'state': state,
+      'district': district,
+    };
   }
 }
 

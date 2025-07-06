@@ -18,7 +18,6 @@ class itemPrice_callapi {
     return await http.get(Uri.parse(url));
   }
 
-
   Future<http.Response> fetchItemSearch(String searchTerm,double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async {
     //String endpoint = '/itemSearch?searchTerm=$searchTerm';
     final encodedStoreType = Uri.encodeQueryComponent(storeType);
@@ -45,6 +44,17 @@ class itemPrice_callapi {
     String endpoint = '/itemPrice/storeLocation?lat=$lat&lng=$lng&radius=$radius&type=$encodedStoreType';
     String url = '${AppConfig.baseUrl}$endpoint';
     print('store location: $url');
+    return await http.get(Uri.parse(url));
+  }
+
+  Future<http.Response> fetchSelectedItemDetail(int premiseid,int itemcode,String searchTerm,double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async{
+    final encodedStoreType = Uri.encodeQueryComponent(storeType);
+    final encodedPriceRange = Uri.encodeQueryComponent(priceRange);
+    final encodedItemGroup = Uri.encodeQueryComponent(itemGroup);
+    final encodedSearch = Uri.encodeComponent(searchTerm);
+    String  endpoint ='/itemPrice/itemPrices?premiseid=$premiseid&itemcode=$itemcode&searchTerm=$encodedSearch&lat=$lat&lng=$lng&radius=$radius&type=$encodedStoreType&priceRange=$encodedPriceRange&itemGroup=$encodedItemGroup';
+    String url = '${AppConfig.baseUrl}$endpoint';
+    print('selected item url: $url');
     return await http.get(Uri.parse(url));
   }
 

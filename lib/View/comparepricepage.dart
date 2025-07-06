@@ -42,6 +42,7 @@ class _comparepricepageState extends State<comparepricepage>
   OverlayEntry? _dropdownOverlay;
   // To select filter
   int _selectedFilterIndex = 0;
+  bool _isLoading = true;
 
   // if user change letters or words in search bar
   void onSearchChanged(String query) {
@@ -411,7 +412,10 @@ class _comparepricepageState extends State<comparepricepage>
                                 selectedText = '';
                                 _lastQuery = ''; // reset
                               });
-                              final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false,);
+                              final searchVM = Provider.of<itemPrice_viewmodel>(
+                                context,
+                                listen: false,
+                              );
                               searchVM.fetchItemSearch(
                                 '',
                                 _currentPosition!.latitude,
@@ -424,7 +428,9 @@ class _comparepricepageState extends State<comparepricepage>
                             },
                           ),
                         ],
-                        barBackgroundColor: WidgetStatePropertyAll(Colors.white,),
+                        barBackgroundColor: WidgetStatePropertyAll(
+                          Colors.white,
+                        ),
                         barShape: WidgetStatePropertyAll(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
@@ -443,7 +449,15 @@ class _comparepricepageState extends State<comparepricepage>
                               context,
                               listen: false,
                             );
-                            searchVM.fetchItemSearch(query, _currentPosition!.latitude, _currentPosition!.longitude, _tempDistanceRadius, _tempStoreType, _tempPriceRange, _tempItemGroup,);
+                            searchVM.fetchItemSearch(
+                              query,
+                              _currentPosition!.latitude,
+                              _currentPosition!.longitude,
+                              _tempDistanceRadius,
+                              _tempStoreType,
+                              _tempPriceRange,
+                              _tempItemGroup,
+                            );
                           }
                           final suggestions = searchVM.itemsearch;
                           if (suggestions.isEmpty && query.isNotEmpty) {
@@ -476,8 +490,20 @@ class _comparepricepageState extends State<comparepricepage>
                                         context,
                                         MaterialPageRoute(
                                           builder:
-                                              (context) => selectitempage(),
-                                             // (context) => selectitempage(item.itemname),
+                                              (context) => selectitempage(
+                                                itemcode: item.itemcode,
+                                                premiseid: item.premiseid,
+                                                itemname: item.itemname,
+                                                searchQuery: _lastQuery,
+                                                currentPosition:
+                                                    (_currentPosition),
+                                                tempDistanceRadius:
+                                                    _tempDistanceRadius,
+                                                tempStoreType: _tempStoreType,
+                                                tempPriceRange: _tempPriceRange,
+                                                tempItemGroup: _tempItemGroup,
+                                              ),
+                                          // (context) => selectitempage(item.itemname),
                                         ),
                                       );
                                     });
@@ -489,19 +515,43 @@ class _comparepricepageState extends State<comparepricepage>
                           }).toList();
                         },
                         // when enter press will go to selectitempage
-                        onSubmitted: (value) {
+
+                        onSubmitted: (value) async {
                           setState(() {
                             selectedText = value;
                             searchController.closeView(value);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => selectitempage(),
-                              ),
-                            );
                           });
-                        },
 
+                          // First, perform the search and wait for it to complete
+                          final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false);
+                          await searchVM.fetchItemSearch(
+                            value,
+                            _currentPosition!.latitude,
+                            _currentPosition!.longitude,
+                            _tempDistanceRadius,
+                            _tempStoreType,
+                            _tempPriceRange,
+                            _tempItemGroup,
+                          );
+
+                          // Then navigate after the search is complete
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => selectitempage(
+                                itemcode: null,
+                                premiseid: null,
+                                itemname: null,
+                                searchQuery: value,
+                                currentPosition: (_currentPosition),
+                                tempDistanceRadius: _tempDistanceRadius,
+                                tempStoreType: _tempStoreType,
+                                tempPriceRange: _tempPriceRange,
+                                tempItemGroup: _tempItemGroup,
+                              ),
+                            ),
+                          );
+                        },
                         // other properties...
                       ),
                     );
@@ -559,7 +609,7 @@ class _comparepricepageState extends State<comparepricepage>
           children: <Widget>[
             // Page description
             Padding(
-              padding: EdgeInsets.only(top: 8.0,left: 8.0,right: 8.0),
+              padding: EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
               child: Container(
                 width: screenWidth * 0.95,
                 height: screenHeight * 0.10,
@@ -567,22 +617,24 @@ class _comparepricepageState extends State<comparepricepage>
                   // fully transparent:
                   color: Colors.white.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: Colors.black26,
-                    width: 1.0,
-                  ),
+                  border: Border.all(color: Colors.black26, width: 1.0),
                 ),
                 child: Row(
                   children: [
                     SizedBox(width: 6),
-                    Image.asset('assets/Icons/information.png',scale: 12,),
+                    Image.asset('assets/Icons/information.png', scale: 12),
                     SizedBox(width: 6),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Compare Prices 🔍', style: TextStyle(fontWeight: FontWeight.bold),),
-                        Text('Explore store offers and find the best\ndeals near you.',),
+                        Text(
+                          'Compare Prices 🔍',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Explore store offers and find the best\ndeals near you.',
+                        ),
                       ],
                     ),
                   ],
@@ -620,7 +672,24 @@ class _comparepricepageState extends State<comparepricepage>
               builder: (context, viewModel, child) {
                 final deals = viewModel.bestdeals;
                 if (deals.isEmpty) {
-                  return Center(child: Text("No best deals available."));
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(color: Color(0xFF5A7BE7)),
+                          SizedBox(height: 10),
+                          Text(
+                            "Loading best deals...",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 }
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -671,20 +740,33 @@ class _comparepricepageState extends State<comparepricepage>
                                     color: Colors.grey[200],
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: Center(
-                                    child: Text(
-                                      item.itemname,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                        color: Colors.black87,
+                                  child: Padding(
+                                    padding:  EdgeInsets.only(left:4.0,right: 4.0),
+                                    child: Align(
+                                      alignment: Alignment.center,
+                                      child: Table(
+                                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                                        columnWidths: {0:IntrinsicColumnWidth()},
+                                        children: [
+                                          TableRow(
+                                            children: [
+                                              Text(
+                                                item.itemname,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                  color: Colors.black87,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                                maxLines: 2,
+                                              ),
+                                            ]
+                                          )
+                                        ],
                                       ),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 2,
                                     ),
                                   ),
                                 ),
-
                                 // Item price
                                 Text(
                                   'RM${item.price?.toStringAsFixed(2) ?? '0.00'}',
@@ -734,6 +816,7 @@ class _comparepricepageState extends State<comparepricepage>
                                     ),
                                   ),
                                 ),
+                                // Buttons
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,

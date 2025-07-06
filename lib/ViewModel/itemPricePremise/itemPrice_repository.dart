@@ -35,12 +35,11 @@ class itemPrice_repositoryClass{
     }
   }
 
-
   Future<List<itemSearch>> getItemSearch(String searchTerm,double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async{
     final response = await _service.fetchItemSearch(searchTerm,lat, lng, radius, storeType,priceRange,itemGroup);
     if (response.statusCode == 200){
       final data = jsonDecode(response.body);
-      //print('Decoded search item: $data');
+      print('Decoded search item: $data');
       return List<itemSearch>.from(
           data.map((x) => itemSearch.fromJson(x))
       );
@@ -77,6 +76,20 @@ class itemPrice_repositoryClass{
       throw Exception('Failed to load best deals');
     }
 
+  }
+
+  Future<List<itemPrice>> getSelectedItemDetail(int premiseid,int itemcode, String searchTerm,double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async {
+    final response = await _service.fetchSelectedItemDetail(premiseid, itemcode,searchTerm,lat, lng, radius, storeType,priceRange,itemGroup);
+    if(response.statusCode == 200){
+      final data = jsonDecode(response.body);
+      //print('Decoded selected item details : $data');
+      return  List<itemPrice>.from(
+        data.map((x) => itemPrice.fromJson(x))
+      );
+    }else{
+      print('API Error: ${response.body}');
+      throw Exception('Failed to load selected item');
+    }
   }
 
 }
