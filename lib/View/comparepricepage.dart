@@ -7,9 +7,13 @@ import 'package:fyp/View/taxexempt.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import '../Model/cart.dart';
 import '../Model/signupLoginpage.dart';
+import '../ViewModel/cart/cart_viewmodel.dart';
 import '../ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
+import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
 import 'accountpage.dart';
+import 'itemcartpage.dart';
 
 class comparepricepage extends StatefulWidget {
   final UserInfoModule userInfo;
@@ -514,8 +518,8 @@ class _comparepricepageState extends State<comparepricepage>
                             );
                           }).toList();
                         },
-                        // when enter press will go to selectitempage
 
+                        // when enter press will go to selectitempage
                         onSubmitted: (value) async {
                           setState(() {
                             selectedText = value;
@@ -523,7 +527,10 @@ class _comparepricepageState extends State<comparepricepage>
                           });
 
                           // First, perform the search and wait for it to complete
-                          final searchVM = Provider.of<itemPrice_viewmodel>(context, listen: false);
+                          final searchVM = Provider.of<itemPrice_viewmodel>(
+                            context,
+                            listen: false,
+                          );
                           await searchVM.fetchItemSearch(
                             value,
                             _currentPosition!.latitude,
@@ -538,17 +545,18 @@ class _comparepricepageState extends State<comparepricepage>
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => selectitempage(
-                                itemcode: null,
-                                premiseid: null,
-                                itemname: null,
-                                searchQuery: value,
-                                currentPosition: (_currentPosition),
-                                tempDistanceRadius: _tempDistanceRadius,
-                                tempStoreType: _tempStoreType,
-                                tempPriceRange: _tempPriceRange,
-                                tempItemGroup: _tempItemGroup,
-                              ),
+                              builder:
+                                  (context) => selectitempage(
+                                    itemcode: null,
+                                    premiseid: null,
+                                    itemname: null,
+                                    searchQuery: value,
+                                    currentPosition: (_currentPosition),
+                                    tempDistanceRadius: _tempDistanceRadius,
+                                    tempStoreType: _tempStoreType,
+                                    tempPriceRange: _tempPriceRange,
+                                    tempItemGroup: _tempItemGroup,
+                                  ),
                             ),
                           );
                         },
@@ -584,7 +592,21 @@ class _comparepricepageState extends State<comparepricepage>
               Padding(
                 padding: EdgeInsets.only(left: 12.0),
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => itemcart(
+                          currentPosition: (_currentPosition),
+                          tempDistanceRadius: _tempDistanceRadius,
+                          tempStoreType: _tempStoreType,
+                          tempPriceRange: _tempPriceRange,
+                          tempItemGroup: _tempItemGroup,
+                        ),
+                      ),
+                    );
+                  },
                   child: Container(
                     width: 40,
                     height: 40,
@@ -741,12 +763,18 @@ class _comparepricepageState extends State<comparepricepage>
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Padding(
-                                    padding:  EdgeInsets.only(left:4.0,right: 4.0),
+                                    padding: EdgeInsets.only(
+                                      left: 4.0,
+                                      right: 4.0,
+                                    ),
                                     child: Align(
                                       alignment: Alignment.center,
                                       child: Table(
-                                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                                        columnWidths: {0:IntrinsicColumnWidth()},
+                                        defaultVerticalAlignment:
+                                            TableCellVerticalAlignment.middle,
+                                        columnWidths: {
+                                          0: IntrinsicColumnWidth(),
+                                        },
                                         children: [
                                           TableRow(
                                             children: [
@@ -760,8 +788,8 @@ class _comparepricepageState extends State<comparepricepage>
                                                 textAlign: TextAlign.center,
                                                 maxLines: 2,
                                               ),
-                                            ]
-                                          )
+                                            ],
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -862,8 +890,96 @@ class _comparepricepageState extends State<comparepricepage>
                                       width: 60,
                                       height: 34,
                                       child: ElevatedButton.icon(
-                                        onPressed: () {
-                                          // TODO: Add to cart logic
+                                        onPressed: () async {
+                                          final userId =
+                                              Provider.of<
+                                                signUpnLogin_viewmodel
+                                              >(
+                                                context,
+                                                listen: false,
+                                              ).userInfo!.id;
+                                          final token =
+                                              Provider.of<
+                                                signUpnLogin_viewmodel
+                                              >(
+                                                context,
+                                                listen: false,
+                                              ).authToken;
+                                          final viewModel =
+                                              Provider.of<cartViewModel>(
+                                                context,
+                                                listen: false,
+                                              );
+
+                                          AddItemCart itemCartData =
+                                              AddItemCart(
+                                                userid: userId,
+                                                itemcode: item.itemcode,
+                                                brand: item.brand,
+                                                unit: item.unit,
+                                                quantity: 1,
+                                              );
+                                          print('userid: $userId, itemcode: ${item.itemcode}, brand: ${item.brand}, unit: ${item.unit}, quantity: 1');
+
+                                          try {
+                                            if (token != null) {
+                                              await viewModel.addItemCart(
+                                                itemCartData,
+                                                token,
+                                              );
+
+                                              bool dismissedByTimer = true;
+
+                                              await showDialog(
+                                                context: context,
+                                                barrierDismissible:
+                                                    false, // Prevent dismiss by tapping outside
+                                                builder: (
+                                                  BuildContext context,
+                                                ) {
+                                                  // Start a delayed close
+                                                  Future.delayed(
+                                                    Duration(seconds: 3),
+                                                    () {
+                                                      if (dismissedByTimer &&
+                                                          Navigator.canPop(
+                                                            context,
+                                                          )) {
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop(); // Auto close after 3s
+                                                      }
+                                                    },
+                                                  );
+
+                                                  return AlertDialog(
+                                                    title: const Text(
+                                                      'Success',
+                                                    ),
+                                                    content: const Text(
+                                                      'Item added to cart successfully!',
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        child: const Text('OK'),
+                                                        onPressed: () {
+                                                          dismissedByTimer =
+                                                              false; // User pressed manually
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop(); // Close dialog
+                                                        },
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            }
+                                          } catch (e) {
+                                            print(
+                                              'Failed to add item to cart: $e',
+                                            );
+                                          }
                                         },
                                         icon: Icon(
                                           Icons.add_shopping_cart,

@@ -164,6 +164,8 @@ class itemSearch {
 class itemBestDeals {
   final int itemcode;
   final String itemname;
+  final String? unit;
+  final String? brand;
   final Uint8List? itemimage;
   final double? price;
   final int? premiseid;
@@ -177,6 +179,8 @@ class itemBestDeals {
   itemBestDeals({
     required this.itemcode,
     required this.itemname,
+    required this.unit,
+    required this.brand,
     required this.itemimage,
     required this.price,
     this.premiseid,
@@ -205,6 +209,8 @@ class itemBestDeals {
     return itemBestDeals(
       itemcode: int.parse(json['itemcode'].toString()),
       itemname: json['itemname'] as String,
+      unit: json['unit'],
+      brand: json['brand'],
       itemimage:
           json['itemimage'] != null ? base64Decode(json['itemimage']) : null,
       price: parsedPrice,
@@ -217,6 +223,8 @@ class itemBestDeals {
     return {
       'itemcode': itemcode,
       'itemname': itemname,
+      'unit': unit,
+      'brand': brand,
       'image':
           itemimage, // Consider converting to base64 if sending as JSON string
       'price': price,
@@ -263,3 +271,4 @@ class storeLocation {
     );
   }
 }
+

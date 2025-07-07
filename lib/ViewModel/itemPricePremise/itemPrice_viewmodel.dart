@@ -101,9 +101,11 @@ class itemPrice_viewmodel extends ChangeNotifier{
     try{
       _itemprice = await itemPriceRepository.getSelectedItemDetail(premiseid, itemcode,searchTerm,lat, lng, radius, storeType,priceRange,itemGroup);
       // ✅ Print each item for debugging
+      /*
       for (var item in _itemprice) {
         print('📦 Item: ${item.itemname}, Price: ${item.price}, Store: ${item.premisename}');
       }
+       */
     } catch(e){
       print('Failed to get selected item: $e');
     }finally{
@@ -112,6 +114,19 @@ class itemPrice_viewmodel extends ChangeNotifier{
     }
   }
 
+  Future<void> fetchItemPriceDetails(int itemcode, double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async {
+    fetchingData = true;
+    notifyListeners();
+    try{
+      _itemprice = await itemPriceRepository.getItemPriceDetails(itemcode, lat, lng, radius, storeType, priceRange, itemGroup);
+    } catch(e){
+      print('Failed to get item with same itemcode: $e');
+    }finally{
+      fetchingData = false;
+      notifyListeners();
+    }
+        
+  }
   // Set Default Distance Radius
   double distanceRadius = 10000.0;
   void setDistanceRadius(double radius) {
@@ -139,4 +154,6 @@ class itemPrice_viewmodel extends ChangeNotifier{
     storeType = group;
     notifyListeners(); // ensures UI updates
   }
+
+
 }

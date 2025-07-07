@@ -1,237 +1,277 @@
 import 'package:flutter/material.dart';
 import 'package:fyp/View/itemcartpage.dart';
+import 'package:fyp/ViewModel/compareItems/compareItems_viewmodel.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 
 class compareitem extends StatefulWidget {
-  const compareitem({super.key});
+  final int? itemcode;
+  final String? itemname;
+  final LatLng? currentPosition;
+  final double? tempDistanceRadius;
+  final String? tempStoreType;
+  final String? tempPriceRange;
+  final String? tempItemGroup;
+  const compareitem({
+    super.key,
+    required this.itemcode,
+    required this.itemname,
+    required this.currentPosition,
+    required this.tempDistanceRadius,
+    required this.tempStoreType,
+    required this.tempPriceRange,
+    required this.tempItemGroup,
+  });
 
   @override
   State<compareitem> createState() => _compareitemState();
 }
 
 class _compareitemState extends State<compareitem> {
-  final List<Map<String, String>> items = [
-    {'Store': 'Lotus', 'Price': 'Rm 4.30', 'Distance': '3.4km'},
-    {'Store': 'Aeon', 'Price': 'Rm 4.80', 'Distance': '2.4km'},
-    {'Store': '99 Speedmart', 'Price': 'RM5.00', 'Distance': '4.5km'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = Provider.of<compareItems_viewmodel>(
+        context,
+        listen: false,
+      );
+      if (widget.itemcode != null &&
+          widget.itemname != null &&
+          widget.currentPosition != null &&
+          widget.tempDistanceRadius != null &&
+          widget.tempStoreType != null &&
+          widget.tempPriceRange != null &&
+          widget.tempItemGroup != null) {
+        viewModel.fetchItemPriceDetails(
+          widget.itemcode!,
+          widget.currentPosition!.latitude,
+          widget.currentPosition!.longitude,
+          widget.tempDistanceRadius!,
+          widget.tempStoreType!,
+          widget.tempPriceRange!,
+          widget.tempItemGroup!,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final viewModel = Provider.of<compareItems_viewmodel>(context);
     return Scaffold(
       backgroundColor: const Color(0xFFE3ECF5),
       appBar: AppBar(
-        title: Text('Compare Item Prices'),
+        title: Text(
+          'Compare Items',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Color(0xFF5A7BE7),
         automaticallyImplyLeading: true,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 5.0),
-            child: Row(
-              children: [
-                RichText(
-                  text: TextSpan(
-                    style: TextStyle(color: Colors.black),
-                    children: [
-                      TextSpan(
-                        text: 'Item: ',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+          SizedBox(height: 5),
+          viewModel.fetchingData
+              ? Center(child: CircularProgressIndicator())
+              : Expanded(
+                child: ListView.builder(
+                  itemCount: viewModel.itemprice.length,
+                  itemBuilder: (context, index) {
+                    final item = viewModel.itemprice[index];
+                    return Center(
+                      child: ItemCard(
+                        itemcode: item.itemcode,
+                        itemName: item.itemname,
+                        itemBrand: item.brand ?? 'NOT AVAILABLE',
+                        itemUnit: item.unit ?? '',
+                        itemDescription: item.description ?? '',
+                        itemPrice: item.price ?? 0.0,
+                        storeName: item.premisename ?? 'NOT AVAILABLE',
+                        currentPosition: widget.currentPosition!,
+                        tempDistanceRadius: widget.tempDistanceRadius,
+                        tempItemGroup: widget.tempItemGroup,
+                        tempPriceRange: widget.tempPriceRange,
+                        tempStoreType: widget.tempStoreType,
                       ),
-                      TextSpan(text: 'Sos Cili'),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-                SizedBox(width: 8),
-                RichText(
-                  text: TextSpan(
-                    style: TextStyle(color: Colors.black),
-                    children: [
-                      TextSpan(
-                        text: 'Brand: ',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      TextSpan(text: 'Maggie'),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 8),
-                RichText(
-                  text: TextSpan(
-                    style: TextStyle(color: Colors.black),
-                    children: [
-                      TextSpan(
-                        text: 'Unit: ',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      TextSpan(text: '340g'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return Center(
-                  child: ItemCard(
-                    storeName: item['Store']!,
-                    price: item['Price']!,
-                    distance: item['Distance']!,
-                    onDistance: () => print('Compare ${item['Store']}'),
-                    onCart: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => itemcart()),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
+              ),
         ],
       ),
     );
   }
 }
 
+bool _isPressed = false;
+
 class ItemCard extends StatelessWidget {
+  final int? itemcode;
+  final String itemName;
+  final String itemBrand;
+  final String itemUnit;
+  final double itemPrice;
+  final String itemDescription;
   final String storeName;
-  final String price;
-  final String distance;
-  final VoidCallback onDistance;
-  final VoidCallback onCart;
+  final LatLng? currentPosition;
+  final double? tempDistanceRadius;
+  final String? tempStoreType;
+  final String? tempPriceRange;
+  final String? tempItemGroup;
 
   const ItemCard({
     super.key,
+    required this.itemcode,
+    required this.itemName,
+    required this.itemBrand,
+    required this.itemUnit,
+    required this.itemPrice,
+    required this.itemDescription,
     required this.storeName,
-    required this.price,
-    required this.distance,
-    required this.onDistance,
-    required this.onCart,
+    required this.currentPosition,
+    required this.tempDistanceRadius,
+    required this.tempStoreType,
+    required this.tempPriceRange,
+    required this.tempItemGroup,
   });
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
-    return Container(
-      height: screenHeight * 0.14,
-      width: screenWidth * 0.95,
-      margin: EdgeInsets.symmetric(vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Color(0xFF5A7BE7), width: 2.0),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            // Image placeholder
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: AssetImage('assets/Icons/no_picture.png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            SizedBox(width: 10),
-            // Item info
-            SizedBox(
-              height: screenHeight * 0.1,
-              width: screenWidth * 0.44,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  columnWidths: {0: IntrinsicColumnWidth()},
-                  children: [
-                    TableRow(
-                      children: [
-                        Text(
-                          'Store Name: $storeName',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Color(0xFF5A7BE7), width: 2.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Item Details Table
+              Table(
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                columnWidths: const {0: IntrinsicColumnWidth()},
+                children: [
+                  TableRow(
+                    children: [
+                      Text(
+                        'Name: $itemName',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      Text(
+                        'Brand: $itemBrand',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      Text(
+                        'Unit: $itemUnit',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      Text(
+                        'Description: $itemDescription',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        softWrap: true,
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      Text(
+                        'Store: $storeName',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      Text(
+                        'Price: RM ${itemPrice.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF5A7BE7),
+                          fontSize: 18,
                         ),
-                      ],
-                    ),
-                    TableRow(
-                      children: [
-                        Text(
-                          'Distance: $distance',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+
+              // Buttons: Add + Directions
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => itemcart(
+                                currentPosition: currentPosition,
+                                tempDistanceRadius: tempDistanceRadius,
+                                tempStoreType: tempStoreType,
+                                tempPriceRange: tempPriceRange,
+                                tempItemGroup: tempItemGroup,
+                              ),
                         ),
-                      ],
+                      );
+                    },
+                    icon: Icon(Icons.shopping_cart_outlined, size: 25),
+                    label: Text(
+                      'Add',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    TableRow(
-                      children: [
-                        Text(
-                          'Price: $price',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFFF9800),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.directions,
+                      size: 35,
+                      color: Colors.black87,
+                    ),
+                    onPressed: () {},
+                  ),
+                ],
               ),
-            ),
-            SizedBox(width: 10),
-            // Compare button
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: onDistance,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.location_on_outlined, size: 35),
-                    //Image.asset('assets/Icons/compare_icon.png', width: 35, height: 35),
-                    SizedBox(height: 4),
-                    Text(
-                      'Direction',
-                      style: TextStyle(fontSize: 10, color: Colors.black),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(width: 4),
-            // Cart button
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: onCart,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.shopping_cart_outlined, size: 35),
-                    SizedBox(height: 4),
-                    Text(
-                      'Cart',
-                      style: TextStyle(fontSize: 10, color: Colors.black),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

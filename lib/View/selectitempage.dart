@@ -1,12 +1,15 @@
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
+import 'package:fyp/Model/cart.dart';
 import 'package:fyp/Model/itemPricePremise.dart';
 import 'package:fyp/View/itemcartpage.dart';
+import 'package:fyp/ViewModel/cart/cart_viewmodel.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
+import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
 import 'compareitempage.dart';
 
 class selectitempage extends StatefulWidget {
@@ -128,9 +131,7 @@ class _selectitempageState extends State<selectitempage> {
       Column(
         children: [
           SizedBox(height: 5,),
-          viewModel.fetchingData
-              ? Center(child: CircularProgressIndicator())
-              : Expanded(
+          if (viewModel.fetchingData) Center(child: CircularProgressIndicator()) else Expanded(
             child: ListView.builder(
               itemCount: items.length,
               itemBuilder: (context, index) {
@@ -146,14 +147,81 @@ class _selectitempageState extends State<selectitempage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => compareitem(),
+                          builder: (context) => compareitem(
+                            itemcode: item.itemcode,
+                            itemname: item.itemname,
+                            currentPosition: (widget.currentPosition!),
+                            tempDistanceRadius: widget.tempDistanceRadius!,
+                            tempStoreType: widget.tempStoreType!,
+                            tempPriceRange: widget.tempPriceRange!,
+                            tempItemGroup: widget.tempItemGroup,
+                          ),
                         ),
                       );
                     },
-                    onCart: () {
+                    onCart: () async {
+                      final userId = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id;
+                      final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
+                      final viewModel = Provider.of<cartViewModel>(context,listen: false);
+
+                      AddItemCart itemCartData = AddItemCart(
+                        userid: userId,
+                        itemcode: item.itemcode,
+                        brand: item.brand,
+                          unit: item.unit,
+                        quantity: 1
+
+                      );
+                      try{
+                        if(token !=null){
+                          await viewModel.addItemCart(itemCartData, token);
+
+                          bool dismissedByTimer = true;
+
+                          await showDialog(
+                            context: context,
+                            barrierDismissible:
+                            false, // Prevent dismiss by tapping outside
+                            builder: (BuildContext context) {
+                              // Start a delayed close
+                              Future.delayed(Duration(seconds: 3), () {
+                                if (dismissedByTimer && Navigator.canPop(context)) {
+                                  Navigator.of(context).pop(); // Auto close after 3s
+                                }
+                              });
+
+                              return AlertDialog(
+                                title: const Text('Success'),
+                                content: const Text('Item added to cart successfully!'),
+                                actions: [
+                                  TextButton(
+                                    child: const Text('OK'),
+                                    onPressed: () {
+                                      dismissedByTimer =
+                                      false; // User pressed manually
+                                      Navigator.of(context).pop(); // Close dialog
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          Navigator.pop(context);
+                        }
+                      }catch(e){
+                        print('Failed to add item to cart: $e');
+
+                      }
+
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => itemcart()),
+                        MaterialPageRoute(builder: (context) => itemcart(
+                          currentPosition: widget.currentPosition!,
+                          tempDistanceRadius: widget.tempDistanceRadius!,
+                          tempStoreType: widget.tempPriceRange,
+                          tempPriceRange: widget.tempStoreType,
+                          tempItemGroup: widget.tempItemGroup,
+                        )),
                       );
                     },
                   ),
@@ -188,15 +256,13 @@ class ItemCard extends StatelessWidget {
     required this.onCart,
   });
 
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+
     return Padding(
-      padding: EdgeInsets.only(top: 2.0, bottom: 2.0),
+      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
       child: Container(
-        height: screenHeight * 0.25,
         width: screenWidth * 0.98,
         decoration: BoxDecoration(
           color: Colors.white,
@@ -204,183 +270,71 @@ class ItemCard extends StatelessWidget {
           border: Border.all(color: Color(0xFF5A7BE7), width: 2.0),
         ),
         child: Padding(
-          padding: EdgeInsets.only(left: 12.0, top: 8.0, bottom: 8.0),
+          padding: const EdgeInsets.all(12.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              // Item Details Table
+              Table(
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                columnWidths: const {0: IntrinsicColumnWidth()},
                 children: [
-                  /*
-                  // Image placeholder
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(8),
-                      image: DecorationImage(
-                        image: AssetImage('assets/Icons/no_picture.png'),
-                        fit: BoxFit.cover,
-                      ),
+                  TableRow(children: [
+                    Text('Name: $itemName', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ]),
+                  TableRow(children: [
+                    Text('Brand: $itemBrand', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ]),
+                  TableRow(children: [
+                    Text('Unit: $itemUnit', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ]),
+                  TableRow(children: [
+                    Text(
+                      'Description: $itemDescription',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      softWrap: true,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                   */
-                  // Item info
-                  SizedBox(
-                    height: screenHeight * 0.1,
-                    width: screenWidth * 0.78,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Table(
-                        defaultVerticalAlignment:
-                            TableCellVerticalAlignment.middle,
-                        columnWidths: {0: IntrinsicColumnWidth()},
-                        children: [
-                          TableRow(
-                            children: [
-                              Text(
-                                'Name: $itemName',
-                                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 13),
-                              ),
-                            ],
-                          ),
-                          TableRow(
-                            children: [
-                              Text(
-                                'Brand: $itemBrand',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          TableRow(
-                            children: [
-                              Text(
-                                'Unit: $itemUnit',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          TableRow(
-                            children: [
-                              Text(
-                                'Description: $itemDescription',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                                maxLines: 2,
-                              ),
-                            ],
-                          ),
-                          TableRow(
-                            children: [
-                              Text(
-                                'Price: RM ${itemPrice.toStringAsFixed(2)}',
-                                style: TextStyle(fontWeight: FontWeight.bold,color: Color(0xFF5A7BE7),fontSize: 18),
-                              )
-                            ]
-                          )
-                        ],
-                      ),
+                  ]),
+                  TableRow(children: [
+                    Text(
+                      'Price: RM ${itemPrice.toStringAsFixed(2)}',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5A7BE7), fontSize: 18),
                     ),
-                  ),
+                  ]),
                 ],
               ),
-              SizedBox(height: 50,),
+              SizedBox(height: 12),
+
+              // Buttons: Compare + Add
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: onCompare,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Compare button
-                          SizedBox(
-                              width: 140,
-                              height: 45,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    PageRouteBuilder(
-                                      transitionDuration: Duration(
-                                        milliseconds: 800,
-                                      ), // 🔧 Adjust timer here
-                                      pageBuilder:
-                                          (context, animation, secondaryAnimation) =>
-                                          compareitem(),
-                                      transitionsBuilder: (
-                                          context,
-                                          animation,
-                                          secondaryAnimation,
-                                          child,
-                                          ) {
-                                        const begin = Offset(
-                                          1.0,
-                                          0.0,
-                                        ); // Start off-screen to the right
-                                        const end = Offset.zero;
-                                        const curve = Curves.ease;
-
-                                        var tween = Tween(
-                                          begin: begin,
-                                          end: end,
-                                        ).chain(CurveTween(curve: curve));
-                                        return SlideTransition(
-                                          position: animation.drive(tween),
-                                          child: child,
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                                icon: Icon(Icons.compare_arrows, size: 35,),
-                                //icon: Image.asset('assets/Icons/compare_icon.png', width: 35, height: 35,),
-                                label: Text('Compare',
-                                    style:TextStyle(fontWeight:FontWeight.bold, fontSize: 12)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF5A7BE7),
-                                  foregroundColor: Colors.white,
-                                  padding: EdgeInsets.symmetric(horizontal: 6),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
+                  ElevatedButton.icon(
+                    onPressed: onCompare,
+                    icon: Icon(Icons.compare_arrows, size: 28),
+                    label: Text('Compare', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF5A7BE7),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                   ),
-                  SizedBox(width: 10),
-                  // Cart button
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: onCart,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 140,
-                            height: 45,
-                            child: ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: Icon(Icons.shopping_cart_outlined, size: 30),
-                              label: Text('Add',
-                                  style: TextStyle(fontWeight:FontWeight.bold, fontSize: 12)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFFFF9800),
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(horizontal: 6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                  SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    onPressed: onCart,
+                    icon: Icon(Icons.shopping_cart_outlined, size: 28),
+                    label: Text('Add', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFFF9800),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                   ),
@@ -393,3 +347,4 @@ class ItemCard extends StatelessWidget {
     );
   }
 }
+

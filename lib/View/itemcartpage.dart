@@ -1,97 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:fyp/Model/cart.dart';
+import 'package:fyp/ViewModel/cart/cart_viewmodel.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
+
 class itemcart extends StatefulWidget {
-  const itemcart({super.key});
+  final LatLng? currentPosition;
+  final double? tempDistanceRadius;
+  final String? tempStoreType;
+  final String? tempPriceRange;
+  final String? tempItemGroup;
+
+  const itemcart({
+    super.key,
+    required this.currentPosition,
+    required this.tempDistanceRadius,
+    required this.tempStoreType,
+    required this.tempPriceRange,
+    required this.tempItemGroup,
+  });
 
   @override
   State<itemcart> createState() => _itemcartState();
 }
 
 class _itemcartState extends State<itemcart> {
-  final List<Map<String, String>> items = [
-    {'name': 'Susu Segar', 'brand': 'Dutch Lady', 'unit': '1L'},
-    {'name': 'Telur Gred A', 'brand': 'Ayamas', 'unit': '10 pcs'},
-    {'name': 'Minyak Masak', 'brand': 'Knife', 'unit': '1KG'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userId = Provider.of<signUpnLogin_viewmodel>(context, listen: false).userInfo!.id;
+      final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
+      if (token != null && userId != null) {
+        Provider.of<cartViewModel>(context, listen: false).fetchViewItemCart(userId, token);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<cartViewModel>(context);
+    final cartItems = viewModel.viewItemCart;
+    final token = Provider.of<signUpnLogin_viewmodel>(context).authToken;
+
     return Scaffold(
+      backgroundColor: const Color(0xFFE3ECF5),
       appBar: AppBar(
-        title: Text('Cart'),
+        title: const Text('Cart', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF5A7BE7),
         automaticallyImplyLeading: true,
       ),
-      body:  ListView.builder(
-        itemCount: items.length,
+      body: viewModel.fetchingData
+          ? const Center(child: CircularProgressIndicator())
+          : cartItems.isEmpty
+          ? const Center(child: Text('Your cart is empty.'))
+          : ListView.builder(
+        itemCount: cartItems.length,
         itemBuilder: (context, index) {
-          final item = items[index];
+          final item = cartItems[index];
           return Center(
             child: ItemCard(
-              itemName: item['name']!,
-              itemBrand: item['brand']!,
-              itemUnit: item['unit']!,
-              onQuantity: () => print('Add ${item['name']} to cart'),
-              onRemove: () => print('Add ${item['name']} to cart'),
+              itemName: "Item Code: ${item.itemcode}",
+              itemBrand: item.brand ?? 'N/A',
+              itemUnit: item.unit ?? 'N/A',
+              itemWeight: '', // If you have weight info, add here
+              quantity: item.quantity,
+              onRemove: () {
+                if (token != null) {
+                  Provider.of<cartViewModel>(context, listen: false)
+                      .deleteItemCart(item.cartId, token)
+                      .then((_) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Item removed')));
+                    // Refresh cart list
+                    final userId = Provider.of<signUpnLogin_viewmodel>(context, listen: false).userInfo!.id;
+                    Provider.of<cartViewModel>(context, listen: false).fetchViewItemCart(userId, token);
+                  });
+                }
+              },
             ),
           );
         },
       ),
-    );
-  }
-}
-class QuantityControl extends StatefulWidget {
-  final void Function(int)? onChanged;
-
-  const QuantityControl({super.key, this.onChanged});
-
-  @override
-  State<QuantityControl> createState() => _QuantityControlState();
-}
-
-class _QuantityControlState extends State<QuantityControl> {
-  int quantity = 1;
-
-  void _increment() {
-    setState(() => quantity++);
-    widget.onChanged?.call(quantity);
-  }
-
-  void _decrement() {
-    if (quantity > 1) {
-      setState(() => quantity--);
-      widget.onChanged?.call(quantity);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          icon: Icon(Icons.remove, size: 18), // Smaller icon
-          padding: EdgeInsets.zero,
-          constraints: BoxConstraints(minWidth: 30, minHeight: 30),
-          onPressed: _decrement,
-        ),
-        Container(
-          width: 18,
-          height: 18,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            '$quantity',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          ),
-        ),
-        IconButton(
-          icon: Icon(Icons.add, size: 18),
-          padding: EdgeInsets.zero,
-          constraints: BoxConstraints(minWidth: 30, minHeight: 30),
-          onPressed: _increment,
-        ),
-      ],
     );
   }
 }
@@ -100,7 +90,8 @@ class ItemCard extends StatelessWidget {
   final String itemName;
   final String itemBrand;
   final String itemUnit;
-  final VoidCallback onQuantity;
+  final String itemWeight;
+  final int quantity;
   final VoidCallback onRemove;
 
   const ItemCard({
@@ -108,96 +99,63 @@ class ItemCard extends StatelessWidget {
     required this.itemName,
     required this.itemBrand,
     required this.itemUnit,
-    required this.onQuantity,
+    required this.itemWeight,
+    required this.quantity,
     required this.onRemove,
   });
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
-      height: screenHeight * 0.1,
       width: screenWidth * 0.95,
-      margin: EdgeInsets.symmetric(vertical: 3),
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
+        border: Border.all(color: const Color(0xFF5A7BE7), width: 2),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Color(0xFF5A7BE7), width: 2.0),
       ),
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            // Image placeholder
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: AssetImage('assets/Icons/no_picture.png'),
-                  fit: BoxFit.cover,
-                ),
+      child: Row(
+        children: [
+          // Placeholder image
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(8),
+              image: const DecorationImage(
+                image: AssetImage('assets/Icons/no_picture.png'),
+                fit: BoxFit.cover,
               ),
             ),
-            SizedBox(width: 10),
-            // Item info
-            Expanded(
-              //height: screenHeight * 0.1,
-              //width: screenWidth * 0.44,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  columnWidths: {0: IntrinsicColumnWidth()},
-                  children: [
-                    TableRow(
-                      children: [
-                        Text(
-                          'Name: $itemName',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    TableRow(
-                      children: [
-                        Text(
-                          'Brand: $itemBrand',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    TableRow(
-                      children: [
-                        Text(
-                          'Unit: $itemUnit',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+          ),
+          const SizedBox(width: 10),
+          // Item Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('Brand: $itemBrand'),
+                Text('Unit: $itemUnit'),
+                if (itemWeight.isNotEmpty) Text('Weight: $itemWeight'),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            children: [
+              Text("Qty: $quantity", style: TextStyle(fontWeight: FontWeight.bold)),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.red),
+                onPressed: onRemove,
               ),
-            ),
-            SizedBox(width: 10),
-            // add quantity button
-            QuantityControl(
-              onChanged: (value) => print('Quantity updated: $value'),
-            ),
-            IconButton(
-              icon: Icon(Icons.close, color: Colors.red, size: 32),
-              constraints: BoxConstraints(),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Item removed')),
-                );
-              },
-            )
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }

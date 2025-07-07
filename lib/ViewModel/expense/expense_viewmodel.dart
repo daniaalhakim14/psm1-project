@@ -5,7 +5,6 @@ import '../../Model/Category.dart';
 import '../../Model/expense.dart';
 import 'expense_repository.dart';
 
-
 // ChangeNotifier allows View Model to notify listeners when data changes
 class expenseViewModel extends ChangeNotifier{
 
