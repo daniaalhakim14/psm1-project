@@ -123,15 +123,53 @@ class _selectitempageState extends State<selectitempage> {
     return Scaffold(
       backgroundColor: const Color(0xFFE3ECF5),
       appBar: AppBar(
-        title: Text('Select Item',style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Select Item',style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+            // Cart Button
+            Padding(
+              padding: EdgeInsets.only(left: 12.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => itemcart(
+                        currentPosition: (widget.currentPosition),
+                        tempDistanceRadius: widget.tempDistanceRadius,
+                        tempStoreType: widget.tempStoreType,
+                        tempPriceRange: widget.tempPriceRange,
+                        tempItemGroup: widget.tempItemGroup,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.shopping_cart_outlined, size: 30),
+                ),
+              ),
+            ),
+          ],
+        ),
         backgroundColor: Color(0xFF5A7BE7),
         automaticallyImplyLeading: true,
       ),
       body:
       Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(height: 5,),
-          if (viewModel.fetchingData) Center(child: CircularProgressIndicator()) else Expanded(
+          if (viewModel.fetchingData)
+            const Center(child: CircularProgressIndicator())
+          else Expanded(
             child: ListView.builder(
               itemCount: items.length,
               itemBuilder: (context, index) {
@@ -206,23 +244,10 @@ class _selectitempageState extends State<selectitempage> {
                               );
                             },
                           );
-                          Navigator.pop(context);
                         }
                       }catch(e){
                         print('Failed to add item to cart: $e');
-
                       }
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => itemcart(
-                          currentPosition: widget.currentPosition!,
-                          tempDistanceRadius: widget.tempDistanceRadius!,
-                          tempStoreType: widget.tempPriceRange,
-                          tempPriceRange: widget.tempStoreType,
-                          tempItemGroup: widget.tempItemGroup,
-                        )),
-                      );
                     },
                   ),
                 );

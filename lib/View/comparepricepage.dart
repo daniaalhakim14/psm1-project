@@ -441,7 +441,7 @@ class _comparepricepageState extends State<comparepricepage>
                               12,
                             ), // <-- radius value
                             side: BorderSide(
-                              color: Colors.blue,
+                              color: Color(0xFFE3ECF5),
                             ), // optional: border color
                           ),
                         ),
@@ -891,25 +891,9 @@ class _comparepricepageState extends State<comparepricepage>
                                       height: 34,
                                       child: ElevatedButton.icon(
                                         onPressed: () async {
-                                          final userId =
-                                              Provider.of<
-                                                signUpnLogin_viewmodel
-                                              >(
-                                                context,
-                                                listen: false,
-                                              ).userInfo!.id;
-                                          final token =
-                                              Provider.of<
-                                                signUpnLogin_viewmodel
-                                              >(
-                                                context,
-                                                listen: false,
-                                              ).authToken;
-                                          final viewModel =
-                                              Provider.of<cartViewModel>(
-                                                context,
-                                                listen: false,
-                                              );
+                                          final userId = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id;
+                                          final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
+                                          final viewModel = Provider.of<cartViewModel>(context, listen: false,);
 
                                           AddItemCart itemCartData =
                                               AddItemCart(

@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'package:fyp/Model/cart.dart';
 import 'package:fyp/ViewModel/cart/cart_callApi.dart';
 
-import '../../Model/cart.dart';
-
 class cartRepository {
   final cart_callapi _service = cart_callapi();
 
@@ -18,13 +16,13 @@ class cartRepository {
     }
   }
 
-  Future<List<ViewItemCart>> getViewItemCart(int cartId, String token) async {
-    final response = await _service.fetchViewItemCart(cartId, token);
+  Future<List<ViewItemCart>> getViewItemCart(int userid, String token) async {
+    final response = await _service.fetchViewItemCart(userid, token);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body); // This is a list of maps
       //Print raw JSON response from backend
-      print('Raw Expense Data from API: ${response.body}');
+      //print('Raw Expense Data from API: ${response.body}');
       final expenses = List<ViewItemCart>.from(
         data.map((x) => ViewItemCart.fromJson(x)),
       );
@@ -43,17 +41,75 @@ class cartRepository {
     }
   }
 
+  Future<void> updateItemCartQty(UpdateItemCartQty updateCartQty, String token) async{
+    final response = await _service.updateItemCartQty(updateCartQty.toMap(), token);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print("Response status: ${response.statusCode}");
+      print("Response body: $data");
+      return data;
+    }else {
+      throw Exception('Failed to update item cart quantity: ${response.body}');
+    }
+  }
+  Future<void> removeItemInCart(RemoveItemInCart removeItemInCart, String token) async{
+    final response = await _service.removeItemInCart(removeItemInCart.toMap(), token);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${data}");
+      return data;
+    }else {
+      throw Exception('Failed to update item cart quantity: ${response.body}');
+    }
+  }
 
-
-  Future<void> deleteItemCart(int cart_item_id, String token) async {
-    final response = await _service.deleteItemCart(cart_item_id,token);
-
+  Future<void> deleteItemFromCart(int userid, String token) async {
+    final response = await _service.deleteItemFromCart(userid,token);
     if (response.statusCode != 200) {
       throw Exception('Failed to delete expense: ${response.body}');
     }
-
     print('Expense deleted successfully');
   }
 
+  Future<List<CompareCart>> getCompareCart(Map<String,dynamic> compareCartPayload, String token) async {
+    final response = await _service.fetchCompareCart(compareCartPayload, token);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body); // This is a list of maps
+      //Print raw JSON response from backend
+      //print('Raw Expense Data from API: ${response.body}');
+      final compareCart = List<CompareCart>.from(
+        data.map((x) => CompareCart.fromJson(x)),
+      );
+      /*
+      for (var expense in expenses) {
+        print(
+          'Expense -> id: ${expense.expenseid}, amount: ${expense.expenseAmount}, category: ${expense.categoryname}, date: ${expense.expenseDate}, iconData: ${expense.iconData}, iconcolour: ${expense.iconColor}',
+        );
+      }
+      */
+      return compareCart;
+    } else {
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      throw Exception('Failed to load cart');
+    }
+  }
+
+  /*
+  Future<List<StoreComparison>> getCompareCartResults(Map<String, dynamic> compareCartPayload, String token) async {
+    final response = await _service.fetchCompareCart(compareCartPayload, token);
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((json) => StoreComparison.fromJson(json)).toList();
+    } else {
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      throw Exception('Failed to load compare cart results');
+    }
+  }
+   */
 
 }

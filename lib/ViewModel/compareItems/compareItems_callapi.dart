@@ -1,3 +1,4 @@
+import 'package:fyp/Model/compareItems.dart';
 import 'package:http/http.dart' as http;
 import '../../configure_api.dart';
 
@@ -13,4 +14,6 @@ class compareItems_callapi {
     String url = '${AppConfig.baseUrl}$endpoint';
     print('item price details: $url');
     return await _httpClient.get(Uri.parse(url));
-  }}
+  }
+
+}

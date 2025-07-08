@@ -4,6 +4,10 @@ import 'package:fyp/ViewModel/compareItems/compareItems_viewmodel.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
+import '../Model/cart.dart';
+import '../ViewModel/cart/cart_viewmodel.dart';
+import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
+
 class compareitem extends StatefulWidget {
   final int? itemcode;
   final String? itemname;
@@ -69,9 +73,44 @@ class _compareitemState extends State<compareitem> {
     return Scaffold(
       backgroundColor: const Color(0xFFE3ECF5),
       appBar: AppBar(
-        title: Text(
-          'Compare Items',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Compare Items',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            // Cart Button
+            Padding(
+              padding: EdgeInsets.only(left: 12.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => itemcart(
+                        currentPosition: (widget.currentPosition),
+                        tempDistanceRadius: widget.tempDistanceRadius,
+                        tempStoreType: widget.tempStoreType,
+                        tempPriceRange: widget.tempPriceRange,
+                        tempItemGroup: widget.tempItemGroup,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.shopping_cart_outlined, size: 30),
+                ),
+              ),
+            ),
+          ],
         ),
         backgroundColor: Color(0xFF5A7BE7),
         automaticallyImplyLeading: true,
@@ -100,6 +139,81 @@ class _compareitemState extends State<compareitem> {
                         tempItemGroup: widget.tempItemGroup,
                         tempPriceRange: widget.tempPriceRange,
                         tempStoreType: widget.tempStoreType,
+                        onAdd: () async {
+                            final userId = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id;
+                            final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
+                            final viewModel = Provider.of<cartViewModel>(context, listen: false,);
+                            AddItemCart itemCartData =
+                            AddItemCart(
+                              userid: userId,
+                              itemcode: item.itemcode,
+                              brand: item.brand,
+                              unit: item.unit,
+                              quantity: 1,
+                            );
+                            print('userid: $userId, itemcode: ${item.itemcode}, brand: ${item.brand}, unit: ${item.unit}, quantity: 1');
+
+                            try {
+                              if (token != null) {
+                                await viewModel.addItemCart(
+                                  itemCartData,
+                                  token,
+                                );
+
+                                bool dismissedByTimer = true;
+
+                                await showDialog(
+                                context: context,
+                                barrierDismissible:
+                                false, // Prevent dismiss by tapping outside
+                                builder: (
+                                    BuildContext context,
+                                    ) {
+                                  // Start a delayed close
+                                  Future.delayed(
+                                    Duration(seconds: 3),
+                                        () {
+                                      if (dismissedByTimer &&
+                                          Navigator.canPop(
+                                            context,
+                                          )) {
+                                        Navigator.of(
+                                          context,
+                                        ).pop(); // Auto close after 3s
+                                      }
+                                    },
+                                  );
+
+                                  return AlertDialog(
+                                    title: const Text(
+                                      'Success',
+                                    ),
+                                    content: const Text(
+                                      'Item added to cart successfully!',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text('OK'),
+                                        onPressed: () {
+                                          dismissedByTimer =
+                                          false; // User pressed manually
+                                          Navigator.of(
+                                            context,
+                                          ).pop(); // Close dialog
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                                );
+                              }
+                            } catch (e) {
+                              print(
+                                'Failed to add item to cart: $e',
+                              );
+                            }
+                        },
+                        onDirection: (){},
                       ),
                     );
                   },
@@ -126,6 +240,8 @@ class ItemCard extends StatelessWidget {
   final String? tempStoreType;
   final String? tempPriceRange;
   final String? tempItemGroup;
+  final VoidCallback onAdd;
+  final VoidCallback onDirection;
 
   const ItemCard({
     super.key,
@@ -141,6 +257,8 @@ class ItemCard extends StatelessWidget {
     required this.tempStoreType,
     required this.tempPriceRange,
     required this.tempItemGroup,
+    required this.onAdd,
+    required this.onDirection
   });
 
   @override
@@ -228,21 +346,7 @@ class ItemCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => itemcart(
-                                currentPosition: currentPosition,
-                                tempDistanceRadius: tempDistanceRadius,
-                                tempStoreType: tempStoreType,
-                                tempPriceRange: tempPriceRange,
-                                tempItemGroup: tempItemGroup,
-                              ),
-                        ),
-                      );
-                    },
+                    onPressed: onAdd,
                     icon: Icon(Icons.shopping_cart_outlined, size: 25),
                     label: Text(
                       'Add',
@@ -266,7 +370,7 @@ class ItemCard extends StatelessWidget {
                       size: 35,
                       color: Colors.black87,
                     ),
-                    onPressed: () {},
+                    onPressed: onDirection,
                   ),
                 ],
               ),
