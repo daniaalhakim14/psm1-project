@@ -5,16 +5,8 @@ import '../../configure_api.dart';
 class TaxReliefCallApi {
   final http.Client _httpClient = http.Client();
 
-  Future<http.Response> fetchTaxReliefs(String token) async {
-    final endpoint = '/taxRelief/getTaxRelief';
-    final url = '${AppConfig.baseUrl}$endpoint';
-    return await http.get(
-      Uri.parse(url),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-  }
-  Future<http.Response> fetchTaxReliefType(String token) async {
-    final endpoint = '/taxRelief/getTaxReliefTypes';
+  Future<http.Response> fetchTotalCanClaim(String token) async {
+    final endpoint = '/taxRelief/getTotalCanClaim';
     final url = '${AppConfig.baseUrl}$endpoint';
     return await http.get(
       Uri.parse(url),
@@ -22,6 +14,47 @@ class TaxReliefCallApi {
     );
   }
 
+  Future<http.Response> fetchTotalEligibleClaim(
+    int userid,
+    String token,
+  ) async {
+    final endpoint = '/taxRelief/getTotalEligibleClaim/$userid';
+    final url = '${AppConfig.baseUrl}$endpoint';
+    return await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+  }
+
+  Future<http.Response> fetchTaxReliefCategory(int userid, String token) async {
+    final endpoint = '/taxRelief/getTaxReliefCategory/$userid';
+    final url = '${AppConfig.baseUrl}$endpoint';
+    print(url);
+    return await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+  }
+
+  Future<http.Response> fetchReliefTypeInfo(int categoryid, String token) async{
+    final endpoint = '/taxRelief/getReliefTypeInfo/$categoryid';
+    final url = '${AppConfig.baseUrl}$endpoint';
+    print(url);
+    return await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+  }
+
+  Future<http.Response> fetchReliefCategoryInfo(int categoryid, String token) async{
+    final endpoint = '/taxRelief/getReliefCategoryInfo/$categoryid';
+    final url = '${AppConfig.baseUrl}$endpoint';
+    print(url);
+    return await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+  }
 
   void dispose() {
     _httpClient.close();

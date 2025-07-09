@@ -20,15 +20,22 @@ class taxExempt extends StatefulWidget {
 
 class _taxExemptState extends State<taxExempt> {
   @override
-  void initState(){
+  void initState() {
+    super.initState();
+    final userid =
+        Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id;
     final token =
         Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
     if (token != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final viewModel = Provider.of<TaxReliefViewModel>(context, listen: false);
-        viewModel.fetchTaxReliefs(token);
+        final viewModel = Provider.of<TaxReliefViewModel>(
+          context,
+          listen: false,
+        );
+        viewModel.fetchTaxReliefCategory(userid, token);
+        viewModel.fetchTotalCanClaim(token);
+        viewModel.fetchTotalEligibleClaim(userid, token);
       });
-
     }
   }
 
@@ -36,6 +43,9 @@ class _taxExemptState extends State<taxExempt> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final viewModel = Provider.of<TaxReliefViewModel>(context, listen: false);
+    viewModel.taxReliefCategory;
+
     return Scaffold(
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
@@ -46,27 +56,35 @@ class _taxExemptState extends State<taxExempt> {
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF5A7BE7),
       ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            children: [
-              SizedBox(height: 8),
-              // Top container
-              Container(
-                width: screenWidth * 0.98,
-                height: screenHeight * 0.10,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
+      body: Column(
+        children: [
+          SizedBox(height: 8),
+          // Top container
+          Container(
+            width: screenWidth * 0.98,
+            height: screenHeight * 0.10,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
                 ),
-                child: Row(
+              ],
+            ),
+            child: Consumer<TaxReliefViewModel>(
+              builder: (context, viewModel, _) {
+                if (viewModel.fetchingData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (viewModel.totalReliefList.isEmpty || viewModel.totalEligibleClaim.isEmpty) {
+                  return Text("No data");
+                }
+                final totalRelief = viewModel.totalReliefList.isNotEmpty ? viewModel.totalReliefList.first.totalRelief : 0.0;
+                final totalEligible = viewModel.totalEligibleClaim.isNotEmpty ? viewModel.totalEligibleClaim.first.claimedamount : 0.0;
+                return Row(
                   children: [
                     Column(
                       mainAxisAlignment:
@@ -81,7 +99,7 @@ class _taxExemptState extends State<taxExempt> {
                                   'Total Eligible Claim:',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                Text('RM12,330.40'),
+                                Text('RM${totalEligible.toStringAsFixed(2)}'),
                               ],
                             ),
                           ],
@@ -111,7 +129,7 @@ class _taxExemptState extends State<taxExempt> {
                                   'Remaining Relief:',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                Text('RM28,169.60'),
+                                Text('RM${totalRelief.toStringAsFixed(2)}'),
                               ],
                             ),
                           ],
@@ -119,109 +137,129 @@ class _taxExemptState extends State<taxExempt> {
                       ],
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                width: screenWidth * 0.95,
-                height: screenHeight * 0.10,
-                decoration: BoxDecoration(
-                  // fully transparent:
-                  color: Colors.white.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Colors.black26, width: 1.0),
-                ),
-                child: Row(
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: screenWidth * 0.95,
+            height: screenHeight * 0.10,
+            decoration: BoxDecoration(
+              // fully transparent:
+              color: Colors.white.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: Colors.black26, width: 1.0),
+            ),
+            child: Row(
+              children: [
+                SizedBox(width: 6),
+                Image.asset('assets/Icons/information.png', scale: 10),
+                SizedBox(width: 6),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(width: 6),
-                    Image.asset('assets/Icons/information.png', scale: 10),
-                    SizedBox(width: 6),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Track your tax reliefs',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Automatically maps you receipts to\neligible tax relief',
-                        ),
-                      ],
+                    Text(
+                      'Track your tax reliefs',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Automatically maps you receipts to\neligible tax relief',
                     ),
                   ],
                 ),
-              ),
-
-              SizedBox(height: 8),
-              Consumer<TaxReliefViewModel>(
-                  builder: (contenxt,viewModel,child){
-                    return Column(
-                      children: [
-                        _buildTaxExempt(
-                          imagePath: 'assets/Icons/man.png',
-                          title: 'Individual Relief',
-                          subtitle: 'Up to RM9,000',
-                          used: 750.00,
-                          limit: 9000.00,
-                          onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => individualRelief(),
-                              ),
-                            );
-                          },
-                        ),
-                        _buildTaxExempt(
-                          imagePath: 'assets/Icons/medical.png',
-                          title: 'Medical & Special Needs',
-                          subtitle: 'Up to RM10,000',
-                          used: 2345.42,
-                          limit: 10000.00,
-                          onTap: () {
-                            // another detail page maybe
-                          },
-                        ),
-                        _buildTaxExempt(
-                          imagePath: 'assets/Icons/lifestyle.png',
-                          title: 'Lifestyle',
-                          subtitle: 'Up to RM3,500',
-                          used: 435.03,
-                          limit: 3500.00,
-                          onTap: () {
-                            // another detail page maybe
-                          },
-                        ),
-                        _buildTaxExempt(
-                          imagePath: 'assets/Icons/children.png',
-                          title: 'Child Relief',
-                          subtitle: 'Up to RM8,000',
-                          used: 3567.27,
-                          limit: 8000.00,
-                          onTap: () {
-                            // another detail page maybe
-                          },
-                        ),
-                        _buildTaxExempt(
-                          imagePath: 'assets/Icons/secure.png',
-                          title: 'Insurances',
-                          subtitle: 'Up to RM10,000',
-                          used: 5232.68,
-                          limit: 10000.00,
-                          onTap: () {
-                            // another detail page maybe
-                          },
-                        ),
-                      ],
-                    );
-                  })
-              // Tax category
-
-            ],
+              ],
+            ),
           ),
-        ),
+          SizedBox(height: 8,),
+
+          Expanded(
+            child: Consumer<TaxReliefViewModel>(
+              builder: (context, viewModel, _) {
+                if (viewModel.fetchingData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                if (viewModel.taxReliefCategory.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No tax relief categories available',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  itemCount: viewModel.taxReliefCategory.length,
+                  itemBuilder: (context, index) {
+                    final category = viewModel.taxReliefCategory[index];
+
+                    // Get the appropriate icon based on category type
+                    String getIconPath(String categoryName) {
+                      if (categoryName.toLowerCase().contains('individual')) {
+                        return 'assets/Icons/man.png';
+                      } else if (categoryName.toLowerCase().contains('medical') ||
+                          categoryName.toLowerCase().contains('special')) {
+                        return 'assets/Icons/medical.png';
+                      } else if (categoryName.toLowerCase().contains('lifestyle')) {
+                        return 'assets/Icons/lifestyle.png';
+                      } else if (categoryName.toLowerCase().contains('child')) {
+                        return 'assets/Icons/children.png';
+                      } else if (categoryName.toLowerCase().contains('insurance')) {
+                        return 'assets/Icons/secure.png';
+                      } else {
+                        return 'assets/Icons/no_picture.png'; // fallback icon
+                      }
+                    }
+
+                    return TaxExemptCard(
+                      imagePath: getIconPath(category.relieftype ?? ''),
+                      title: category.relieftype ?? 'Unknown Category',
+                      subtitle: 'Up to RM${category.amountCanClaim?.toStringAsFixed(2) ?? '0'}',
+                      used: category.eligibleAmount ?? 0.0,
+                      limit: category.amountCanClaim ?? 0.0,
+                      onTap: () {
+                        // Navigate to individual relief page
+                        /*
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => individualRelief(
+                              userInfo: widget.userInfo,
+                              categoryId: category.id,
+                              categoryName: category.categoryName,
+                              maxAmount: category.maxAmount,
+                              usedAmount: category.usedAmount,
+                            ),
+                          ),
+                        );
+                         */
+                        final iconPath = getIconPath(category.relieftype ?? '');
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => individualRelief(
+                              categoryId: category.relieftypeid,
+                              iconPath: iconPath,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+
+
+        ],
       ),
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
@@ -281,16 +319,30 @@ class _taxExemptState extends State<taxExempt> {
       ),
     );
   }
+}
 
-  Widget _buildTaxExempt({
-    required String imagePath,
-    required String title,
-    required String subtitle,
-    required double used,
-    required double limit,
-    required VoidCallback onTap,
-  }) {
+class TaxExemptCard extends StatelessWidget {
+  final String imagePath;
+  final String title;
+  final String subtitle;
+  final double used;
+  final double limit;
+  final VoidCallback onTap;
+
+  const TaxExemptCard({
+    required this.imagePath,
+    required this.title,
+    required this.subtitle,
+    required this.used,
+    required this.limit,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final progressValue = limit > 0 ? used / limit : 0.0;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -298,7 +350,7 @@ class _taxExemptState extends State<taxExempt> {
         width: screenWidth * 0.98,
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: Colors.blueAccent, width: 1.5),
+          border: Border.all(color: Color(0xFF5A7BE7), width: 2.0),
           boxShadow: [
             BoxShadow(
               color: Colors.black12,
@@ -308,13 +360,34 @@ class _taxExemptState extends State<taxExempt> {
           ],
           borderRadius: BorderRadius.circular(15),
         ),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             Row(
               children: [
-                Image.asset(imagePath, scale: 8),
-                const SizedBox(width: 10),
+                // Icon container with circular background
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE3ECF5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Image.asset(
+                      imagePath,
+                      scale: 8,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.receipt,
+                          size: 30,
+                          color: Color(0xFF5A7BE7),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,46 +397,52 @@ class _taxExemptState extends State<taxExempt> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            subtitle,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          Text(
-                            '${used.toStringAsFixed(2)} used',
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
                 ),
+                // Used amount text
+                Text(
+                  '${used.toStringAsFixed(2)} used',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            // Progress bar
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
-                value: used / limit,
+                value: progressValue.clamp(0.0, 1.0),
                 backgroundColor: Colors.grey[300],
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5A7BE7)),
                 minHeight: 8,
               ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 8),
+            // View details text
             const Align(
               alignment: Alignment.bottomRight,
               child: Text(
                 'view details',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
               ),
             ),
           ],

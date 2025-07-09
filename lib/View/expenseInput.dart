@@ -81,6 +81,8 @@ class _expenseInputState extends State<expenseInput> {
             'dd MMM yyyy',
             'dd-MMM-yy',
             'yyyy-MM-dd',
+            'yyyy.MM.dd',
+            'dd.MM.yyyy',
           ];
 
           bool parsed = false;
@@ -607,6 +609,7 @@ class _expenseInputState extends State<expenseInput> {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
+        color: Color(0xFFE3ECF5),
         child: Column(
           children: [
             GestureDetector(
@@ -629,6 +632,7 @@ class _expenseInputState extends State<expenseInput> {
                 try {
                   if (token != null) {
                     await viewModel.addExpense(expense, token);
+
 
                     bool dismissedByTimer = true;
 
