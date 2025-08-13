@@ -16,6 +16,7 @@ MyManageApp is a mobile application designed to help users manage their personal
 
 ---
 
+<details>
 <summary><b>📊 Main Dashboard</b></summary>
 
 | Main Dashboard |
@@ -25,6 +26,7 @@ MyManageApp is a mobile application designed to help users manage their personal
 
 ---
 
+<details>
 <summary><b>💲 Compare Price Dashboard</b></summary>
 
 | Compare Price Dashboard |
@@ -34,6 +36,7 @@ MyManageApp is a mobile application designed to help users manage their personal
 
 ---
 
+<details>
 <summary><b>🧾 Tax Exempt Mapping Dashboard</b></summary>
 
 | Tax Exempt Mapping Dashboard|
@@ -42,6 +45,8 @@ MyManageApp is a mobile application designed to help users manage their personal
 </details>
 
 ---
+
+<details>
 <summary><b>👤 Account Dashboard</b></summary>
 
 | Account Dashboard |
