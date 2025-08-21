@@ -4,7 +4,9 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fyp/Model/activitylog.dart';
 import 'package:fyp/Model/expense.dart';
+import 'package:fyp/ViewModel/activitylog/activitylog_viewmodel.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
@@ -40,7 +42,8 @@ late String textdate = todayDate;
 late DateFormat date;
 final TextEditingController _textControllerName = TextEditingController();
 final _textControllerAmount = TextEditingController();
-final _textControllerDescription = TextEditingController(); // to store user input
+final _textControllerDescription =
+    TextEditingController(); // to store user input
 Map<String, dynamic>? _selectedCategory;
 File? _uploadedPdf;
 
@@ -51,13 +54,11 @@ class _expenseInputState extends State<expenseInput> {
     _uploadedPdf = widget.pdfFile;
     Map<String, dynamic>? extracted;
 
+    // parse payment details
     if (parsed != null) {
       if (parsed.containsKey('rawText')) {
         try {
-          final raw = parsed['rawText']
-              .replaceAll(RegExp(r'```json\n?'), '')
-              .replaceAll('```', '')
-              .trim();
+          final raw = parsed['rawText'].replaceAll(RegExp(r'```json\n?'), '').replaceAll('```', '').trim();
           extracted = json.decode(raw);
         } catch (e) {
           print("Failed to parse rawText: $e");
@@ -69,7 +70,8 @@ class _expenseInputState extends State<expenseInput> {
       if (extracted != null) {
         // name, amount, desc
         _textControllerName.text = extracted['name'] ?? 'No name';
-        _textControllerDescription.text = extracted['description'] ?? 'No description';
+        _textControllerDescription.text =
+            extracted['description'] ?? 'No description';
         _textControllerAmount.text = extracted['total'] ?? '';
 
         // date parsing
@@ -88,7 +90,8 @@ class _expenseInputState extends State<expenseInput> {
           bool parsed = false;
           for (final format in possibleFormats) {
             try {
-              selectedDate = DateFormat(format, 'en_US').parse(rawDate).toLocal();
+              selectedDate =
+                  DateFormat(format, 'en_US').parse(rawDate).toLocal();
               textdate = DateFormat('dd-MM-yyyy').format(selectedDate);
               parsed = true;
               break;
@@ -100,18 +103,14 @@ class _expenseInputState extends State<expenseInput> {
           }
         }
 
-        // auto category
+        // auto categorise
         final rawCategoryName = extracted['category']?['name']?.toString();
         final categoryName = rawCategoryName?.toLowerCase().replaceAll(RegExp(r'\s+'), '').trim();
         print("Extracted category: $categoryName");
 
         bool matched = false;
         for (var category in allCategories) {
-          final name = category.categoryName
-              ?.toLowerCase()
-              .replaceAll(RegExp(r'\s+'), '')
-              .trim();
-
+          final name = category.categoryName?.toLowerCase().replaceAll(RegExp(r'\s+'), '').trim();
           //print("🔍 Comparing '$name' with '$categoryName'");
           if (name == categoryName) {
             setState(() {
@@ -134,7 +133,6 @@ class _expenseInputState extends State<expenseInput> {
     }
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -145,7 +143,8 @@ class _expenseInputState extends State<expenseInput> {
 
       // Optional: fetch category list if not already fetched
       if (viewModel.category.isEmpty) {
-        await viewModel.fetchCategories(); // <-- add this method if you haven't already
+        await viewModel
+            .fetchCategories(); // <-- add this method if you haven't already
       }
 
       // Wait until it's not empty
@@ -156,7 +155,6 @@ class _expenseInputState extends State<expenseInput> {
       _initializeParsedData(viewModel.category);
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -356,7 +354,7 @@ class _expenseInputState extends State<expenseInput> {
                     children: [
                       GestureDetector(
                         onTap: () async {
-                            final selectedcategory = await Navigator.push(
+                          final selectedcategory = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => categoryPage(),
@@ -614,8 +612,13 @@ class _expenseInputState extends State<expenseInput> {
           children: [
             GestureDetector(
               onTap: () async {
-                final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
+                final token =
+                    Provider.of<signUpnLogin_viewmodel>(
+                      context,
+                      listen: false,
+                    ).authToken;
                 final viewModel = Provider.of<expenseViewModel>(context, listen: false,);
+                final viewModelActivity = Provider.of<activitylog_viewModel>(context, listen: false,);
                 final pdfBytes = await _uploadedPdf!.readAsBytes();
                 final base64Pdf = base64Encode(pdfBytes);
 
@@ -629,13 +632,17 @@ class _expenseInputState extends State<expenseInput> {
                   userId: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo?.id,
                   categoryId: _selectedCategory!['categoryId'],
                 );
+                ActivityLog activitylog = ActivityLog(
+                    userid: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id,
+                    activitytypeid: 1,
+                    timestamp: DateTime.now()
+                );
+
                 try {
                   if (token != null) {
                     await viewModel.addExpense(expense, token);
-
-
+                    await viewModelActivity.logActivity(activitylog, token);
                     bool dismissedByTimer = true;
-
                     await showDialog(
                       context: context,
                       barrierDismissible:
@@ -663,6 +670,18 @@ class _expenseInputState extends State<expenseInput> {
                           ],
                         );
                       },
+                    );
+                    final homeExpenseViewModel = Provider.of<expenseViewModel>(
+                      context,
+                      listen: false,
+                    );
+                    await homeExpenseViewModel.fetchViewExpense(
+                      expense.userId!,
+                      token,
+                    );
+                    await homeExpenseViewModel.fetchListExpense(
+                      expense.userId!,
+                      token,
                     );
                     Navigator.pop(context); // Return to previous screen
                   }

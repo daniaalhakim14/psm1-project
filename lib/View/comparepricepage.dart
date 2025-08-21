@@ -1037,9 +1037,7 @@ class _comparepricepageState extends State<comparepricepage>
                                       location.premisetype,
                                     ),
                                     infoWindow: InfoWindow(
-                                      title:
-                                          location.premisename ??
-                                          'Not Available',
+                                      title: location.premisename ?? 'Not Available',
                                       snippet:
                                           'Store Type: ${location.premisetype ?? 'Unknown'}',
                                     ),

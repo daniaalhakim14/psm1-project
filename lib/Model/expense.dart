@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -87,25 +89,15 @@ class ViewExpense{
     financialPlatform: int.tryParse(json["platformId"].toString()),
     userId: int.tryParse(json["userid"].toString()),
     categoryId: int.tryParse(json["categoryId"].toString()),
-    iconData:
-    (json['iconcodepoint'] != null && json['iconfontfamily'] != null)
-        ? IconData(
+    iconData: (json['iconcodepoint'] != null && json['iconfontfamily'] != null) ? IconData(
       // Safely parse codepoint: supports both int and string
-      json['iconcodepoint'] is int
-          ? json['iconcodepoint']
-          : int.tryParse(json['iconcodepoint'].toString()) ?? 0,
+      json['iconcodepoint'] is int ? json['iconcodepoint'] : int.tryParse(json['iconcodepoint'].toString()) ?? 0,
       fontFamily: json['iconfontfamily'],
-    )
-        : null, // fallback to null if incomplete icon data
-    iconColor:
-    json['iconcolor'] != null
-        ? Color(
+    ) : null, // fallback to null if incomplete icon data
+    iconColor: json['iconcolor'] != null ? Color(
       // Safely parse color from int or string
-      json['iconcolor'] is int
-          ? json['iconcolor']
-          : int.tryParse(json['iconcolor'].toString()) ?? 0,
-    )
-        : null,
+      json['iconcolor'] is int ? json['iconcolor'] : int.tryParse(json['iconcolor'].toString()) ?? 0,
+    ) : null,
     categoryname: json['categoryname'],
   );
 
@@ -164,13 +156,73 @@ class ListExpense{
 
 }
 
+class ViewExpenseFinancialPlatform {
+  final int? expenseid;
+  final int? platformid;
+  final double? expenseAmount;
+  final String? name; // financial platform name
+  final DateTime? expenseDate;
+  final int? userId;
+  final Color? iconColor;
+  final Uint8List? iconimage; // financial platform icon
+
+  ViewExpenseFinancialPlatform({
+    this.expenseid,
+    this.platformid,
+    this.expenseAmount,
+    this.expenseDate,
+    this.name,
+    this.userId,
+    this.iconColor,
+    this.iconimage
+  });
+
+  factory ViewExpenseFinancialPlatform.fromJson(Map<String, dynamic> json) {
+    Uint8List? iconBytes;
+    final rawIcon = json['iconimage'];
+
+    if (rawIcon == null) {
+      iconBytes = null;
+    } else if (rawIcon is Map<String, dynamic>) {
+      // Node Buffer -> { type: 'Buffer', data: [...] }
+      final data = rawIcon['data'];
+      if (data is List) {
+        iconBytes = Uint8List.fromList(List<int>.from(data));
+      }
+    } else if (rawIcon is List) {
+      // Already a List<int>
+      iconBytes = Uint8List.fromList(List<int>.from(rawIcon));
+    } else if (rawIcon is String) {
+      // Base64 string
+      try {
+        iconBytes = base64Decode(rawIcon);
+      } catch (_) {
+        iconBytes = null;
+      }
+    }
+
+    return ViewExpenseFinancialPlatform(
+      expenseid: int.tryParse(json['expenseid'].toString().trim()) ?? 0,
+      platformid: int.tryParse(json['platformid']?.toString().trim() ?? ''),
+      expenseAmount: double.tryParse(json['amount'].toString()),
+      expenseDate: DateTime.parse(json['date'].toString()),
+      name: json['name']?.toString(),
+      userId: int.tryParse(json['userid'].toString().trim()),
+      iconColor: json['iconcolor'] != null ? Color(
+        // Safely parse color from int or string
+        json['iconcolor'] is int ? json['iconcolor'] : int.tryParse(json['iconcolor'].toString()) ?? 0,
+      ) : null,
+      iconimage: iconBytes,
+    );
+  }
+}
+
 class DeleteExpense {
   final int expenseId; // The ID of the expense to be deleted
 
   DeleteExpense({
     required this.expenseId,
   });
-
   // Construct a DeleteExpense instance from JSON
   factory DeleteExpense.fromJson(Map<String, dynamic> json) {
     return DeleteExpense(

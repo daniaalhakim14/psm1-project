@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:fyp/View/editExpense.dart';
 import 'package:fyp/ViewModel/expense/expense_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -176,7 +177,15 @@ class _expenseDetailsState extends State<expenseDetails> {
                 Column(
                   children: [
                     ElevatedButton(
-                      onPressed: () => print('edit transaction'),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => editExpense(userid: widget.userid,expensedetail: widget.expensedetail,),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),

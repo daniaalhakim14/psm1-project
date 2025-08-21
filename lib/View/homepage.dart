@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -29,17 +30,14 @@ class homepage extends StatefulWidget {
   State<homepage> createState() => _homepageState();
 }
 
-class _homepageState extends State<homepage>
-    with AutomaticKeepAliveClientMixin {
+class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin {
   int _selectedButtonIndex = 0;
   int _currentPage = 0;
   File? _uploadedPdf;
   late ScrollController _scrollController;
-  List<DateTime> Months =
-      []; // Declare list months and initialise to months to be empty
+  List<DateTime> Months = []; // Declare list months and initialise to months to be empty
   late Timer _timer;
-  String selectedMonth =
-      ''; // Declare variable selectedMonth to store selectedMonth
+  String selectedMonth = ''; // Declare variable selectedMonth to store selectedMonth
   bool showDailySpending = true;
   List<String> months = [];
   int _selectedMonthIndex = 0;
@@ -124,19 +122,16 @@ class _homepageState extends State<homepage>
     selectedMonth = months[_selectedMonthIndex];
     // Start a timer to check for month changes
     _startMonthCheckTimer();
-    _scrollController =
-        ScrollController(); // instance created to manage horizontal behavior of the months Listview
+    _scrollController = ScrollController(); // instance created to manage horizontal behavior of the months Listview
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final token =
-          Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
+      final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
       if (token != null) {
         final viewModel = Provider.of<expenseViewModel>(context, listen: false);
         viewModel.fetchViewExpense(widget.userInfo.id, token);
-        final viewModel_listexpense = Provider.of<expenseViewModel>(
-          context,
-          listen: false,
-        );
+        final viewModel_listexpense = Provider.of<expenseViewModel>(context, listen: false,);
         viewModel_listexpense.fetchListExpense(widget.userInfo.id, token);
+        final viewModel_financialPlatform = Provider.of<expenseViewModel>(context, listen: false,);
+        viewModel_financialPlatform.fetchViewExpenseFinancialPlatform(widget.userInfo.id, token);
       } else {
         print("Token is null — skipping fetchViewExpense");
       }
@@ -151,10 +146,7 @@ class _homepageState extends State<homepage>
     return Scaffold(
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
-        title: Text(
-          'MyManageMate',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
+        title: Text('MyManageMate', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),),
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF5A7BE7),
       ),
@@ -204,8 +196,7 @@ class _homepageState extends State<homepage>
 
                                 // Date conversion
                                 for (var expense in viewModel.viewExpense) {
-                                  String isoFormatDate =
-                                      expense.expenseDate.toString();
+                                  String isoFormatDate = expense.expenseDate.toString();
                                   DateTime utcTime = DateTime.parse(
                                     isoFormatDate,
                                   );
@@ -213,33 +204,21 @@ class _homepageState extends State<homepage>
                                   String formattedExpenseDate = _formatMonth(
                                     localTime,
                                   );
-                                  print(formattedExpenseDate);
+                                  //print(formattedExpenseDate);
                                   //Format expense.date
-
-                                  if (expense.categoryname != null &&
-                                      formattedExpenseDate == selectedMonth &&
-                                      expense.userId == widget.userInfo.id) {
-                                    if (!aggregatedData.containsKey(
-                                      expense.categoryname,
-                                    )) {
-                                      aggregatedData[expense.categoryname!] =
-                                          0.0;
-                                      categoryColors[expense.categoryname!] =
-                                          expense.iconColor!;
-                                      categoryIcons[expense.categoryname!] =
-                                          expense.iconData!;
+                                  if (expense.categoryname != null && formattedExpenseDate == selectedMonth && expense.userId == widget.userInfo.id) {
+                                    if (!aggregatedData.containsKey(expense.categoryname,))
+                                    {
+                                      aggregatedData[expense.categoryname!] = 0.0;
+                                      categoryColors[expense.categoryname!] = expense.iconColor!;
+                                      categoryIcons[expense.categoryname!] = expense.iconData!;
                                     }
-                                    aggregatedData[expense.categoryname!] =
-                                        aggregatedData[expense.categoryname!]! +
-                                        (expense.expenseAmount ?? 0.0);
+                                    aggregatedData[expense.categoryname!] = aggregatedData[expense.categoryname!]! + (expense.expenseAmount ?? 0.0);
 
-                                    totalAmount +=
-                                        (expense.expenseAmount ??
-                                            0.0); // Sum up total expenses
+                                    totalAmount += (expense.expenseAmount ?? 0.0); // Sum up total expenses
                                   }
                                 }
                                 // Check if there's any data to display
-
                                 if (aggregatedData.isEmpty) {
                                   return Column(
                                     children: [
@@ -275,51 +254,32 @@ class _homepageState extends State<homepage>
                                     totalAmount / daysPassed;
 
                                 // Step 3: Calculate total and percentages for pie chart
-                                final List<PieChartSectionData> sections =
-                                    aggregatedData.entries.map((entry) {
+                                final List<PieChartSectionData> sections = aggregatedData.entries.map((entry) {
                                       final category = entry.key;
                                       final amount = entry.value;
-                                      final percentage =
-                                          (amount / totalAmount) * 100;
+                                      final percentage = (amount / totalAmount) * 100;
                                       // Set a minimum percentage threshold
-                                      final adjustedPercentage =
-                                          percentage < 0.01 ? 0.01 : percentage;
+                                      final adjustedPercentage = percentage < 0.01 ? 0.01 : percentage;
                                       // Adjust the radius and badge size dynamically
-                                      final segmentRadius =
-                                          adjustedPercentage < 1
-                                              ? 20.0
-                                              : 36.0; // Smaller radius for small percentages
-                                      final badgeSize =
-                                          adjustedPercentage < 1
-                                              ? 16.0
-                                              : 24.0; // Smaller badge size for small percentages
-
+                                      final segmentRadius = adjustedPercentage < 1 ? 20.0 : 36.0; // Smaller radius for small percentages
+                                      final badgeSize = adjustedPercentage < 1 ? 16.0 : 24.0; // Smaller badge size for small percentages
                                       // Enter data in pie chart
                                       return PieChartSectionData(
                                         value: adjustedPercentage,
-                                        color:
-                                            categoryColors[category], // Use color associated with the category
-                                        title:
-                                            adjustedPercentage < 1
-                                                ? ''
-                                                : '${adjustedPercentage.toStringAsFixed(1)}%', // Hide title for very small segments
+                                        color: categoryColors[category], // Use color associated with the category
+                                        title: adjustedPercentage < 1 ? '' : '${adjustedPercentage.toStringAsFixed(1)}%', // Hide title for very small segments
                                         radius: segmentRadius,
                                         titleStyle: const TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                         ),
-                                        badgeWidget:
-                                            adjustedPercentage < 1
-                                                ? null // No badge for very small segments
-                                                : Icon(
-                                                  categoryIcons[category],
-                                                  color:
-                                                      categoryColors[category],
+                                        badgeWidget: adjustedPercentage < 1 ? null // No badge for very small segments
+                                                : Icon(categoryIcons[category],
+                                                  color: categoryColors[category],
                                                   size: badgeSize,
                                                 ),
-                                        badgePositionPercentageOffset:
-                                            1.38, // Position badges outside
+                                        badgePositionPercentageOffset: 1.38, // Position badges outside
                                       );
                                     }).toList();
                                 // To display Pie chart
@@ -340,8 +300,188 @@ class _homepageState extends State<homepage>
                                     ),
                                     // To show Daily Avg Spending and Spent So far
                                     Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.arrow_upward,
+                                            color: Colors.black,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              showDailySpending = true;
+                                            });
+                                          },
+                                        ),
+                                        Text(showDailySpending ? "Daily Average Spending" : "Spent So Far",
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        Text(
+                                          showDailySpending ? "RM ${dailyAverageSpending.toStringAsFixed(2)}"
+                                              : "RM ${totalAmount.toStringAsFixed(2)}",
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.arrow_downward,
+                                            color: Colors.black,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              showDailySpending = false;
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                            Consumer<expenseViewModel>(
+                              builder: (context, viewModel_financialPlatform, child) {
+                                if (viewModel_financialPlatform.fetchingData) {
+                                  return SizedBox(
+                                    width: screenHeight * 0.1,
+                                    height: screenWidth * 0.1,
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                }
+
+                                // Step 1: Aggregate data by financial platform type
+                                final Map<String, double> aggregatedData = {};
+                                final Map<String, Color> financialPlatformColors = {};
+                                final Map<String, Uint8List> financialPlatformIcons = {};
+                                double totalAmount = 0.0;
+
+                                // Date conversion and data aggregation
+                                for (var expense in viewModel_financialPlatform.viewExpenseFinancialPlatform) {
+                                  String isoFormatDate = expense.expenseDate.toString();
+                                  DateTime utcTime = DateTime.parse(isoFormatDate);
+                                  DateTime localTime = utcTime.toLocal();
+                                  String formattedExpenseDate = _formatMonth(localTime);
+
+                                  // Filter by month and user
+                                  if (expense.name != null &&
+                                      formattedExpenseDate == selectedMonth &&
+                                      expense.userId == widget.userInfo.id) {
+
+                                    // Initialize aggregated amount if not exists
+                                    if (!aggregatedData.containsKey(expense.name!)) {
+                                      aggregatedData[expense.name!] = 0.0;
+                                      financialPlatformColors[expense.name!] = expense.iconColor!.withAlpha(255);
+                                    }
+
+                                    // Add to total amount
+                                    aggregatedData[expense.name!] = aggregatedData[expense.name!]! + (expense.expenseAmount ?? 0.0);
+                                    totalAmount += (expense.expenseAmount ?? 0.0);
+
+                                    // 🔧 FIX: Store the icon data for this financial platform
+                                    if (expense.iconimage != null && expense.iconimage!.isNotEmpty) {
+                                      // Convert List<int> to Uint8List if needed
+                                      if (expense.iconimage is List<int>) {
+                                        financialPlatformIcons[expense.name!] = Uint8List.fromList(expense.iconimage!.cast<int>());
+                                      } else if (expense.iconimage is Uint8List) {
+                                        financialPlatformIcons[expense.name!] = expense.iconimage!;
+                                      }
+                                    }
+                                  }
+                                }
+
+                                // Check if there's any data to display
+                                if (aggregatedData.isEmpty) {
+                                  return Column(
+                                    children: [
+                                      Image.asset(
+                                        'assets/Icons/statistics.png',
+                                        width: screenWidth * 0.4,
+                                        height: screenHeight * 0.2,
+                                      ),
+                                      SizedBox(height: screenHeight * 0.0025),
+                                      Center(
+                                        child: Text(
+                                          "No Financial Platform Data For $selectedMonth",
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                // Step 2: Calculate daily average spending
+                                DateTime now = DateTime.now();
+                                DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
+                                int daysPassed = now.difference(firstDayOfMonth).inDays + 1;
+                                double dailyAverageSpending = totalAmount / daysPassed;
+
+                                // Step 3: Calculate total and percentages for pie chart
+                                final List<PieChartSectionData> sections = aggregatedData.entries.map((entry) {
+                                  final name = entry.key;
+                                  final amount = entry.value;
+                                  final percentage = (amount / totalAmount) * 100;
+                                  final adjustedPercentage = percentage < 0.01 ? 0.01 : percentage;
+                                  final segmentRadius = adjustedPercentage < 1 ? 20.0 : 36.0;
+                                  final badgeSize = adjustedPercentage < 1 ? 16.0 : 24.0;
+
+                                  return PieChartSectionData(
+                                    value: adjustedPercentage,
+                                    title: adjustedPercentage < 1 ? '' : '${adjustedPercentage.toStringAsFixed(1)}%',
+                                    radius: segmentRadius,
+                                    color: financialPlatformColors[name], // ✅ ADD THIS LINE
+                                    titleStyle: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                    badgeWidget: adjustedPercentage < 1 ? null : SizedBox(
+                                      width: badgeSize,
+                                      height: badgeSize,
+                                      child: DecoratedBox(
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white, // helps visibility on teal
+                                          shape: BoxShape.circle, // or BoxShape.rectangle
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(3), // breathing room
+                                          child: FittedBox(
+                                            fit: BoxFit.contain, // keep aspect ratio
+                                            child: Image.memory(
+                                              financialPlatformIcons[name]!,
+                                              filterQuality: FilterQuality.high,
+                                              errorBuilder: (_, __, ___) => Icon(Icons.account_balance, size: badgeSize * 0.8),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    badgePositionPercentageOffset: 1.38,
+                                  );
+                                }).toList();
+
+                                // Display Pie chart
+                                return Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    PieChart(
+                                      duration: const Duration(milliseconds: 1500),
+                                      PieChartData(
+                                        sections: sections,
+                                        borderData: FlBorderData(show: false),
+                                        sectionsSpace: 2,
+                                        centerSpaceRadius: 75,
+                                      ),
+                                    ),
+                                    // Daily Average Spending and Spent So Far display
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         IconButton(
                                           icon: const Icon(
@@ -355,9 +495,7 @@ class _homepageState extends State<homepage>
                                           },
                                         ),
                                         Text(
-                                          showDailySpending
-                                              ? "Daily Average Spending"
-                                              : "Spent So Far",
+                                          showDailySpending ? "Daily Average Spending" : "Spent So Far",
                                           style: const TextStyle(fontSize: 12),
                                         ),
                                         Text(
@@ -385,8 +523,7 @@ class _homepageState extends State<homepage>
                                   ],
                                 );
                               },
-                            ),
-                            Image.asset('assets/Stickers/business.png'),
+                            )
                           ],
                           options: CarouselOptions(
                             initialPage: 0,
@@ -521,19 +658,13 @@ class _homepageState extends State<homepage>
                                   );
                                 }
                                 // Filter list expense by the selected month
-                                final filteredExpense =
-                                    listExpense.where((expense) {
-                                      String isoFormatDate =
-                                          expense.expenseDate.toString();
-                                      DateTime utcTime = DateTime.parse(
-                                        isoFormatDate,
-                                      );
-                                      DateTime localTime = utcTime.toLocal();
-                                      String formattedExpenseDate =
-                                          _formatMonth(localTime);
-                                      return formattedExpenseDate ==
-                                          selectedMonth;
-                                    }).toList();
+                                final filteredExpense = listExpense.where((expense) {
+                                  String isoFormatDate = expense.expenseDate.toString();
+                                  DateTime utcTime = DateTime.parse(isoFormatDate,);
+                                  DateTime localTime = utcTime.toLocal();
+                                  String formattedExpenseDate = _formatMonth(localTime);
+                                  return formattedExpenseDate == selectedMonth;
+                                }).toList();
                                 if (filteredExpense.isEmpty) {
                                   return Column(
                                     children: [
@@ -566,10 +697,8 @@ class _homepageState extends State<homepage>
                                       itemCount: filteredExpense.length,
                                       itemBuilder: (context, index) {
                                         final expense = filteredExpense[index];
-                                        final localTime =
-                                            expense.expenseDate!.toLocal();
-                                        final formattedExpenseDate =
-                                            _formatFullDate(localTime);
+                                        final localTime = expense.expenseDate!.toLocal();
+                                        final formattedExpenseDate = _formatFullDate(localTime);
                                         // Format transaction.date
                                         return GestureDetector(
                                           onTap: () {
@@ -629,16 +758,10 @@ class _homepageState extends State<homepage>
                                                 ),
                                                 child: ListTile(
                                                   leading: CircleAvatar(
-                                                    backgroundColor:
-                                                        expense.iconColor,
-                                                    child: Icon(
-                                                      expense.iconData,
-                                                      color: Colors.white,
-                                                    ),
+                                                    backgroundColor: expense.iconColor,
+                                                    child: Icon(expense.iconData, color: Colors.white,),
                                                   ),
-                                                  title: Text(
-                                                    expense.expenseName
-                                                        .toString(),
+                                                  title: Text(expense.expenseName.toString(),
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,

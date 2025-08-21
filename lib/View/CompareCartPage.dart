@@ -75,134 +75,139 @@ class StoreComparisonCard extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
-      child: Row(
+      child: Stack(
         children: [
-          GestureDetector(
-            child: Container(
-              width: screenWidth * 0.98,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Color(0xFF5A7BE7), width: 2.0),
+          // Main card container
+          Container(
+            width: screenWidth * 0.98,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Color(0xFF5A7BE7), width: 2.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(14.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Table(
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    columnWidths: const {0: IntrinsicColumnWidth()},
+                    children: [
+                      TableRow(children: [
+                        Text('Store: $premisename', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      ]),
+                      TableRow(children: [
+                        SizedBox(height: 8),
+                      ]),
+                      TableRow(children: [
+                        Text('Store Distance: $distance km', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ]),
+                      TableRow(children: [
+                        SizedBox(height: 8),
+                      ]),
+                      TableRow(children: [
+                        Text('Matched Items: $matchedItems', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ]),
+                      TableRow(children: [
+                        SizedBox(height: 8),
+                      ]),
+                      TableRow(children: [
+                        Text(
+                          'Total: RM ${totalCost.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF5A7BE7),
+                            fontSize: 18,
+                          ),
+                        ),
+                      ]),
+                    ],
+                  ),
+                ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(14.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Table(
-                      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                      columnWidths: const {0: IntrinsicColumnWidth()},
-                      children: [
-                        TableRow(children: [
-                          Text('Store: $premisename', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        ]),
-                        TableRow(children: [
-                          SizedBox(height: 8), // spacing between rows
-                        ]),
-                        TableRow(children: [
-                          Text('Store Distance: $distance km', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ]),
-                        TableRow(children: [
-                          SizedBox(height: 8),
-                        ]),
-                        TableRow(children: [
-                          Text('Matched Items: $matchedItems', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ]),
-                        TableRow(children: [
-                          SizedBox(height: 8),
-                        ]),
-                        TableRow(children: [
-                          Text(
-                            'Total: RM ${totalCost.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF5A7BE7),
-                              fontSize: 18,
+            ),
+          ),
+          // Positioned directions icon in top-right corner
+          Positioned(
+            top: 8,
+            right: 8,
+            child: IconButton(
+              icon: Icon(
+                Icons.directions,
+                size: 30,
+                color: Colors.black87,
+              ),
+              onPressed: onDirection,
+            ),
+          ),
+          // GestureDetector for long press (covers entire card)
+          Positioned.fill(
+            child: GestureDetector(
+              onLongPress: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      backgroundColor: const Color(0xFFE3ECF5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      title: Text(premisename, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              style: DefaultTextStyle.of(context).style,
+                              children: [
+                                const TextSpan(text: '📍 Distance: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: '${distance.toStringAsFixed(2)} km'),
+                              ],
                             ),
                           ),
-                        ]),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            onLongPress: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    backgroundColor: const Color(0xFFE3ECF5),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    title: Text(premisename, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        RichText(
-                          text: TextSpan(
-                            style: DefaultTextStyle.of(context).style,
-                            children: [
-                              const TextSpan(text: '📍 Distance: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                              TextSpan(text: '${distance.toStringAsFixed(2)} km'),
-                            ],
+                          const SizedBox(height: 8),
+                          RichText(
+                            text: TextSpan(
+                              style: DefaultTextStyle.of(context).style,
+                              children: [
+                                const TextSpan(text: '🧾 Matched Items: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: '$matchedItems'),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        RichText(
-                          text: TextSpan(
-                            style: DefaultTextStyle.of(context).style,
-                            children: [
-                              const TextSpan(text: '🧾 Matched Items: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                              TextSpan(text: '$matchedItems'),
-                            ],
+                          const SizedBox(height: 8),
+                          RichText(
+                            text: TextSpan(
+                              style: DefaultTextStyle.of(context).style,
+                              children: [
+                                const TextSpan(text: '🛒 Item Names: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: matchedItemNames),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        RichText(
-                          text: TextSpan(
-                            style: DefaultTextStyle.of(context).style,
-                            children: [
-                              const TextSpan(text: '🛒 Item Names: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                              TextSpan(text: matchedItemNames),
-                            ],
+                          const SizedBox(height: 8),
+                          RichText(
+                            text: TextSpan(
+                              style: DefaultTextStyle.of(context).style,
+                              children: [
+                                const TextSpan(text: '💰 Total Price: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: 'RM ${totalCost.toStringAsFixed(2)}'),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        RichText(
-                          text: TextSpan(
-                            style: DefaultTextStyle.of(context).style,
-                            children: [
-                              const TextSpan(text: '💰 Total Price: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                              TextSpan(text: 'RM ${totalCost.toStringAsFixed(2)}'),
-                            ],
-                          ),
-                        ),
-
-                      ],
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Close'),
+                        ],
                       ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.directions,
-              size: 35,
-              color: Colors.black87,
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
-            onPressed: onDirection
           ),
         ],
       ),

@@ -18,6 +18,8 @@ class expenseViewModel extends ChangeNotifier{
   List<ViewExpense> get viewExpense => _ViewExpense;
   List<ListExpense> _listExpense = [];
   List<ListExpense> get listExpense => _listExpense;
+  List<ViewExpenseFinancialPlatform> _viewExpenseFinancialPlatform = [];
+  List<ViewExpenseFinancialPlatform> get viewExpenseFinancialPlatform => _viewExpenseFinancialPlatform;
 
   Future<void> fetchCategories() async {
     fetchingData = true;
@@ -49,7 +51,7 @@ class expenseViewModel extends ChangeNotifier{
       _ViewExpense = await repository.getViewExpense(userid,token);
       // ✅ Print each expense (or just selected fields)
       for (var expense in _ViewExpense) {
-        print('📌 ExpenseID: ${expense.expenseid}, Name: ${expense.expenseName}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate}');
+        print('📌 ExpenseID: ${expense.expenseid}, Name: ${expense.expenseName}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate},iconcolor: ${expense.iconColor}');
       }
     } catch (e) {
       print('Failed to load transaction expenses: $e');
@@ -63,10 +65,13 @@ class expenseViewModel extends ChangeNotifier{
   Future<void> fetchListExpense(int userid, String token) async{
     fetchingData = true;
     notifyListeners();
+
     try{
+      /*
       for (var expense in _listExpense) {
         print('📌 ExpenseID: ${expense.expenseid}, Name: ${expense.expenseName}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate}');
       }
+       */
       _listExpense = await repository.getListExpense(userid, token);
     }catch(e){
       print('Failed to load list expense: $e');
@@ -76,11 +81,21 @@ class expenseViewModel extends ChangeNotifier{
       notifyListeners();
     }
   }
-  @override
-  void dispose() {
-    _repository.dispose(); // Call repository's dispose method
-    super.dispose();
-    print("ViewModel disposed.");
+
+  Future<void> fetchViewExpenseFinancialPlatform(int userid, String token) async{
+    try {
+      _viewExpenseFinancialPlatform = await repository.getViewExpenseFinancialPlatform(userid, token);
+      // ✅ Print each expense (or just selected fields)
+      for (var expense in _viewExpenseFinancialPlatform) {
+        print('📌 ExpenseID: ${expense.expenseid}, PlatformId:${expense.platformid} Name: ${expense.name}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate}, IconColour: ${expense.iconColor}');
+      }
+    } catch (e) {
+      print('Failed to load financial platform Expense: $e');
+      _ViewExpense = [];
+    } finally {
+      fetchingData = false; // Data fetching completed
+      notifyListeners();
+    }
   }
 
   Future<void> deleteExpense(int expenseId,int userid,String token) async {
@@ -95,7 +110,12 @@ class expenseViewModel extends ChangeNotifier{
     }
   }
 
-
+  @override
+  void dispose() {
+    _repository.dispose(); // Call repository's dispose method
+    super.dispose();
+    print("ViewModel disposed.");
+  }
 }
 
 

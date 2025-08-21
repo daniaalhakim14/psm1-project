@@ -56,8 +56,17 @@ class expense_callApi {
     );
   }
 
+  Future<http.Response> fetchViewExpenseFinancialPlatform(int userid, String token)async{
+    String endpoint = '/expense/financialPlatform/$userid'; // to change
+    String url = '${AppConfig.baseUrl}$endpoint';
+    return await http.get(Uri.parse(url),
+        headers: {'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'}
+    );
+  }
+
   Future<http.Response> deleteExpense(int expenseId, int userid,String token) async {
-    String endpoint = '/expense/expenseDelete/$expenseId';
+    String endpoint = '/expense/deleteExpense/$expenseId';
     String url = '${AppConfig.baseUrl}$endpoint';
     //print("Deleting expense with ID: $expenseId");
 
@@ -71,8 +80,6 @@ class expense_callApi {
 
     return response;
   }
-
-
 
   // Add a dispose method to clean up
   void dispose() {

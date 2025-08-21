@@ -6,6 +6,7 @@ import 'package:fyp/ViewModel/compareItems/compareItems_viewmodel.dart';
 import 'package:fyp/ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
 import 'package:fyp/ViewModel/taxRelief/taxRelief_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'ViewModel/activitylog/activitylog_viewmodel.dart';
 import 'ViewModel/cart/cart_viewmodel.dart';
 import 'ViewModel/expense/expense_viewmodel.dart';
 import 'ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
@@ -21,6 +22,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => TaxReliefViewModel()),
         ChangeNotifierProvider(create: (_) => compareItems_viewmodel()),
         ChangeNotifierProvider(create: (_) => cartViewModel()),
+        ChangeNotifierProvider(create: (_) => activitylog_viewModel())
       ],
       child: MyApp(),
     ),
