@@ -50,9 +50,11 @@ class expenseViewModel extends ChangeNotifier{
     try {
       _ViewExpense = await repository.getViewExpense(userid,token);
       // ✅ Print each expense (or just selected fields)
+      /*
       for (var expense in _ViewExpense) {
         print('📌 ExpenseID: ${expense.expenseid}, Name: ${expense.expenseName}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate},iconcolor: ${expense.iconColor}');
       }
+       */
     } catch (e) {
       print('Failed to load transaction expenses: $e');
       _ViewExpense = [];
@@ -67,11 +69,10 @@ class expenseViewModel extends ChangeNotifier{
     notifyListeners();
 
     try{
-      /*
       for (var expense in _listExpense) {
         print('📌 ExpenseID: ${expense.expenseid}, Name: ${expense.expenseName}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate}');
       }
-       */
+
       _listExpense = await repository.getListExpense(userid, token);
     }catch(e){
       print('Failed to load list expense: $e');
@@ -86,9 +87,12 @@ class expenseViewModel extends ChangeNotifier{
     try {
       _viewExpenseFinancialPlatform = await repository.getViewExpenseFinancialPlatform(userid, token);
       // ✅ Print each expense (or just selected fields)
+      /*
       for (var expense in _viewExpenseFinancialPlatform) {
         print('📌 ExpenseID: ${expense.expenseid}, PlatformId:${expense.platformid} Name: ${expense.name}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate}, IconColour: ${expense.iconColor}');
       }
+
+       */
     } catch (e) {
       print('Failed to load financial platform Expense: $e');
       _ViewExpense = [];

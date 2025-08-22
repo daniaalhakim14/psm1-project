@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
+import 'package:fyp/View/financialPlatformList.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart'; // Make sure this is imported
@@ -165,7 +166,7 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                   right: screenHeight * 0.015,
                 ),
                 child: Container(
-                  height: 320,
+                  height: 335,
                   decoration: BoxDecoration(
                     color: Colors.black12,
                     borderRadius: BorderRadius.circular(15),
@@ -527,8 +528,7 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                           ],
                           options: CarouselOptions(
                             initialPage: 0,
-                            viewportFraction:
-                                1.0, // 👈 Makes the item take full width (no edge bleed)
+                            viewportFraction: 1.0, // 👈 Makes the item take full width (no edge bleed)
                             onPageChanged: (value, _) {
                               setState(() {
                                 _currentPage = value;
@@ -604,29 +604,20 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       Text("Spending Summary", style: TextStyle(fontSize: 18)),
+                      /*
                       SizedBox(width: 60),
                       Text("View All", style: TextStyle(fontSize: 18)),
+                       */
                     ],
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      top: screenHeight * 0.01,
-                      left: screenHeight * 0.015,
-                      right: screenHeight * 0.015,
-                      bottom: screenHeight * 0.02,
-                    ),
+                  Padding(padding: EdgeInsets.only(top: screenHeight * 0.01, left: screenHeight * 0.015, right: screenHeight * 0.015, bottom: screenHeight * 0.02,),
                     child: Container(
                       height: screenHeight * 0.35,
                       decoration: BoxDecoration(
                         color: Colors.black12,
                         borderRadius: BorderRadius.circular(15.0),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 10.0,
-                          left: 10.0,
-                          right: 10.0,
-                        ),
+                      child: Padding(padding: const EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0,),
                         child: Column(
                           children: [
                             Row(
@@ -644,10 +635,9 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                             ),
                             SizedBox(height: 8),
                             // latest transaction list
-                            Consumer<expenseViewModel>(
+                            (_currentPage == 0) ? Consumer<expenseViewModel>(
                               builder: (context, viewModel_listexpense, child) {
-                                List<ListExpense> listExpense =
-                                    viewModel_listexpense.listExpense;
+                                List<ListExpense> listExpense = viewModel_listexpense.listExpense;
                                 if (viewModel_listexpense.fetchingData) {
                                   return SizedBox(
                                     width: 220,
@@ -690,9 +680,7 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                 }
                                 return Expanded(
                                   child: SizedBox(
-                                    height:
-                                        MediaQuery.of(context).size.height *
-                                        0.43,
+                                    height: MediaQuery.of(context).size.height * 0.43,
                                     child: ListView.builder(
                                       itemCount: filteredExpense.length,
                                       itemBuilder: (context, index) {
@@ -707,39 +695,28 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                               MaterialPageRoute(
                                                 builder:
                                                     (context) => expenseDetails(
-                                                      userid:
-                                                          widget.userInfo.id,
-                                                      expensedetail:
-                                                          expense, // Pass the single transaction object
-                                                    ),
+                                                  userid: widget.userInfo.id, expensedetail: expense, // Pass the single transaction object
+                                                ),
                                               ),
                                             );
                                           },
                                           child: Column(
                                             children: [
                                               // List Header
-                                              if (index == 0 ||
-                                                  filteredExpense[index - 1]
-                                                          .expenseDate !=
-                                                      expense.expenseDate)
+                                              if (index == 0 || filteredExpense[index - 1].expenseDate != expense.expenseDate)
                                                 Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey[200],
-                                                  ),
+                                                  decoration: BoxDecoration(color: Colors.grey[200],),
                                                   height: 30.0,
                                                   width: double.infinity,
                                                   child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          4.0,
-                                                        ),
+                                                    padding: const EdgeInsets.all(4.0,),
                                                     child: Text(
                                                       formattedExpenseDate,
                                                       // Display the transaction date
                                                       style: const TextStyle(
                                                         fontSize: 16,
                                                         fontWeight:
-                                                            FontWeight.bold,
+                                                        FontWeight.bold,
                                                       ),
                                                     ),
                                                   ),
@@ -752,9 +729,7 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                                     // Border color
                                                     width: 1.0, // Border width
                                                   ),
-                                                  color:
-                                                      Colors
-                                                          .white, // Optional: Rounded corners
+                                                  color: Colors.white, // Optional: Rounded corners
                                                 ),
                                                 child: ListTile(
                                                   leading: CircleAvatar(
@@ -763,22 +738,18 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                                   ),
                                                   title: Text(expense.expenseName.toString(),
                                                     style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color:
-                                                          Colors
-                                                              .black, // Dynamic color based on dark mode
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.black, // Dynamic color based on dark mode
                                                     ),
+                                                    maxLines: 1, // 👈 only show first line
+                                                    overflow: TextOverflow.ellipsis, // 👈 add "..." if text is too long
                                                   ),
                                                   subtitle: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
-                                                      Text(
-                                                        expense
-                                                            .expenseDescription
-                                                            .toString(),
+                                                      Text(expense.expenseDescription.toString(),
+                                                        maxLines: 1, // 👈 only show first line
+                                                        overflow: TextOverflow.ellipsis, // 👈 add "..." if text is too long
                                                         style: const TextStyle(
                                                           color: Colors.grey,
                                                           fontSize: 12,
@@ -787,17 +758,11 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                                     ],
                                                   ),
                                                   trailing: Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          left: 8.0,
-                                                        ),
-                                                    child: Text(
-                                                      'RM ${expense.expenseAmount}',
+                                                    padding: const EdgeInsets.only(left: 8.0,),
+                                                    child: Text('RM ${expense.expenseAmount}',
                                                       // Format the amount
                                                       style: TextStyle(
-                                                        color:
-                                                            Colors
-                                                                .black, // Dynamic color
+                                                        color: Colors.black, // Dynamic color
                                                       ),
                                                     ),
                                                   ),
@@ -811,6 +776,127 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                   ),
                                 );
                               },
+                            )
+                                : Expanded(
+                              child: Consumer<expenseViewModel>(
+                                builder: (context, vm, child) {
+                                  final List<ListExpense> fpList = vm.listExpense;
+                                  if (vm.fetchingData) {
+                                    return SizedBox(
+                                      width: 250,
+                                      height: 250,
+                                      child: const Center(child: CircularProgressIndicator()),
+                                    );
+                                  }
+
+                                  // 1) Filter by selected month (and user if needed)
+                                  final filtered = fpList.where((tx) {
+                                    final iso = tx.expenseDate.toString();
+                                    final localTime = DateTime.parse(iso).toLocal();
+                                    final monthStr = _formatMonth(localTime);
+                                    return monthStr == selectedMonth;
+                                  }).toList();
+
+                                  if (filtered.isEmpty) {
+                                    return Column(
+                                      children: [
+                                        Image.asset(
+                                          'assets/Icons/statistics.png',
+                                          width: 190,
+                                          height: 180,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Center(
+                                          child: Text(
+                                            'No transactions for $selectedMonth',
+                                            style: const TextStyle(
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
+
+                                  // 2) Group by financial platform name
+                                  final Map<String, List<ListExpense>> grouped = {};
+                                  for (final tx in filtered) {
+                                    final fpname = tx.name ?? 'Not Available';
+                                    grouped.putIfAbsent(fpname, () => []).add(tx);
+                                  }
+
+                                  // 3) Build list (count + total per platform)
+                                  return SizedBox(
+                                    height: MediaQuery.of(context).size.height * 0.43,
+                                    child: ListView.builder(
+                                      itemCount: grouped.keys.length,
+                                      itemBuilder: (context, index) {
+                                        final platformName = grouped.keys.elementAt(index);
+                                        final platformTxs = grouped[platformName]!;
+                                        final totalAmount = platformTxs.fold<double>(
+                                          0.0, (sum, t) => sum + (t.expenseAmount ?? 0.0),
+                                        );
+                                        // Take first transaction’s iconimage (assuming all tx under same platform share it)
+                                        final firstTx = platformTxs.first;
+                                        final iconBytes = firstTx.iconimage != null ? Uint8List.fromList(firstTx.iconimage!.cast<int>()) : null;
+
+                                        return GestureDetector(
+                                          onTap: () {
+                                            // TODO: Push to a FinancialPlatformDetailScreen if you have one
+                                             Navigator.push(context, MaterialPageRoute(
+                                               builder: (_) => financialPlatformList(
+                                                userid: widget.userInfo.id, platformType: platformTxs, platformName: platformName,
+                                              ),
+                                             ));
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                border: Border.all(color: Colors.grey, width: 1.0),
+                                                borderRadius: BorderRadius.circular(4.0),
+                                                color: Colors.white,
+                                              ),
+                                              child: ListTile(
+                                                leading: CircleAvatar(
+                                                  // backgroundColor: bgColor,
+                                                  backgroundColor: Colors.grey.shade300,
+                                                  // backgroundColor: bgColor,
+                                                  child:  iconBytes != null
+                                                      ? Image.memory(iconBytes, filterQuality: FilterQuality.high)
+                                                      : const Icon(Icons.account_balance, size: 16, color: Colors.white), // fallback color
+                                                ),
+                                                title: Text(
+                                                  platformName,
+                                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                                ),
+                                                subtitle: Text(
+                                                  '${platformTxs.length} Transaction${platformTxs.length > 1 ? 's' : ''}',
+                                                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                                ),
+                                                trailing: Padding(
+                                                  padding: const EdgeInsets.only(left: 8.0),
+                                                  child: Text(
+                                                    'RM ${totalAmount.toStringAsFixed(2)}',
+                                                    style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                             SizedBox(height: 8),
                           ],

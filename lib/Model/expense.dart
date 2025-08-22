@@ -64,6 +64,8 @@ class ViewExpense{
   final Color? iconColor;
   final String? categoryname;
 
+
+
   ViewExpense({
     this.expenseid,
     this.expenseAmount,
@@ -115,6 +117,10 @@ class ListExpense{
   final int? userId;
   final IconData? iconData;
   final Color? iconColor;
+  final int? platformid;
+  final String? name; // financial platform name
+  final Color? iconColorExpense;
+  final Uint8List? iconimage; // financial platform icon
 
   ListExpense({
     this.expenseid,
@@ -127,9 +133,36 @@ class ListExpense{
     this.receiptPdf,
     this.userId,
     this.iconData,
-    this.iconColor
+    this.iconColor,
+    this.platformid,
+    this.name,
+    this.iconColorExpense,
+    this.iconimage
 });
-  factory ListExpense.fromJson(Map<String, dynamic> json) => ListExpense(
+  factory ListExpense.fromJson(Map<String, dynamic> json){
+    Uint8List? iconBytes;
+    final rawIcon = json['iconimage'];
+
+    if (rawIcon == null) {
+      iconBytes = null;
+    } else if (rawIcon is Map<String, dynamic>) {
+      // Node Buffer -> { type: 'Buffer', data: [...] }
+      final data = rawIcon['data'];
+      if (data is List) {
+        iconBytes = Uint8List.fromList(List<int>.from(data));
+      }
+    } else if (rawIcon is List) {
+      // Already a List<int>
+      iconBytes = Uint8List.fromList(List<int>.from(rawIcon));
+    } else if (rawIcon is String) {
+      // Base64 string
+      try {
+        iconBytes = base64Decode(rawIcon);
+      } catch (_) {
+        iconBytes = null;
+      }
+    }
+    return ListExpense(
     expenseid: int.tryParse(json['expenseid'].toString().trim()) ?? 0,
     expenseAmount: double.parse(json['amount']),
     expenseDate: DateTime.parse(json["date"]),
@@ -141,19 +174,23 @@ class ListExpense{
     userId: int.tryParse(json["userid"].toString()),
     iconData:
     (json['iconcodepoint'] != null && json['iconfontfamily'] != null)
-        ? IconData(
-      // Safely parse codepoint: supports both int and string
-      json['iconcodepoint'] is int
-          ? json['iconcodepoint']
-          : int.tryParse(json['iconcodepoint'].toString()) ?? 0,
-      fontFamily: json['iconfontfamily'],
+    ? IconData(
+    // Safely parse codepoint: supports both int and string
+    json['iconcodepoint'] is int
+    ? json['iconcodepoint']
+        : int.tryParse(json['iconcodepoint'].toString()) ?? 0,
+    fontFamily: json['iconfontfamily'],
     )
         : null,
-    iconColor: json['iconcolor'] != null
-        ? Color(int.tryParse(json['iconcolor']) ?? 0) // Safely parse the color string
+    iconColor: json['iconcolor'] != null ? Color(int.tryParse(json['iconcolor']) ?? 0) // Safely parse the color string
         : null,
-  );
-
+    platformid: int.tryParse(json['platformid']?.toString().trim() ?? ''),
+    name: json['name']?.toString(),
+    iconColorExpense: json['iconcolorexpense'] != null ? Color(int.tryParse(json['iconcolorexpense']) ?? 0) // Safely parse the color string
+        : null,
+    iconimage: iconBytes,
+    );
+  }
 }
 
 class ViewExpenseFinancialPlatform {
@@ -208,9 +245,9 @@ class ViewExpenseFinancialPlatform {
       expenseDate: DateTime.parse(json['date'].toString()),
       name: json['name']?.toString(),
       userId: int.tryParse(json['userid'].toString().trim()),
-      iconColor: json['iconcolor'] != null ? Color(
+      iconColor: json['iconcolorexpense'] != null ? Color(
         // Safely parse color from int or string
-        json['iconcolor'] is int ? json['iconcolor'] : int.tryParse(json['iconcolor'].toString()) ?? 0,
+        json['iconcolorexpense'] is int ? json['iconcolorexpense'] : int.tryParse(json['iconcolorexpense'].toString()) ?? 0,
       ) : null,
       iconimage: iconBytes,
     );
