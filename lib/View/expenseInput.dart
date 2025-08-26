@@ -16,6 +16,7 @@ import '../Model/financialplatformcategory.dart';
 import '../ViewModel/expense/expense_viewmodel.dart';
 import '../ViewModel/financialplatform/paltform_viewmodel.dart';
 import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
+import 'PdfViewerPage.dart';
 import 'categorypage.dart';
 
 // Global Variable
@@ -53,15 +54,19 @@ File? _uploadedPdf;
 class _expenseInputState extends State<expenseInput> {
   bool _isLoading = true;
 
-  bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
   String _labelForDate(DateTime d) {
     final now = DateTime.now().toLocal();
     if (_isSameDay(d, now)) return 'Today';
-    if (_isSameDay(d, now.subtract(const Duration(days: 1)))) return 'Yesterday';
+    if (_isSameDay(d, now.subtract(const Duration(days: 1))))
+      return 'Yesterday';
     return DateFormat('dd-MM-yyyy').format(d);
   }
 
-  void _initializeParsedData(List<ExpenseCategories> allCategories, List<FinancialPlatform> allFinancialPlatforms,) {
+  void _initializeParsedData(List<ExpenseCategories> allCategories,
+      List<FinancialPlatform> allFinancialPlatforms,) {
     final parsed = widget.parsedData;
     _uploadedPdf = widget.pdfFile;
     Map<String, dynamic>? extracted;
@@ -70,7 +75,10 @@ class _expenseInputState extends State<expenseInput> {
     if (parsed != null) {
       if (parsed.containsKey('rawText')) {
         try {
-          final raw = parsed['rawText'].replaceAll(RegExp(r'```json\n?'), '').replaceAll('```', '').trim();
+          final raw = parsed['rawText']
+              .replaceAll(RegExp(r'```json\n?'), '')
+              .replaceAll('```', '')
+              .trim();
           extracted = json.decode(raw);
         } catch (e) {
           print("Failed to parse rawText: $e");
@@ -102,10 +110,13 @@ class _expenseInputState extends State<expenseInput> {
           bool parsed = false;
           for (final format in possibleFormats) {
             try {
-              final parsedLocal = DateFormat(format, 'en_US').parse(rawDate).toLocal();
+              final parsedLocal = DateFormat(format, 'en_US')
+                  .parse(rawDate)
+                  .toLocal();
               setState(() {
                 selectedDate = parsedLocal;
-                textdate = _labelForDate(parsedLocal);  // 👈 will say Today / Yesterday / formatted
+                textdate = _labelForDate(
+                    parsedLocal); // 👈 will say Today / Yesterday / formatted
               });
 
               parsed = true;
@@ -120,12 +131,14 @@ class _expenseInputState extends State<expenseInput> {
 
         // auto categorise
         final rawCategoryName = extracted['category']?['name']?.toString();
-        final categoryName = rawCategoryName?.toLowerCase().replaceAll(RegExp(r'\s+'), '').trim();
+        final categoryName = rawCategoryName?.toLowerCase().replaceAll(
+            RegExp(r'\s+'), '').trim();
         print("Extracted category: $categoryName");
 
         bool matched = false;
         for (var category in allCategories) {
-          final name = category.categoryName?.toLowerCase().replaceAll(RegExp(r'\s+'), '').trim();
+          final name = category.categoryName?.toLowerCase().replaceAll(
+              RegExp(r'\s+'), '').trim();
           //print("🔍 Comparing '$name' with '$categoryName'");
           if (name == categoryName) {
             setState(() {
@@ -146,13 +159,18 @@ class _expenseInputState extends State<expenseInput> {
         }
 
         // auto categorise
-        final rawFinancialPlatformName = extracted['financialPlatform']?['name']?.toString();
-        final FPName = rawFinancialPlatformName?.toLowerCase().replaceAll(RegExp(r'\s+'), '').trim();
+        final rawFinancialPlatformName = extracted['financialPlatform']?['name']
+            ?.toString();
+        final FPName = rawFinancialPlatformName?.toLowerCase().replaceAll(
+            RegExp(r'\s+'), '').trim();
         print("Extracted Financial Platform: $FPName");
 
         bool matchedFP = false;
         for (var fp in allFinancialPlatforms) {
-          final name = fp.name?.toLowerCase().replaceAll(RegExp(r'\s+'), '').trim();
+          final name = fp.name
+              ?.toLowerCase()
+              .replaceAll(RegExp(r'\s+'), '')
+              .trim();
           //print("🔍 Comparing '$name' with '$categoryName'");
           if (name == FPName) {
             setState(() {
@@ -166,6 +184,10 @@ class _expenseInputState extends State<expenseInput> {
             matchedFP = true;
             break;
           }
+
+          setState(() {
+            _isLoading = false; // 👈 finished parsing
+          });
         }
 
         if (!matched) {
@@ -185,36 +207,40 @@ class _expenseInputState extends State<expenseInput> {
       final viewModel_fp = Provider.of<platformViewModel>(context, listen: false);
       // Optional: fetch category list if not already fetched
       if (viewModel.categoryList.isEmpty) {
-        await viewModel.fetchCategories(); // <-- add this method if you haven't already
+        await viewModel
+            .fetchCategories(); // <-- add this method if you haven't already
       }
       if (viewModel_fp.FPcategory.isEmpty) {
-        await viewModel_fp.fetchFPCategories(); // <-- add this method if you haven't already
+        await viewModel_fp
+            .fetchFPCategories(); // <-- add this method if you haven't already
       }
       // Wait until it's not empty
-      while (viewModel.categoryList.isEmpty || viewModel_fp.FPcategory.isEmpty) {
+      while (viewModel.categoryList.isEmpty ||
+          viewModel_fp.FPcategory.isEmpty) {
         await Future.delayed(Duration(milliseconds: 100));
       }
 
-      _initializeParsedData(viewModel.categoryList,viewModel_fp.FPcategory);
-      setState(() {
-        _isLoading = false; // 👈 finished parsing
-      });
+      _initializeParsedData(viewModel.categoryList, viewModel_fp.FPcategory);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
+    final screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
     return Scaffold(
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
         backgroundColor: Color(0xFF5A7BE7),
-        title: Center(
-          child: const Text(
-            'Expense Input',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
+        title: const Text(
+          'Expense Input',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         automaticallyImplyLeading: true,
       ),
@@ -253,9 +279,15 @@ class _expenseInputState extends State<expenseInput> {
                                 dateTime.day == yesterday.day) {
                               textdate = yesterdayDate; // Set to 'Yesterday'
                               selectedDate = yesterday;
-                            } else if (dateTime.year == DateTime.now().year &&
-                                dateTime.month == DateTime.now().month &&
-                                dateTime.day == DateTime.now().day) {
+                            } else if (dateTime.year == DateTime
+                                .now()
+                                .year &&
+                                dateTime.month == DateTime
+                                    .now()
+                                    .month &&
+                                dateTime.day == DateTime
+                                    .now()
+                                    .day) {
                               textdate = todayDate; // Set to 'Today'
                             } else {
                               textdate = DateFormat('dd-MM-yyyy').format(
@@ -280,10 +312,11 @@ class _expenseInputState extends State<expenseInput> {
                     // Amount
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.only(left: 0.2,right: 2),
+                        padding: EdgeInsets.only(left: 0.2, right: 2),
                         child: TextField(
                           controller:
-                              _textControllerAmount, // Ensure this is initialized
+                          _textControllerAmount,
+                          // Ensure this is initialized
                           keyboardType: TextInputType.number,
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(
@@ -320,7 +353,8 @@ class _expenseInputState extends State<expenseInput> {
                               minHeight: 0,
                             ),
                             hintText:
-                                '0.00', // Simplified to match the desired behavior
+                            '0.00',
+                            // Simplified to match the desired behavior
                             hintStyle: TextStyle(
                               color: Colors.grey.shade400,
                               fontSize: 18,
@@ -390,81 +424,88 @@ class _expenseInputState extends State<expenseInput> {
                 Padding(
                   padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // This will space the elements apart
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // This will space the elements apart
                     children: [
-                    Material(
-                    color: Colors.transparent, // keep background transparent
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(15), // same radius as your container
-                      onTap: () async {
-                        final selectedcategory = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => categoryPage()),
-                        );
-                        if (selectedcategory != null) {
-                          setState(() {
-                            _selectedCategory = selectedcategory;
-                          });
-                        }
-                      },
-                      child: Container(
-                        width: screenWidth * 0.95,
-                        height: screenHeight * 0.080,
-                        decoration: BoxDecoration(
-                          color: Colors.white60,
+                      Material(
+                        color: Colors.transparent,
+                        // keep background transparent
+                        child: InkWell(
                           borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 6, right: 10),
-                              child: DottedBorder(
-                                color: Colors.black,
-                                strokeWidth: 2,
-                                dashPattern: const [6, 3],
-                                borderType: BorderType.Circle,
-                                child: Container(
-                                  width: 47,
-                                  height: 47,
-                                  decoration: BoxDecoration(
-                                    color: _selectedCategory != null
-                                        ? _selectedCategory!['color']
-                                        : Colors.grey[300],
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: _selectedCategory != null
-                                      ? Center(
-                                    child: Icon(
-                                      _selectedCategory?['icon'],
-                                      size: 30,
-                                      color: Colors.white,
+                          // same radius as your container
+                          onTap: () async {
+                            final selectedcategory = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => categoryPage()),
+                            );
+                            if (selectedcategory != null) {
+                              setState(() {
+                                _selectedCategory = selectedcategory;
+                              });
+                            }
+                          },
+                          child: Container(
+                            width: screenWidth * 0.95,
+                            height: screenHeight * 0.080,
+                            decoration: BoxDecoration(
+                              color: Colors.white60,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 6, right: 10),
+                                  child: DottedBorder(
+                                    color: Colors.black,
+                                    strokeWidth: 2,
+                                    dashPattern: const [6, 3],
+                                    borderType: BorderType.Circle,
+                                    child: Container(
+                                      width: 47,
+                                      height: 47,
+                                      decoration: BoxDecoration(
+                                        color: _selectedCategory != null
+                                            ? _selectedCategory!['color']
+                                            : Colors.grey[300],
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: _selectedCategory != null
+                                          ? Center(
+                                        child: Icon(
+                                          _selectedCategory?['icon'],
+                                          size: 30,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                          : const Icon(
+                                          Icons.image, color: Colors.white),
                                     ),
-                                  )
-                                      : null,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 10, right: 10),
-                              child: Text(
-                                _selectedCategory != null
-                                    ? _selectedCategory!['name']
-                                    : 'Set Category',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 22.0,
-                                  color: Colors.black,
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 10, right: 10),
+                                  child: Text(
+                                    _selectedCategory != null
+                                        ? _selectedCategory!['name']
+                                        : 'Select Category',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 20.0,
+                                      color: Colors.black,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                const Spacer(),
+                                const Icon(Icons.arrow_forward_ios, size: 30),
+                              ],
                             ),
-                            const Spacer(),
-                            const Icon(Icons.arrow_forward_ios, size: 30),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                  )
-                  ],
+                      )
+                    ],
                   ),
                 ),
                 Divider(thickness: 2, color: Colors.black),
@@ -505,16 +546,20 @@ class _expenseInputState extends State<expenseInput> {
                 Padding(
                   padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // This will space the elements apart
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // This will space the elements apart
                     children: [
                       Material(
-                        color: Colors.transparent, // keep background transparent
+                        color: Colors.transparent,
+                        // keep background transparent
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(15), // same radius as your container
+                          borderRadius: BorderRadius.circular(15),
+                          // same radius as your container
                           onTap: () async {
                             final selectedFPcategory = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => financialPlatformCategory()),
+                              MaterialPageRoute(builder: (context) =>
+                                  financialPlatformCategory()),
                             );
                             if (selectedFPcategory != null) {
                               setState(() {
@@ -523,16 +568,17 @@ class _expenseInputState extends State<expenseInput> {
                             }
                           },
                           child: Container(
-                            width: screenWidth * 0.95,
-                            height: screenHeight * 0.080,
-                            decoration: BoxDecoration(
-                              color: Colors.white60,
-                              borderRadius: BorderRadius.circular(15),
-                            ),
+                              width: screenWidth * 0.95,
+                              height: screenHeight * 0.080,
+                              decoration: BoxDecoration(
+                                color: Colors.white60,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
                               child: Row(
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.only(left: 6, right: 10),
+                                    padding: const EdgeInsets.only(
+                                        left: 6, right: 10),
                                     child: DottedBorder(
                                       color: Colors.black,
                                       strokeWidth: 2,
@@ -542,19 +588,23 @@ class _expenseInputState extends State<expenseInput> {
                                         width: 47,
                                         height: 47,
                                         decoration: BoxDecoration(
-                                          color: (_selectedFPCategory != null && _selectedFPCategory!['color'] is Color)
+                                          color: (_selectedFPCategory != null &&
+                                              _selectedFPCategory!['color'] is Color)
                                               ? _selectedFPCategory!['color'] as Color
                                               : Colors.grey[300],
                                           shape: BoxShape.circle,
                                         ),
-                                        child: (_selectedFPCategory != null && _selectedFPCategory!['iconimage'] != null)
+                                        child: (_selectedFPCategory != null &&
+                                            _selectedFPCategory!['iconimage'] !=
+                                                null)
                                             ? Center(
                                           child: Image.memory(
                                             _selectedFPCategory!['iconimage'] as Uint8List,
                                             fit: BoxFit.contain,
                                           ),
                                         )
-                                            : const Icon(Icons.image, color: Colors.white),
+                                            : const Icon(
+                                            Icons.image, color: Colors.white),
                                       ),
                                     ),
                                   ),
@@ -563,13 +613,14 @@ class _expenseInputState extends State<expenseInput> {
                                   Expanded(
                                     child: Text(
                                       _selectedFPCategory != null
-                                          ? (_selectedFPCategory!['fpname']?.toString() ?? '')
-                                          : 'Set Financial Platform Use',
+                                          ? (_selectedFPCategory!['fpname']
+                                          ?.toString() ?? '')
+                                          : 'Select Financial Platform',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.normal,
-                                        fontSize: 12.0,
+                                        fontSize: 20.0,
                                         color: Colors.black,
                                       ),
                                     ),
@@ -613,9 +664,13 @@ class _expenseInputState extends State<expenseInput> {
           children: [
             GestureDetector(
               onTap: () async {
-                final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
-                final viewModel = Provider.of<expenseViewModel>(context, listen: false,);
-                final viewModelActivity = Provider.of<activitylog_viewModel>(context, listen: false,);
+                final token = Provider
+                    .of<signUpnLogin_viewmodel>(context, listen: false,)
+                    .authToken;
+                final viewModel = Provider.of<expenseViewModel>(
+                  context, listen: false,);
+                final viewModelActivity = Provider.of<activitylog_viewModel>(
+                  context, listen: false,);
                 final pdfBytes = await _uploadedPdf!.readAsBytes();
                 final base64Pdf = base64Encode(pdfBytes);
 
@@ -629,8 +684,7 @@ class _expenseInputState extends State<expenseInput> {
                   userId: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo?.id,
                   categoryId: _selectedCategory!['categoryId'],
                 );
-                ActivityLog activitylog = ActivityLog(
-                    userid: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id,
+                ActivityLog activitylog = ActivityLog(userid: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id,
                     activitytypeid: 1,
                     timestamp: DateTime.now()
                 );
@@ -642,7 +696,8 @@ class _expenseInputState extends State<expenseInput> {
                     bool dismissedByTimer = true;
                     await showDialog(
                       context: context,
-                      barrierDismissible: false, // Prevent dismiss by tapping outside
+                      barrierDismissible: false,
+                      // Prevent dismiss by tapping outside
                       builder: (BuildContext context) {
                         // Start a delayed close
                         Future.delayed(Duration(seconds: 3), () {
@@ -659,7 +714,7 @@ class _expenseInputState extends State<expenseInput> {
                               child: const Text('OK'),
                               onPressed: () {
                                 dismissedByTimer =
-                                    false; // User pressed manually
+                                false; // User pressed manually
                                 Navigator.of(context).pop(); // Close dialog
                               },
                             ),
@@ -668,17 +723,11 @@ class _expenseInputState extends State<expenseInput> {
                       },
                     );
                     final homeExpenseViewModel = Provider.of<expenseViewModel>(
-                      context,
-                      listen: false,
-                    );
+                      context, listen: false,);
                     await homeExpenseViewModel.fetchViewExpense(
-                      expense.userId!,
-                      token,
-                    );
+                      expense.userId!, token,);
                     await homeExpenseViewModel.fetchListExpense(
-                      expense.userId!,
-                      token,
-                    );
+                      expense.userId!, token,);
                     Navigator.pop(context); // Return to previous screen
                   }
                   // Navigate back on success
@@ -697,8 +746,14 @@ class _expenseInputState extends State<expenseInput> {
                   borderRadius: BorderRadius.circular(20),
                   color: Color(0xFF5A7BE7),
                 ),
-                width: MediaQuery.of(context).size.width * 0.85,
-                height: MediaQuery.of(context).size.height * 0.065,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.85,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.065,
                 child: const Text(
                   'Add Expense',
                   style: TextStyle(
@@ -718,7 +773,15 @@ class _expenseInputState extends State<expenseInput> {
   Widget pdfUploadPreview(File pdfFile, VoidCallback onRemove) {
     return GestureDetector(
       onTap: () async {
-        await OpenFile.open(pdfFile.path); // open PDF on tap
+        // Open in in-app PDF viewer
+        final bytes = await pdfFile.readAsBytes();
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PdfViewerPage(pdfBytes: bytes),
+          ),
+        );
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -730,23 +793,103 @@ class _expenseInputState extends State<expenseInput> {
         ),
         child: Row(
           children: [
-            Icon(Icons.picture_as_pdf, color: Colors.red, size: 28),
+            const Icon(Icons.picture_as_pdf, color: Colors.red, size: 28),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                pdfFile.path.split('/').last, // show filename
+                pdfFile.path.split('/').last,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 16),
               ),
             ),
             const SizedBox(width: 10),
             GestureDetector(
-              onTap: onRemove,
+              onTap: () async {
+                final confirmed = await showDarkConfirmDialog(
+                  context: context,
+                  line1: ' Remove PDF Receipt?\n',
+                  line2: 'You will need to scan or reupload a new receipt.',
+                  yesText: 'Yes',
+                  noText: 'No',
+                  yesColor: Colors.red,
+                  noColor: Colors.green,
+                );
+
+                if (confirmed == true) {
+                  onRemove();         // remove preview/file
+                  Navigator.pop(context); // optional: also leave the page (pop once)
+                  // If you need to pop twice, do another Navigator.pop(context);
+                }
+              },
               child: const Icon(Icons.close, color: Colors.grey),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<bool?> showDarkConfirmDialog({
+    required BuildContext context,
+    required String line1,
+    required String line2,
+    String yesText = 'Yes',
+    String noText  = 'No',
+    Color? yesColor,
+    Color? noColor,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.grey[800],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(line1, style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                    textAlign: TextAlign.center),
+                Text(line2, style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: yesColor ?? Colors.red,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      ),
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                      child: Text(yesText,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: noColor ?? Colors.green,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      ),
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      child: Text(noText,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

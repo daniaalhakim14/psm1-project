@@ -69,9 +69,11 @@ class expenseViewModel extends ChangeNotifier{
     notifyListeners();
 
     try{
+      /*
       for (var expense in _listExpense) {
         print('📌 ExpenseID: ${expense.expenseid}, Name: ${expense.expenseName}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate}');
       }
+       */
 
       _listExpense = await repository.getListExpense(userid, token);
     }catch(e){
@@ -99,6 +101,14 @@ class expenseViewModel extends ChangeNotifier{
     } finally {
       fetchingData = false; // Data fetching completed
       notifyListeners();
+    }
+  }
+
+  Future<void> updateExpense(UpdateExpense updateexpense, String token) async{
+    try{
+      await repository.updateExpense(updateexpense, token);
+    }catch (e){
+      print('Failed to update expense: $e');
     }
   }
 

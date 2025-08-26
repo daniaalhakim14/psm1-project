@@ -929,10 +929,8 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
               type: FileType.custom,
               allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
             );
-
             if (result != null && result.files.single.path != null) {
               File file = File(result.files.single.path!);
-
               // Show loading dialog
               showDialog(
                 context: context,

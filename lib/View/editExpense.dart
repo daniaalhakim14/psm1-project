@@ -14,6 +14,8 @@ import '../Model/Category.dart';
 import '../Model/signupLoginpage.dart';
 import '../ViewModel/expense/expense_viewmodel.dart';
 import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
+import 'Homepage/financialPlatformCategory.dart';
+import 'PdfViewerPage.dart';
 import 'categorypage.dart';
 
 // Global Variable for payment types
@@ -51,8 +53,12 @@ class _editExpenseState extends State<editExpense> {
   final TextEditingController _textControllerDescription = TextEditingController();
 
   Map<String, dynamic>? _selectedCategory;
+  Map<String, dynamic>? _selectedFPCategory;
   Uint8List? _pdfBytes;
   String? _pdfFileName;
+  String? pdfreceipt;
+
+  int? _expenseid;
   ListExpense? _originalExpense;
   bool _isLoading = true;
   bool _isUpdating = false;
@@ -98,15 +104,12 @@ class _editExpenseState extends State<editExpense> {
   }
 
   void _populateFields(ListExpense expense) {
+    _expenseid = expense.expenseid;
+    pdfreceipt = expense.receiptPdf;
     // Populate text fields
     _textControllerName.text = expense.expenseName ?? '';
     _textControllerAmount.text = expense.expenseAmount?.toString() ?? '';
     _textControllerDescription.text = expense.expenseDescription ?? '';
-
-    // Set payment type
-    if (expense.paymenttype != null && paymentType.contains(expense.paymenttype)) {
-      dropdownValue = expense.paymenttype!;
-    }
 
     // Set date
     if (expense.expenseDate != null) {
@@ -117,10 +120,20 @@ class _editExpenseState extends State<editExpense> {
     // Set category
     if (expense.categoryname != null) {
       _selectedCategory = {
-        'categoryId': expense.expenseid,
+        'categoryId': expense.categoryid,
         'name': expense.categoryname,
         'icon': expense.iconData,
         'color': expense.iconColor,
+      };
+    }
+
+    // Set financial platform
+    if (expense.name !=null){
+      _selectedFPCategory ={
+        'platformid': expense.platformid,
+        'fpname':expense.name,
+        'iconimage':expense.iconimage,
+        'iconcolorexpense':expense.iconColorExpense
       };
     }
 
@@ -128,7 +141,7 @@ class _editExpenseState extends State<editExpense> {
     if (expense.receiptPdf != null && expense.receiptPdf!.isNotEmpty) {
       try {
         _pdfBytes = base64Decode(expense.receiptPdf!);
-        _pdfFileName = 'receipt.pdf';
+        _pdfFileName = 'Receipt.pdf';
       } catch (e) {
         print("Error decoding PDF: $e");
         _pdfBytes = null;
@@ -150,26 +163,6 @@ class _editExpenseState extends State<editExpense> {
       textdate = yesterdayDate;
     } else {
       textdate = DateFormat('dd-MM-yyyy').format(selectedDate);
-    }
-  }
-
-  Future<void> _pickPDF() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'],
-      );
-
-      if (result != null) {
-        setState(() {
-          _pdfBytes = result.files.first.bytes;
-          _pdfFileName = result.files.first.name;
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking PDF: $e')),
-      );
     }
   }
 
@@ -365,63 +358,62 @@ class _editExpenseState extends State<editExpense> {
                             });
                           }
                         },
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 5.0,
-                                bottom: 0.0,
-                                left: 6,
-                                right: 10,
-                              ),
-                              child: DottedBorder(
-                                color: Colors.black,
-                                strokeWidth: 2,
-                                dashPattern: const [6, 3],
-                                borderType: BorderType.Circle,
-                                child: Container(
-                                  width: 47,
-                                  height: 47,
-                                  decoration: BoxDecoration(
-                                    color: _selectedCategory != null
-                                        ? _selectedCategory!['color']
-                                        : Colors.grey[300],
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: _selectedCategory != null
-                                      ? Center(
-                                    child: Icon(
-                                      _selectedCategory!['icon'],
-                                      size: 30,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                      : null,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 5.0,
-                                bottom: 0.0,
-                                left: 10,
-                                right: 10,
-                              ),
-                              child: Text(
-                                _selectedCategory != null
-                                    ? _selectedCategory!['name']
-                                    : 'Set Category',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 22.0,
+                        child: Container(
+                          width: screenWidth * 0.95,
+                          height: screenHeight * 0.080,
+                          decoration: BoxDecoration(
+                            color: Colors.white60,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 6, right: 10),
+                                child: DottedBorder(
                                   color: Colors.black,
+                                  strokeWidth: 2,
+                                  dashPattern: const [6, 3],
+                                  borderType: BorderType.Circle,
+                                  child: Container(
+                                    width: 47,
+                                    height: 47,
+                                    decoration: BoxDecoration(
+                                      color: _selectedCategory != null
+                                          ? _selectedCategory!['color']
+                                          : Colors.grey[300],
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: _selectedCategory != null
+                                        ? Center(
+                                      child: Icon(
+                                        _selectedCategory?['icon'],
+                                        size: 30,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                        : const Icon(
+                                        Icons.image, color: Colors.white),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                              Padding(padding: const EdgeInsets.only(left: 10, right: 10),
+                                child: Text(
+                                  _selectedCategory != null
+                                      ? _selectedCategory!['name']
+                                      : 'Select Category',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 20.0,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              const Icon(Icons.arrow_forward_ios, size: 30),
+                            ],
+                          ),
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios, size: 30),
                     ],
                   ),
                 ),
@@ -457,86 +449,97 @@ class _editExpenseState extends State<editExpense> {
                     ],
                   ),
                 ),
-                // Payment type
-                Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: screenWidth * 0.025,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.payment,
-                            size: 50,
-                            color: Colors.black87,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              left: screenWidth * 0.025,
-                            ),
-                            child: Row(
-                              children: [
-                                const Text(
-                                  'Payment',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 22.0,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    left: screenWidth * 0.23,
-                                  ),
-                                  child: DropdownButton<String>(
-                                    value: dropdownValue,
-                                    icon: const Icon(
-                                      Icons.keyboard_arrow_down_outlined,
-                                    ),
-                                    elevation: 16,
-                                    style: const TextStyle(
-                                      color: Colors.deepPurple,
-                                    ),
-                                    underline: Container(
-                                      height: 2,
-                                      color: Colors.deepPurpleAccent,
-                                    ),
-                                    onChanged: (String? value) {
-                                      setState(() {
-                                        dropdownValue = value!;
-                                      });
-                                    },
-                                    items: paymentType.map<DropdownMenuItem<String>>(
-                                          (String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Container(
-                                            width: screenWidth * 0.20,
-                                            height: screenHeight * 0.1,
-                                            alignment: Alignment.centerLeft,
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                            ),
-                                            child: Text(
-                                              value,
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                              ),
-                                            ),
+                // select financial platform
+                Padding(
+                  padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // This will space the elements apart
+                    children: [
+                      Material(
+                        color: Colors.transparent,
+                        // keep background transparent
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(15),
+                          // same radius as your container
+                          onTap: () async {
+                            final selectedFPcategory = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) =>
+                                  financialPlatformCategory()),
+                            );
+                            if (selectedFPcategory != null) {
+                              setState(() {
+                                _selectedFPCategory = selectedFPcategory;
+                              });
+                            }
+                          },
+                          child: Container(
+                              width: screenWidth * 0.95,
+                              height: screenHeight * 0.080,
+                              decoration: BoxDecoration(
+                                color: Colors.white60,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 6, right: 10),
+                                    child: DottedBorder(
+                                      color: Colors.black,
+                                      strokeWidth: 2,
+                                      dashPattern: const [6, 3],
+                                      borderType: BorderType.Circle,
+                                      child: Container(
+                                        width: 47,
+                                        height: 47,
+                                        decoration: BoxDecoration(
+                                          color: (_selectedFPCategory != null &&
+                                              _selectedFPCategory!['color'] is Color)
+                                              ? _selectedFPCategory!['color'] as Color
+                                              : Colors.grey[300],
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: (_selectedFPCategory != null &&
+                                            _selectedFPCategory!['iconimage'] !=
+                                                null)
+                                            ? Center(
+                                          child: Image.memory(
+                                            _selectedFPCategory!['iconimage'] as Uint8List,
+                                            fit: BoxFit.contain,
                                           ),
-                                        );
-                                      },
-                                    ).toList(),
+                                        )
+                                            : const Icon(
+                                            Icons.image, color: Colors.white),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                  const SizedBox(width: 10),
+                                  // Name (flexible to avoid overflow)
+                                  Expanded(
+                                    child: Text(
+                                      _selectedFPCategory != null
+                                          ? (_selectedFPCategory!['fpname']
+                                          ?.toString() ?? '')
+                                          : 'Select Financial Platform',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 20.0,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(Icons.arrow_forward_ios, size: 20),
+                                ],
+                              )
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
+                        ),
+                      )
+                    ],
+                  ),
                 ),
                 // Divider
                 Padding(
@@ -553,37 +556,34 @@ class _editExpenseState extends State<editExpense> {
                   ),
                   child: Column(
                     children: [
-                      if (_pdfBytes != null)
-                        _pdfPreview()
-                      else
-                      // PDF upload button
                       GestureDetector(
-                        onTap: _pickPDF,
+                        onTap: () {
+                          Uint8List pdfBytes = base64Decode(pdfreceipt!);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PdfViewerPage(pdfBytes: pdfBytes),
+                            ),
+                          );
+                        },
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            border: Border.all(color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
                           ),
                           child: Row(
-                            children: [
-                              Icon(Icons.upload_file, color: Colors.grey[600]),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Upload PDF Receipt',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 16,
-                                ),
-                              ),
+                            children: const [
+                              Icon(Icons.picture_as_pdf, color: Colors.red),
+                              SizedBox(width: 12),
+                              Expanded(child: Text('Receipt.pdf', style: TextStyle(fontSize: 16), overflow: TextOverflow.ellipsis)),
+                              Icon(Icons.open_in_new, color: Colors.grey),
                             ],
                           ),
                         ),
                       ),
                       const SizedBox(height: 10),
-                      // PDF preview
-
                     ],
                   ),
                 ),
@@ -636,25 +636,17 @@ class _editExpenseState extends State<editExpense> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              _pdfFileName ?? 'receipt.pdf',
+              _pdfFileName ?? 'Receipt.pdf',
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 16),
             ),
           ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _pdfBytes = null;
-                _pdfFileName = null;
-              });
-            },
-            child: const Icon(Icons.close, color: Colors.grey),
-          ),
-        ],
+          ],
       ),
     );
   }
+
+
 
   Future<void> _updateExpense() async {
     if (_isUpdating) return;
@@ -715,28 +707,48 @@ class _editExpenseState extends State<editExpense> {
       }
 
       // Create updated expense object
-      AddExpense updatedExpense = AddExpense(
+      UpdateExpense updatedExpense = UpdateExpense(
+        expenseId: _expenseid,
         expenseAmount: double.parse(_textControllerAmount.text),
         expenseDate: selectedDate,
         expenseName: _textControllerName.text,
         expenseDescription: _textControllerDescription.text,
-        financialPlatform: 1,
-        receiptPdf: base64Pdf,
+        financialPlatform: _selectedFPCategory!['platformid'],
         userId: widget.userid,
         categoryId: _selectedCategory!['categoryId'],
       //  paymentType: dropdownValue,
       );
 
-      // You need to implement updateExpense method in your viewModel
-      // For now, I'll show how it should be called
-     /* await viewModel.updateExpense(
-          widget.expensedetail.expenseid!,
-          updatedExpense,
-          token
-      );
+      print("🔧 Updating Expense:");
+      print("  expenseId: ${updatedExpense.expenseId}");
+      print("  amount: ${updatedExpense.expenseAmount}");
+      print("  date: ${updatedExpense.expenseDate?.toIso8601String()}");
+      print("  name: ${updatedExpense.expenseName}");
+      print("  description: ${updatedExpense.expenseDescription}");
+      print("  platformId: ${updatedExpense.financialPlatform}");
+      print("  userId: ${updatedExpense.userId}");
+      print("  categoryId: ${updatedExpense.categoryId}");
 
-      */
+
+
+      final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
+      await viewModel.updateExpense(updatedExpense, token!);
+      bool dismissedByTimer = true;
       // Show success message
+       AlertDialog(
+        title: const Text('Success'),
+        content: const Text('Expense updated successfully!'),
+        actions: [
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () {
+              dismissedByTimer =
+              false; // User pressed manually
+              Navigator.of(context).pop(); // Close dialog
+            },
+          ),
+        ],
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Expense updated successfully!'),

@@ -89,55 +89,79 @@ class _expenseDetailsState extends State<expenseDetails> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(fontSize: 16, color: Colors.black),
-                      children: [
-                        const TextSpan(text: 'Category: '),
-                        TextSpan(
-                          text: '${expenseDetail.categoryname}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
+                  Row(
+                    children: [
+                      const Icon(Icons.category, size: 18, color: Colors.blueGrey),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Category: ",
+                        style: const TextStyle(fontSize: 15, color: Colors.blueGrey, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        expenseDetail.categoryname ?? "Not specified",
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(fontSize: 16, color: Colors.black),
-                      children: [
-                        const TextSpan(text: 'Date: '),
-                        TextSpan(
-                          text: formatDateTime(expenseDetail.expenseDate),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(fontSize: 16, color: Colors.black),
-                      children: [
-                        const TextSpan(text: 'Description: '),
-                        TextSpan(
-                          text: '${expenseDetail.expenseDescription}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(fontSize: 16, color: Colors.black),
-                      children: [
-                        const TextSpan(text: 'Payment Type: '),
-                        TextSpan(
-                          text: '${expenseDetail.paymenttype ?? 'Not specified'}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 6),
 
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today, size: 18, color: Colors.blueGrey),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Date: ",
+                        style: const TextStyle(fontSize: 15, color: Colors.blueGrey, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        formatDateTime(expenseDetail.expenseDate),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.description, size: 18, color: Colors.blueGrey),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: RichText(
+                          text: TextSpan(
+                            style: const TextStyle(fontSize: 15, color: Colors.black),
+                            children: [
+                              const TextSpan(
+                                text: 'Notes: ',
+                                style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),
+
+                              ),
+                              TextSpan(
+                                text: expenseDetail.expenseDescription ?? "No description",
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  Row(
+                    children: [
+                      const Icon(Icons.account_balance_wallet, size: 18, color: Colors.blueGrey),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Platform: ",
+                        style: const TextStyle(fontSize: 15, color: Colors.blueGrey, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        expenseDetail.name ?? "Not specified",
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -164,7 +188,7 @@ class _expenseDetailsState extends State<expenseDetails> {
                     children: const [
                       Icon(Icons.picture_as_pdf, color: Colors.red),
                       SizedBox(width: 12),
-                      Expanded(child: Text('receipt.pdf', style: TextStyle(fontSize: 16), overflow: TextOverflow.ellipsis)),
+                      Expanded(child: Text('Receipt.pdf', style: TextStyle(fontSize: 16), overflow: TextOverflow.ellipsis)),
                       Icon(Icons.open_in_new, color: Colors.grey),
                     ],
                   ),
@@ -177,15 +201,22 @@ class _expenseDetailsState extends State<expenseDetails> {
                 Column(
                   children: [
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        final updated = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (context) => editExpense(userid: widget.userid,expensedetail: widget.expensedetail,),
+                            builder: (context) => editExpense(
+                              userid: widget.userid,
+                              expensedetail: expenseDetail, // ✅ pass the current one
+                            ),
                           ),
                         );
+
+                        if (updated == true) {
+                          await refreshExpenseDetails(); // ✅ pull fresh data & setState
+                        }
                       },
+
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
@@ -220,7 +251,7 @@ class _expenseDetailsState extends State<expenseDetails> {
         child: GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Container(
-            height: 70,
+            height: 80,
             alignment: Alignment.center,
             margin: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -293,3 +324,4 @@ class _expenseDetailsState extends State<expenseDetails> {
     );
   }
 }
+

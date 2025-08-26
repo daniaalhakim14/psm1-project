@@ -106,10 +106,11 @@ class ViewExpense{
 }
 
 class ListExpense{
-  final int? expenseid;
+  late final int? expenseid;
   final double? expenseAmount;
   final DateTime? expenseDate;
   final String? expenseName;
+  final int? categoryid;
   final String? categoryname;
   final String? expenseDescription;
   final String? paymenttype;
@@ -127,6 +128,7 @@ class ListExpense{
     this.expenseAmount,
     this.expenseDate,
     this.expenseName,
+    this.categoryid,
     this.categoryname,
     this.expenseDescription,
     this.paymenttype,
@@ -167,6 +169,7 @@ class ListExpense{
       expenseAmount: double.parse(json['amount']),
       expenseDate: DateTime.parse(json["date"]),
       expenseName: json['expensename'],
+      categoryid: int.tryParse(json['categoryid'].toString().trim()) ?? 0,
       categoryname: json['categoryname'],
       expenseDescription: json['description'],
       paymenttype: json['paymenttype'],
@@ -251,6 +254,52 @@ class ViewExpenseFinancialPlatform {
       ) : null,
       iconimage: iconBytes,
     );
+  }
+}
+
+class UpdateExpense {
+  final int? expenseId;
+  final double? expenseAmount;
+  final DateTime? expenseDate;
+  final String? expenseName;
+  final String? expenseDescription;
+  final int? financialPlatform;
+  final int? userId;
+  final int? categoryId;
+
+  UpdateExpense({
+    this.expenseId,
+    this.expenseAmount,
+    this.expenseDate,
+    this.expenseName,
+    this.expenseDescription,
+    this.financialPlatform,
+    this.userId,
+    this.categoryId,
+  });
+
+  factory UpdateExpense.fromJson(Map<String, dynamic> json) => UpdateExpense(
+    expenseId: int.tryParse(json['expenseid'].toString().trim()) ?? 0,
+    expenseAmount: json["amount"],
+    expenseDate: DateTime.parse(json["date"].toString()),
+    expenseName: json['expensename']?.toString().trim(),
+    expenseDescription: json["description"]?.toString().trim(),
+    financialPlatform: int.tryParse(json["platformid"].toString().trim()),
+    userId: int.tryParse(json["userid"].toString().trim()),
+    categoryId: int.tryParse(json["categoryid"].toString().trim()),
+  );
+
+
+  Map<String, dynamic> toMap() {
+    return {
+      "amount": expenseAmount,
+      "date": expenseDate?.toIso8601String(),
+      "description": expenseDescription,
+      "platformid": financialPlatform?.toString().trim(), // 👈
+      "userid": userId?.toString().trim(),                // 👈 matches your backend’s current key
+      "categoryid": categoryId?.toString().trim(),        // 👈
+      "expensename": expenseName,
+    };
   }
 }
 

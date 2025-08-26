@@ -104,6 +104,18 @@ class expenseCategoryRepository{
     }
   }
 
+  Future<void> updateExpense(UpdateExpense updateexpense, String token) async {
+    final response = await _service.updateExpense(updateexpense.expenseId!,   // use expenseId for URL
+      updateexpense.toMap(),      // send body
+      token,
+    );
+
+    final data = jsonDecode(response.body);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update expense: ${response.body}');
+    }
+  }
+
   Future<void> deleteExpense(DeleteExpense deleteExpense, int userid, String token) async {
     final response = await _service.deleteExpense(deleteExpense.expenseId,userid,token);
 

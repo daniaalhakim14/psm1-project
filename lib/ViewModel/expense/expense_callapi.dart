@@ -65,6 +65,26 @@ class expense_callApi {
     );
   }
 
+  Future<http.Response> updateExpense(int expenseId, Map<String, dynamic> expenseData, String token) async {
+    String endpoint = '/expense/updateExpense/$expenseId'; // your backend route
+    String url = '${AppConfig.baseUrl}$endpoint';
+    print('url $url');
+
+    final response = await http.put(Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode(expenseData),
+    );
+
+    print("Update response status: ${response.statusCode}");
+    print("Update response body: ${response.body}");
+
+    return response;
+  }
+
+
   Future<http.Response> deleteExpense(int expenseId, int userid,String token) async {
     String endpoint = '/expense/deleteExpense/$expenseId';
     String url = '${AppConfig.baseUrl}$endpoint';
