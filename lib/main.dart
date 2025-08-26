@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'ViewModel/activitylog/activitylog_viewmodel.dart';
 import 'ViewModel/cart/cart_viewmodel.dart';
 import 'ViewModel/expense/expense_viewmodel.dart';
+import 'ViewModel/financialplatform/paltform_viewmodel.dart';
 import 'ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
 
 
@@ -22,7 +23,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => TaxReliefViewModel()),
         ChangeNotifierProvider(create: (_) => compareItems_viewmodel()),
         ChangeNotifierProvider(create: (_) => cartViewModel()),
-        ChangeNotifierProvider(create: (_) => activitylog_viewModel())
+        ChangeNotifierProvider(create: (_) => activitylog_viewModel()),
+        ChangeNotifierProvider(create: (_) => platformViewModel()),
       ],
       child: MyApp(),
     ),

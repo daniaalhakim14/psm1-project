@@ -60,7 +60,10 @@ class _editExpenseState extends State<editExpense> {
   @override
   void initState() {
     super.initState();
-    _loadExpenseDetails();
+    // Defer to after the first frame so notifyListeners() won't happen during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadExpenseDetails();
+    });
   }
 
   Future<void> _loadExpenseDetails() async {
@@ -550,6 +553,9 @@ class _editExpenseState extends State<editExpense> {
                   ),
                   child: Column(
                     children: [
+                      if (_pdfBytes != null)
+                        _pdfPreview()
+                      else
                       // PDF upload button
                       GestureDetector(
                         onTap: _pickPDF,
@@ -577,7 +583,7 @@ class _editExpenseState extends State<editExpense> {
                       ),
                       const SizedBox(height: 10),
                       // PDF preview
-                      if (_pdfBytes != null) _pdfPreview(),
+
                     ],
                   ),
                 ),
@@ -728,7 +734,6 @@ class _editExpenseState extends State<editExpense> {
           updatedExpense,
           token
       );
-
 
       */
       // Show success message

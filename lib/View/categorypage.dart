@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../ViewModel/expense/expense_viewmodel.dart';
-
-
 
 class categoryPage extends StatefulWidget {
   //final int userid;
@@ -28,9 +25,9 @@ class _categoryPageState extends State<categoryPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_){
       final viewModel = Provider.of<expenseViewModel>(context, listen: false);
-      if (!viewModel.fetchingData && viewModel.category.isEmpty) {
+      if (!viewModel.fetchingData && viewModel.categoryList.isEmpty) {
         viewModel.fetchCategories();
-        print('Fetched categories: ${viewModel.category.length}');
+        //print('Fetched categories: ${viewModel.category.length}');
       }
     });
   }
@@ -57,21 +54,24 @@ class _categoryPageState extends State<categoryPage> {
           if (viewModel.fetchingData) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (viewModel.category.isEmpty) {
+          if (viewModel.categoryList.isEmpty) {
             return const Center(child: Text('No Categories available'));
           }
 
           // Print debug information
+          /*
           for (var category in viewModel.category) {
             print('Category: ${category.categoryId}, ${category.categoryName}, ${category.iconData}, ${category.iconColor}');
           }
+
+           */
 
           // Precompute category icons and colors
           final Map<String, int> categoryId = {};
           final Map<String, IconData> categoryIcons = {};
           final Map<String, Color> categoryColors = {};
 
-          for (var category in viewModel.category) {
+          for (var category in viewModel.categoryList) {
             if (category.categoryName != null && category.categoryId != null) {
               if (!categoryIcons.containsKey(category.categoryName)) {
                 categoryId[category.categoryName!] = category.categoryId!;
@@ -82,9 +82,9 @@ class _categoryPageState extends State<categoryPage> {
           }
 
           return ListView.builder(
-            itemCount: viewModel.category.length,
+            itemCount: viewModel.categoryList.length,
             itemBuilder: (context, index) {
-              final category = viewModel.category[index];
+              final category = viewModel.categoryList[index];
               return GestureDetector(
                 onTap: () {
                   final selectedCategory = {

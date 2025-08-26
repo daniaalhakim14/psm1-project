@@ -8,15 +8,15 @@ import 'expense_callapi.dart';
 class expenseCategoryRepository{
   final expense_callApi _service = expense_callApi();
 
-  Future<List<Category>> getCategories() async {
+  Future<List<ExpenseCategories>> getCategories() async {
     final response = await _service.fetchCategories();
 
     if (response.statusCode == 200) {
 
       final data = jsonDecode(response.body);
       //print('Decoded Categories: $data');
-      return List<Category>.from(
-          data.map((x) => Category.fromJson(x))
+      return List<ExpenseCategories>.from(
+          data.map((x) => ExpenseCategories.fromJson(x))
       );
     } else {
       print('API Error: ${response.body}');
@@ -120,5 +120,3 @@ class expenseCategoryRepository{
     print("Repository resources cleaned up.");
   }
 }
-
-

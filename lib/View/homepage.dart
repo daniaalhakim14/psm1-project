@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
-import 'package:fyp/View/financialPlatformList.dart';
+import 'package:fyp/View/financialPlatformExpenseList.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart'; // Make sure this is imported
@@ -20,6 +20,8 @@ import '../Model/signupLoginpage.dart';
 import '../ViewModel/expense/expense_viewmodel.dart';
 import '../ViewModel/receiptParser/receiptParser_viewmodel.dart';
 import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
+import 'Homepage/expenseList.dart';
+import 'Homepage/financialPlatformList.dart';
 import 'expenseDetails.dart';
 import 'expenseInput.dart';
 
@@ -219,28 +221,6 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                     totalAmount += (expense.expenseAmount ?? 0.0); // Sum up total expenses
                                   }
                                 }
-                                // Check if there's any data to display
-                                if (aggregatedData.isEmpty) {
-                                  return Column(
-                                    children: [
-                                      Image.asset(
-                                        'assets/Icons/statistics.png',
-                                        width: screenWidth * 0.4,
-                                        height: screenHeight * 0.2,
-                                      ),
-                                      SizedBox(height: screenHeight * 0.0025),
-                                      Center(
-                                        child: Text(
-                                          "No Expense Data For $selectedMonth",
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }
                                 // Step 2: Calculate daily average spending
                                 DateTime now = DateTime.now();
                                 DateTime firstDayOfMonth = DateTime(
@@ -283,6 +263,30 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                         badgePositionPercentageOffset: 1.38, // Position badges outside
                                       );
                                     }).toList();
+
+                                // Check if there's any data to display
+                                if (aggregatedData.isEmpty) {
+                                  return Column(
+                                    children: [
+                                      Image.asset(
+                                        'assets/Icons/statistics.png',
+                                        width: screenWidth * 0.4,
+                                        height: screenHeight * 0.2,
+                                      ),
+                                      SizedBox(height: screenHeight * 0.0025),
+                                      Center(
+                                        child: Text(
+                                          "No Expense Data For $selectedMonth",
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+
                                 // To display Pie chart
                                 return Stack(
                                   alignment: Alignment.center,
@@ -436,7 +440,7 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                     value: adjustedPercentage,
                                     title: adjustedPercentage < 1 ? '' : '${adjustedPercentage.toStringAsFixed(1)}%',
                                     radius: segmentRadius,
-                                    color: financialPlatformColors[name], // ✅ ADD THIS LINE
+                                    color: financialPlatformColors[name],
                                     titleStyle: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
@@ -602,12 +606,18 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text("Spending Summary", style: TextStyle(fontSize: 18)),
-                      /*
+                    children: <Widget>[
+                      Text("Spending Summary", style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold)),
                       SizedBox(width: 60),
-                      Text("View All", style: TextStyle(fontSize: 18)),
-                       */
+                      GestureDetector(
+                        onTap: (){
+                          (_currentPage == 0) ?
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => expenseList(selectedMonth: selectedMonth,userid: widget.userInfo.id,)),)
+                          : Navigator.push(context, MaterialPageRoute(builder: (context) => financialPlatformList(selectedMonth: selectedMonth,userid: widget.userInfo.id,)),);
+
+                        },
+                        child: Text("View All", style: TextStyle(fontSize: 18,decoration: TextDecoration.underline, fontWeight: FontWeight.bold, color: Colors.blue)),
+                      ),
                     ],
                   ),
                   Padding(padding: EdgeInsets.only(top: screenHeight * 0.01, left: screenHeight * 0.015, right: screenHeight * 0.015, bottom: screenHeight * 0.02,),
@@ -635,7 +645,8 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                             ),
                             SizedBox(height: 8),
                             // latest transaction list
-                            (_currentPage == 0) ? Consumer<expenseViewModel>(
+                            (_currentPage == 0)
+                                ? Consumer<expenseViewModel>(
                               builder: (context, viewModel_listexpense, child) {
                                 List<ListExpense> listExpense = viewModel_listexpense.listExpense;
                                 if (viewModel_listexpense.fetchingData) {
@@ -655,6 +666,7 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                   String formattedExpenseDate = _formatMonth(localTime);
                                   return formattedExpenseDate == selectedMonth;
                                 }).toList();
+
                                 if (filteredExpense.isEmpty) {
                                   return Column(
                                     children: [
@@ -797,30 +809,6 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                     return monthStr == selectedMonth;
                                   }).toList();
 
-                                  if (filtered.isEmpty) {
-                                    return Column(
-                                      children: [
-                                        Image.asset(
-                                          'assets/Icons/statistics.png',
-                                          width: 190,
-                                          height: 180,
-                                          fit: BoxFit.contain,
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Center(
-                                          child: Text(
-                                            'No transactions for $selectedMonth',
-                                            style: const TextStyle(
-                                              fontSize: 13.5,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }
-
                                   // 2) Group by financial platform name
                                   final Map<String, List<ListExpense>> grouped = {};
                                   for (final tx in filtered) {
@@ -843,11 +831,35 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                         final firstTx = platformTxs.first;
                                         final iconBytes = firstTx.iconimage != null ? Uint8List.fromList(firstTx.iconimage!.cast<int>()) : null;
 
+                                        if (filtered.isEmpty) {
+                                          return Column(
+                                            children: [
+                                              Image.asset(
+                                                'assets/Icons/statistics.png',
+                                                width: 190,
+                                                height: 180,
+                                                fit: BoxFit.contain,
+                                              ),
+                                              const SizedBox(height: 10),
+                                              Center(
+                                                child: Text(
+                                                  'No transactions for $selectedMonth',
+                                                  style: const TextStyle(
+                                                    fontSize: 13.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        }
+
                                         return GestureDetector(
                                           onTap: () {
                                             // TODO: Push to a FinancialPlatformDetailScreen if you have one
                                              Navigator.push(context, MaterialPageRoute(
-                                               builder: (_) => financialPlatformList(
+                                               builder: (_) => financialPlatformExpenseList(
                                                 userid: widget.userInfo.id, platformType: platformTxs, platformName: platformName,
                                               ),
                                              ));

@@ -27,7 +27,7 @@ class expense_callApi {
     final response = await http.post(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token'},
+        'Authorization': 'Bearer $token'},
       body: jsonEncode(expenseData),
     );
 
@@ -42,8 +42,8 @@ class expense_callApi {
     String endpoint = '/expense/$userid';
     String url = '${AppConfig.baseUrl}$endpoint';
     return await http.get(Uri.parse(url),
-    headers: {'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token'}
+        headers: {'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'}
     );
   }
 
@@ -51,8 +51,8 @@ class expense_callApi {
     String endpoint = '/expense/listExpense/$userid';
     String url = '${AppConfig.baseUrl}$endpoint';
     return await http.get(Uri.parse(url),
-    headers: {'Content-Type': 'application/json',
-      'Authorization' : 'Bearer $token'}
+        headers: {'Content-Type': 'application/json',
+          'Authorization' : 'Bearer $token'}
     );
   }
 
@@ -73,7 +73,7 @@ class expense_callApi {
     final response = await http.delete(Uri.parse(url),
         headers: {'Content-Type': 'application/json',
           'Authorization' : 'Bearer $token'}
-        );
+    );
 
     print("Response status: ${response.statusCode}");
     print("Response body: ${response.body}");

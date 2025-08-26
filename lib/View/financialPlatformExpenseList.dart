@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../Model/expense.dart';
 import 'expenseDetails.dart';
-class financialPlatformList extends StatefulWidget {
+class financialPlatformExpenseList extends StatefulWidget {
   final userid;
   final String platformName;
   final List<ListExpense> platformType;
-  const financialPlatformList({
+  const financialPlatformExpenseList({
     super.key,
     required this.userid,
     required this.platformName,
@@ -15,10 +15,10 @@ class financialPlatformList extends StatefulWidget {
   });
 
   @override
-  State<financialPlatformList> createState() => _financialPlatformListState();
+  State<financialPlatformExpenseList> createState() => _financialPlatformExpenseListState();
 }
 
-class _financialPlatformListState extends State<financialPlatformList> {
+class _financialPlatformExpenseListState extends State<financialPlatformExpenseList> {
   late Map<String, List<ListExpense>> groupedByDate;
 
 

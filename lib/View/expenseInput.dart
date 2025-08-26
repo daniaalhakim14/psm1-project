@@ -6,12 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fyp/Model/activitylog.dart';
 import 'package:fyp/Model/expense.dart';
+import 'package:fyp/View/Homepage/financialPlatformCategory.dart';
 import 'package:fyp/ViewModel/activitylog/activitylog_viewmodel.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import '../Model/Category.dart';
+import '../Model/financialplatformcategory.dart';
 import '../ViewModel/expense/expense_viewmodel.dart';
+import '../ViewModel/financialplatform/paltform_viewmodel.dart';
 import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
 import 'categorypage.dart';
 
@@ -35,21 +38,30 @@ class expenseInput extends StatefulWidget {
   State<expenseInput> createState() => _expenseInputState();
 }
 
-DateTime selectedDate = DateTime.now().toUtc().add(Duration(hours: 8));
+DateTime selectedDate = DateTime.now().toLocal();
 late String todayDate = 'Today';
 late String yesterdayDate = 'Yesterday';
 late String textdate = todayDate;
 late DateFormat date;
 final TextEditingController _textControllerName = TextEditingController();
 final _textControllerAmount = TextEditingController();
-final _textControllerDescription =
-    TextEditingController(); // to store user input
+final _textControllerDescription = TextEditingController(); // to store user input
 Map<String, dynamic>? _selectedCategory;
+Map<String, dynamic>? _selectedFPCategory;
 File? _uploadedPdf;
 
 class _expenseInputState extends State<expenseInput> {
+  bool _isLoading = true;
 
-  void _initializeParsedData(List<Category> allCategories) {
+  bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+  String _labelForDate(DateTime d) {
+    final now = DateTime.now().toLocal();
+    if (_isSameDay(d, now)) return 'Today';
+    if (_isSameDay(d, now.subtract(const Duration(days: 1)))) return 'Yesterday';
+    return DateFormat('dd-MM-yyyy').format(d);
+  }
+
+  void _initializeParsedData(List<ExpenseCategories> allCategories, List<FinancialPlatform> allFinancialPlatforms,) {
     final parsed = widget.parsedData;
     _uploadedPdf = widget.pdfFile;
     Map<String, dynamic>? extracted;
@@ -90,9 +102,12 @@ class _expenseInputState extends State<expenseInput> {
           bool parsed = false;
           for (final format in possibleFormats) {
             try {
-              selectedDate =
-                  DateFormat(format, 'en_US').parse(rawDate).toLocal();
-              textdate = DateFormat('dd-MM-yyyy').format(selectedDate);
+              final parsedLocal = DateFormat(format, 'en_US').parse(rawDate).toLocal();
+              setState(() {
+                selectedDate = parsedLocal;
+                textdate = _labelForDate(parsedLocal);  // 👈 will say Today / Yesterday / formatted
+              });
+
               parsed = true;
               break;
             } catch (_) {}
@@ -129,6 +144,33 @@ class _expenseInputState extends State<expenseInput> {
         if (!matched) {
           print("❌ No matching category found for '$categoryName'");
         }
+
+        // auto categorise
+        final rawFinancialPlatformName = extracted['financialPlatform']?['name']?.toString();
+        final FPName = rawFinancialPlatformName?.toLowerCase().replaceAll(RegExp(r'\s+'), '').trim();
+        print("Extracted Financial Platform: $FPName");
+
+        bool matchedFP = false;
+        for (var fp in allFinancialPlatforms) {
+          final name = fp.name?.toLowerCase().replaceAll(RegExp(r'\s+'), '').trim();
+          //print("🔍 Comparing '$name' with '$categoryName'");
+          if (name == FPName) {
+            setState(() {
+              _selectedFPCategory = {
+                'platformid': fp.platfromid,
+                'fpname': fp.name,
+                'iconimage': fp.iconimage,
+                'color': fp.iconColorExpense,
+              };
+            });
+            matchedFP = true;
+            break;
+          }
+        }
+
+        if (!matched) {
+          print("❌ No matching financial platform found for '$FPName'");
+        }
       }
     }
   }
@@ -136,23 +178,27 @@ class _expenseInputState extends State<expenseInput> {
   @override
   void initState() {
     super.initState();
-
+    _isLoading;
     // Wait until the widget tree is built
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final viewModel = Provider.of<expenseViewModel>(context, listen: false);
-
+      final viewModel_fp = Provider.of<platformViewModel>(context, listen: false);
       // Optional: fetch category list if not already fetched
-      if (viewModel.category.isEmpty) {
-        await viewModel
-            .fetchCategories(); // <-- add this method if you haven't already
+      if (viewModel.categoryList.isEmpty) {
+        await viewModel.fetchCategories(); // <-- add this method if you haven't already
       }
-
+      if (viewModel_fp.FPcategory.isEmpty) {
+        await viewModel_fp.fetchFPCategories(); // <-- add this method if you haven't already
+      }
       // Wait until it's not empty
-      while (viewModel.category.isEmpty) {
+      while (viewModel.categoryList.isEmpty || viewModel_fp.FPcategory.isEmpty) {
         await Future.delayed(Duration(milliseconds: 100));
       }
 
-      _initializeParsedData(viewModel.category);
+      _initializeParsedData(viewModel.categoryList,viewModel_fp.FPcategory);
+      setState(() {
+        _isLoading = false; // 👈 finished parsing
+      });
     });
   }
 
@@ -173,8 +219,7 @@ class _expenseInputState extends State<expenseInput> {
         automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.only(top: screenHeight * 0.015),
+        child: Padding(padding: EdgeInsets.only(top: screenHeight * 0.015),
           child: Padding(
             padding: EdgeInsets.all(screenWidth * 0.025),
             child: Column(
@@ -235,7 +280,7 @@ class _expenseInputState extends State<expenseInput> {
                     // Amount
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.all(screenWidth * 0.018),
+                        padding: EdgeInsets.only(left: 0.2,right: 2),
                         child: TextField(
                           controller:
                               _textControllerAmount, // Ensure this is initialized
@@ -312,15 +357,12 @@ class _expenseInputState extends State<expenseInput> {
                           Image.asset('assets/Icons/id-card.png', scale: 9),
                           Padding(
                             padding: EdgeInsets.only(
-                              top: 0,
-                              bottom: 0.0,
                               left: screenWidth * 0.025,
-                              right: 0,
                             ),
                             child: Row(
                               children: [
                                 SizedBox(
-                                  width: screenWidth * 0.74,
+                                  width: screenWidth * 0.76,
                                   height: screenHeight * 0.065,
                                   child: TextField(
                                     controller: _textControllerName,
@@ -348,34 +390,34 @@ class _expenseInputState extends State<expenseInput> {
                 Padding(
                   padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
                   child: Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment
-                            .spaceBetween, // This will space the elements apart
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // This will space the elements apart
                     children: [
-                      GestureDetector(
-                        onTap: () async {
-                          final selectedcategory = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => categoryPage(),
-                            ),
-                          );
-                          if (selectedcategory != null) {
-                            setState(() {
-                              _selectedCategory =
-                                  selectedcategory; // to add to database and display the selected subcategory
-                            });
-                          }
-                        },
+                    Material(
+                    color: Colors.transparent, // keep background transparent
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(15), // same radius as your container
+                      onTap: () async {
+                        final selectedcategory = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => categoryPage()),
+                        );
+                        if (selectedcategory != null) {
+                          setState(() {
+                            _selectedCategory = selectedcategory;
+                          });
+                        }
+                      },
+                      child: Container(
+                        width: screenWidth * 0.95,
+                        height: screenHeight * 0.080,
+                        decoration: BoxDecoration(
+                          color: Colors.white60,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                         child: Row(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.only(
-                                top: 5.0,
-                                bottom: 0.0,
-                                left: 6,
-                                right: 10,
-                              ),
+                              padding: const EdgeInsets.only(left: 6, right: 10),
                               child: DottedBorder(
                                 color: Colors.black,
                                 strokeWidth: 2,
@@ -385,54 +427,44 @@ class _expenseInputState extends State<expenseInput> {
                                   width: 47,
                                   height: 47,
                                   decoration: BoxDecoration(
-                                    color:
-                                        _selectedCategory != null
-                                            ? _selectedCategory!['color']
-                                            : Colors.grey[300],
+                                    color: _selectedCategory != null
+                                        ? _selectedCategory!['color']
+                                        : Colors.grey[300],
                                     shape: BoxShape.circle,
                                   ),
-                                  child:
-                                      _selectedCategory != null
-                                          ? Center(
-                                            child: Icon(
-                                              _selectedCategory?['icon'],
-                                              size: 30,
-                                              color: Colors.white,
-                                            ),
-                                          )
-                                          : null,
+                                  child: _selectedCategory != null
+                                      ? Center(
+                                    child: Icon(
+                                      _selectedCategory?['icon'],
+                                      size: 30,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                      : null,
                                 ),
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(
-                                top: 5.0,
-                                bottom: 0.0,
-                                left: 10,
-                                right: 10,
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    _selectedCategory != null
-                                        ? _selectedCategory!['name']
-                                        : 'Set Category',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 22.0,
-                                      color:
-                                          Colors
-                                              .black, // Adjust color dynamically
-                                    ),
-                                  ),
-                                ],
+                              padding: const EdgeInsets.only(left: 10, right: 10),
+                              child: Text(
+                                _selectedCategory != null
+                                    ? _selectedCategory!['name']
+                                    : 'Set Category',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 22.0,
+                                  color: Colors.black,
+                                ),
                               ),
                             ),
+                            const Spacer(),
+                            const Icon(Icons.arrow_forward_ios, size: 30),
                           ],
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios, size: 30),
-                    ],
+                    ),
+                  )
+                  ],
                   ),
                 ),
                 Divider(thickness: 2, color: Colors.black),
@@ -443,16 +475,11 @@ class _expenseInputState extends State<expenseInput> {
                     children: [
                       Icon(CupertinoIcons.doc, size: 60, color: Colors.black87),
                       Padding(
-                        padding: EdgeInsets.only(
-                          top: 0,
-                          bottom: 0.0,
-                          left: screenWidth * 0.025,
-                          right: 0,
-                        ),
+                        padding: EdgeInsets.only(left: 6.4),
                         child: Row(
                           children: [
                             SizedBox(
-                              width: screenWidth * 0.74,
+                              width: screenWidth * 0.76,
                               height: screenHeight * 0.065,
                               child: TextField(
                                 controller: _textControllerDescription,
@@ -474,116 +501,90 @@ class _expenseInputState extends State<expenseInput> {
                     ],
                   ),
                 ),
-                // Payment type
-                Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 0.0,
-                        bottom: 0.0,
-                        left: screenWidth * 0.025,
-                        right: 0,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.payment,
-                            size: 50,
-                            color: Colors.black87,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: 0.0,
-                              bottom: 0.0,
-                              left: screenWidth * 0.025,
-                              right: 0,
+                // select financial platform
+                Padding(
+                  padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // This will space the elements apart
+                    children: [
+                      Material(
+                        color: Colors.transparent, // keep background transparent
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(15), // same radius as your container
+                          onTap: () async {
+                            final selectedFPcategory = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => financialPlatformCategory()),
+                            );
+                            if (selectedFPcategory != null) {
+                              setState(() {
+                                _selectedFPCategory = selectedFPcategory;
+                              });
+                            }
+                          },
+                          child: Container(
+                            width: screenWidth * 0.95,
+                            height: screenHeight * 0.080,
+                            decoration: BoxDecoration(
+                              color: Colors.white60,
+                              borderRadius: BorderRadius.circular(15),
                             ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'Payment',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 22.0,
-                                    color:
-                                        Colors
-                                            .black, // Adjust color dynamically
-                                  ),
-                                ),
-                                // Payment Type
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    left: screenWidth * 0.23,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      DropdownButton<String>(
-                                        value: dropdownValue,
-                                        icon: const Icon(
-                                          Icons.keyboard_arrow_down_outlined,
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 6, right: 10),
+                                    child: DottedBorder(
+                                      color: Colors.black,
+                                      strokeWidth: 2,
+                                      dashPattern: const [6, 3],
+                                      borderType: BorderType.Circle,
+                                      child: Container(
+                                        width: 47,
+                                        height: 47,
+                                        decoration: BoxDecoration(
+                                          color: (_selectedFPCategory != null && _selectedFPCategory!['color'] is Color)
+                                              ? _selectedFPCategory!['color'] as Color
+                                              : Colors.grey[300],
+                                          shape: BoxShape.circle,
                                         ),
-                                        elevation: 16,
-                                        style: const TextStyle(
-                                          color: Colors.deepPurple,
-                                        ),
-                                        underline: Container(
-                                          height: 2,
-                                          color: Colors.deepPurpleAccent,
-                                        ),
-                                        onChanged: (String? value) {
-                                          // this is called when the user selects an item.
-                                          setState(() {
-                                            dropdownValue = value!;
-                                          });
-                                        },
-                                        items:
-                                            paymentType.map<
-                                              DropdownMenuItem<String>
-                                            >((String value) {
-                                              return DropdownMenuItem<String>(
-                                                value: value,
-                                                child: Container(
-                                                  width:
-                                                      screenWidth *
-                                                      0.20, // Customize the width
-                                                  height:
-                                                      screenHeight *
-                                                      0.1, // Customize the height
-                                                  alignment:
-                                                      Alignment
-                                                          .centerLeft, // Align text if needed
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                      ), // Add padding
-                                                  child: Text(
-                                                    value,
-                                                    style: const TextStyle(
-                                                      fontSize: 11,
-                                                    ), // Customize text style
-                                                  ),
-                                                ),
-                                              );
-                                            }).toList(),
+                                        child: (_selectedFPCategory != null && _selectedFPCategory!['iconimage'] != null)
+                                            ? Center(
+                                          child: Image.memory(
+                                            _selectedFPCategory!['iconimage'] as Uint8List,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        )
+                                            : const Icon(Icons.image, color: Colors.white),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                  const SizedBox(width: 10),
+                                  // Name (flexible to avoid overflow)
+                                  Expanded(
+                                    child: Text(
+                                      _selectedFPCategory != null
+                                          ? (_selectedFPCategory!['fpname']?.toString() ?? '')
+                                          : 'Set Financial Platform Use',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 12.0,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(Icons.arrow_forward_ios, size: 20),
+                                ],
+                              )
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
+                        ),
+                      )
+                    ],
+                  ),
                 ),
                 // border
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.020,
-                  ),
-                  child: Divider(thickness: 2, color: Colors.black),
-                ),
+                Divider(thickness: 2, color: Colors.black),
                 // Attached PDF
                 Padding(
                   padding: EdgeInsets.only(
@@ -612,11 +613,7 @@ class _expenseInputState extends State<expenseInput> {
           children: [
             GestureDetector(
               onTap: () async {
-                final token =
-                    Provider.of<signUpnLogin_viewmodel>(
-                      context,
-                      listen: false,
-                    ).authToken;
+                final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
                 final viewModel = Provider.of<expenseViewModel>(context, listen: false,);
                 final viewModelActivity = Provider.of<activitylog_viewModel>(context, listen: false,);
                 final pdfBytes = await _uploadedPdf!.readAsBytes();
@@ -645,8 +642,7 @@ class _expenseInputState extends State<expenseInput> {
                     bool dismissedByTimer = true;
                     await showDialog(
                       context: context,
-                      barrierDismissible:
-                          false, // Prevent dismiss by tapping outside
+                      barrierDismissible: false, // Prevent dismiss by tapping outside
                       builder: (BuildContext context) {
                         // Start a delayed close
                         Future.delayed(Duration(seconds: 3), () {

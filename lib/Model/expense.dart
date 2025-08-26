@@ -138,7 +138,7 @@ class ListExpense{
     this.name,
     this.iconColorExpense,
     this.iconimage
-});
+  });
   factory ListExpense.fromJson(Map<String, dynamic> json){
     Uint8List? iconBytes;
     final rawIcon = json['iconimage'];
@@ -163,32 +163,32 @@ class ListExpense{
       }
     }
     return ListExpense(
-    expenseid: int.tryParse(json['expenseid'].toString().trim()) ?? 0,
-    expenseAmount: double.parse(json['amount']),
-    expenseDate: DateTime.parse(json["date"]),
-    expenseName: json['expensename'],
-    categoryname: json['categoryname'],
-    expenseDescription: json['description'],
-    paymenttype: json['paymenttype'],
-    receiptPdf: json['receipt'],
-    userId: int.tryParse(json["userid"].toString()),
-    iconData:
-    (json['iconcodepoint'] != null && json['iconfontfamily'] != null)
-    ? IconData(
-    // Safely parse codepoint: supports both int and string
-    json['iconcodepoint'] is int
-    ? json['iconcodepoint']
-        : int.tryParse(json['iconcodepoint'].toString()) ?? 0,
-    fontFamily: json['iconfontfamily'],
-    )
-        : null,
-    iconColor: json['iconcolor'] != null ? Color(int.tryParse(json['iconcolor']) ?? 0) // Safely parse the color string
-        : null,
-    platformid: int.tryParse(json['platformid']?.toString().trim() ?? ''),
-    name: json['name']?.toString(),
-    iconColorExpense: json['iconcolorexpense'] != null ? Color(int.tryParse(json['iconcolorexpense']) ?? 0) // Safely parse the color string
-        : null,
-    iconimage: iconBytes,
+      expenseid: int.tryParse(json['expenseid'].toString().trim()) ?? 0,
+      expenseAmount: double.parse(json['amount']),
+      expenseDate: DateTime.parse(json["date"]),
+      expenseName: json['expensename'],
+      categoryname: json['categoryname'],
+      expenseDescription: json['description'],
+      paymenttype: json['paymenttype'],
+      receiptPdf: json['receipt'],
+      userId: int.tryParse(json["userid"].toString()),
+      iconData:
+      (json['iconcodepoint'] != null && json['iconfontfamily'] != null)
+          ? IconData(
+        // Safely parse codepoint: supports both int and string
+        json['iconcodepoint'] is int
+            ? json['iconcodepoint']
+            : int.tryParse(json['iconcodepoint'].toString()) ?? 0,
+        fontFamily: json['iconfontfamily'],
+      )
+          : null,
+      iconColor: json['iconcolor'] != null ? Color(int.tryParse(json['iconcolor']) ?? 0) // Safely parse the color string
+          : null,
+      platformid: int.tryParse(json['platformid']?.toString().trim() ?? ''),
+      name: json['name']?.toString(),
+      iconColorExpense: json['iconcolorexpense'] != null ? Color(int.tryParse(json['iconcolorexpense']) ?? 0) // Safely parse the color string
+          : null,
+      iconimage: iconBytes,
     );
   }
 }

@@ -12,8 +12,8 @@ class expenseViewModel extends ChangeNotifier{
   final expenseCategoryRepository _repository = expenseCategoryRepository();
 
   bool fetchingData = false;
-  List<Category> _category = [];
-  List<Category> get category => _category;
+  List<ExpenseCategories> _categoryList = [];
+  List<ExpenseCategories> get categoryList => _categoryList;
   List<ViewExpense> _ViewExpense = [];
   List<ViewExpense> get viewExpense => _ViewExpense;
   List<ListExpense> _listExpense = [];
@@ -25,11 +25,11 @@ class expenseViewModel extends ChangeNotifier{
     fetchingData = true;
     notifyListeners();
     try {
-      _category = await repository.getCategories();
+      _categoryList = await repository.getCategories();
       //print('Loaded Categories: $_category');
     } catch (e) {
       print('Failed to load Basic Category: $e');
-      _category = [];
+      _categoryList = [];
     } finally {
       fetchingData = false;
       notifyListeners();
@@ -121,8 +121,3 @@ class expenseViewModel extends ChangeNotifier{
     print("ViewModel disposed.");
   }
 }
-
-
-
-
-
