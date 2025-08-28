@@ -664,13 +664,9 @@ class _expenseInputState extends State<expenseInput> {
           children: [
             GestureDetector(
               onTap: () async {
-                final token = Provider
-                    .of<signUpnLogin_viewmodel>(context, listen: false,)
-                    .authToken;
-                final viewModel = Provider.of<expenseViewModel>(
-                  context, listen: false,);
-                final viewModelActivity = Provider.of<activitylog_viewModel>(
-                  context, listen: false,);
+                final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
+                final viewModel = Provider.of<expenseViewModel>(context, listen: false,);
+                final viewModelActivity = Provider.of<activitylog_viewModel>(context, listen: false,);
                 final pdfBytes = await _uploadedPdf!.readAsBytes();
                 final base64Pdf = base64Encode(pdfBytes);
 
@@ -679,13 +675,31 @@ class _expenseInputState extends State<expenseInput> {
                   expenseDate: selectedDate,
                   expenseName: _textControllerName.text,
                   expenseDescription: _textControllerDescription.text,
-                  financialPlatform: 1,
+                  financialPlatformId: _selectedFPCategory!['platformid'],
                   receiptPdf: base64Pdf,
                   userId: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo?.id,
                   categoryId: _selectedCategory!['categoryId'],
                 );
+
+                print({
+                  'expenseAmount': double.parse(_textControllerAmount.text),
+                  'expenseDate': selectedDate,
+                  'expenseName': _textControllerName.text,
+                  'expenseDescription': _textControllerDescription.text,
+                  'financialPlatform': _selectedFPCategory?['platformid'],
+                  'receiptPdf': base64Pdf != null
+                      ? 'PDF attached, length: ${base64Pdf.length} chars'
+                      : 'No PDF',
+                  'userId': Provider.of<signUpnLogin_viewmodel>(context, listen: false)
+                      .userInfo
+                      ?.id,
+                  'categoryId': _selectedCategory?['categoryId'],
+                });
+
+
+                // Activity log
                 ActivityLog activitylog = ActivityLog(userid: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id,
-                    activitytypeid: 1,
+                    activitytypeid: 2, // id code for - add expense
                     timestamp: DateTime.now()
                 );
 
@@ -694,8 +708,8 @@ class _expenseInputState extends State<expenseInput> {
                     await viewModel.addExpense(expense, token);
                     await viewModelActivity.logActivity(activitylog, token);
                     bool dismissedByTimer = true;
-                    await showDialog(
-                      context: context,
+
+                    await showDialog(context: context,
                       barrierDismissible: false,
                       // Prevent dismiss by tapping outside
                       builder: (BuildContext context) {
@@ -722,12 +736,12 @@ class _expenseInputState extends State<expenseInput> {
                         );
                       },
                     );
-                    final homeExpenseViewModel = Provider.of<expenseViewModel>(
-                      context, listen: false,);
-                    await homeExpenseViewModel.fetchViewExpense(
-                      expense.userId!, token,);
-                    await homeExpenseViewModel.fetchListExpense(
-                      expense.userId!, token,);
+
+                    // fetch updated data
+                    final homeExpenseViewModel = Provider.of<expenseViewModel>(context, listen: false,);
+                    await homeExpenseViewModel.fetchViewExpense(expense.userId!, token,);
+                    await homeExpenseViewModel.fetchViewExpenseFinancialPlatform(expense.userId!, token); // feeds platform pie
+                    await homeExpenseViewModel.fetchListExpense(expense.userId!, token);                  // feeds list
                     Navigator.pop(context); // Return to previous screen
                   }
                   // Navigate back on success
@@ -838,9 +852,7 @@ class _expenseInputState extends State<expenseInput> {
     Color? yesColor,
     Color? noColor,
   }) {
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) {
+    return showDialog<bool>(context: context, builder: (ctx) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Container(

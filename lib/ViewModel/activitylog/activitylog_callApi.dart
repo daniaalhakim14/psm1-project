@@ -7,7 +7,7 @@ class activitylog_callApi{
   final http.Client _httpClient = http.Client();
 
   Future<http.Response> logActivity(Map<String,dynamic> activityLogData,String token) async{
-    String endpoint = '/activitylog';
+    String endpoint = '/useractivitylog/logActivity';
     String url = '${AppConfig.baseUrl}$endpoint';
 
     final response = await http.post(

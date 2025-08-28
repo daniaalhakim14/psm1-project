@@ -39,6 +39,7 @@ class expenseViewModel extends ChangeNotifier{
   Future<void> addExpense(AddExpense expense, String token) async{
     try{
       await repository.addExpense(expense,token);
+      notifyListeners();
     }catch (e){
       print('Failed to add new expense: $e');
     }
@@ -67,7 +68,6 @@ class expenseViewModel extends ChangeNotifier{
   Future<void> fetchListExpense(int userid, String token) async{
     fetchingData = true;
     notifyListeners();
-
     try{
       /*
       for (var expense in _listExpense) {
@@ -107,6 +107,7 @@ class expenseViewModel extends ChangeNotifier{
   Future<void> updateExpense(UpdateExpense updateexpense, String token) async{
     try{
       await repository.updateExpense(updateexpense, token);
+      notifyListeners();
     }catch (e){
       print('Failed to update expense: $e');
     }
@@ -115,6 +116,7 @@ class expenseViewModel extends ChangeNotifier{
   Future<void> deleteExpense(int expenseId,int userid,String token) async {
     try {
       await repository.deleteExpense(DeleteExpense(expenseId: expenseId),userid,token);
+      notifyListeners();
       print('Transaction deleted successfully!');
       // Refresh the transaction list after deletion
       await fetchListExpense(userid,token);

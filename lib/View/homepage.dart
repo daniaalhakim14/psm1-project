@@ -149,7 +149,42 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
     return Scaffold(
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
-        title: Text('MyManageMate', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+          Text('MyManageMate', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),),
+            IconButton(
+              icon: const Icon(Icons.info_outline, size: 30, color: Colors.white),
+              onPressed: () {
+                showCupertinoDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return CupertinoAlertDialog(
+                      title: const Text(
+                        'Receipt Scanning Guide',
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                      ),
+                      content: const Padding(
+                        padding: EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          '👉 Tap: Scan a physical receipt using camera\n\n'
+                              '👉 Long-press: Upload a digital receipt from your phone',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      actions: [
+                        CupertinoDialogAction(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            )
+            //Image.asset('assets/Icons/information.png', scale: 12),
+        ],),
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF5A7BE7),
       ),
@@ -200,9 +235,7 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                 // Date conversion
                                 for (var expense in viewModel.viewExpense) {
                                   String isoFormatDate = expense.expenseDate.toString();
-                                  DateTime utcTime = DateTime.parse(
-                                    isoFormatDate,
-                                  );
+                                  DateTime utcTime = DateTime.parse(isoFormatDate,);
                                   DateTime localTime = utcTime.toLocal();
                                   String formattedExpenseDate = _formatMonth(
                                     localTime,
@@ -217,7 +250,6 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                                       categoryIcons[expense.categoryname!] = expense.iconData!;
                                     }
                                     aggregatedData[expense.categoryname!] = aggregatedData[expense.categoryname!]! + (expense.expenseAmount ?? 0.0);
-
                                     totalAmount += (expense.expenseAmount ?? 0.0); // Sum up total expenses
                                   }
                                 }

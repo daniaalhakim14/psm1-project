@@ -11,7 +11,9 @@ import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../Model/Category.dart';
+import '../Model/activitylog.dart';
 import '../Model/signupLoginpage.dart';
+import '../ViewModel/activitylog/activitylog_viewmodel.dart';
 import '../ViewModel/expense/expense_viewmodel.dart';
 import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
 import 'Homepage/financialPlatformCategory.dart';
@@ -705,7 +707,6 @@ class _editExpenseState extends State<editExpense> {
       if (_pdfBytes != null) {
         base64Pdf = base64Encode(_pdfBytes!);
       }
-
       // Create updated expense object
       UpdateExpense updatedExpense = UpdateExpense(
         expenseId: _expenseid,
@@ -718,7 +719,16 @@ class _editExpenseState extends State<editExpense> {
         categoryId: _selectedCategory!['categoryId'],
       //  paymentType: dropdownValue,
       );
+      final viewModelActivity = Provider.of<activitylog_viewModel>(context, listen: false,);
+      // Activity log
+      ActivityLog activitylog = ActivityLog(
+        userid: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id,
+        activitytypeid: 3, // id code for - edit expense
+        timestamp: DateTime.now(),
+      );
 
+
+      /*
       print("🔧 Updating Expense:");
       print("  expenseId: ${updatedExpense.expenseId}");
       print("  amount: ${updatedExpense.expenseAmount}");
@@ -729,10 +739,10 @@ class _editExpenseState extends State<editExpense> {
       print("  userId: ${updatedExpense.userId}");
       print("  categoryId: ${updatedExpense.categoryId}");
 
+       */
 
-
-      final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
       await viewModel.updateExpense(updatedExpense, token!);
+      await viewModelActivity.logActivity(activitylog, token);
       bool dismissedByTimer = true;
       // Show success message
        AlertDialog(
@@ -742,8 +752,7 @@ class _editExpenseState extends State<editExpense> {
           TextButton(
             child: const Text('OK'),
             onPressed: () {
-              dismissedByTimer =
-              false; // User pressed manually
+              dismissedByTimer = false; // User pressed manually
               Navigator.of(context).pop(); // Close dialog
             },
           ),
@@ -759,6 +768,7 @@ class _editExpenseState extends State<editExpense> {
       // Refresh expense data
       await viewModel.fetchViewExpense(widget.userid, token);
       await viewModel.fetchListExpense(widget.userid, token);
+      await viewModel.fetchViewExpenseFinancialPlatform(widget.userid, token);
 
       // Return to previous screen with success indicator
       Navigator.pop(context, true);

@@ -9,7 +9,7 @@ class AddExpense {
   final DateTime? expenseDate;
   final String? expenseName;
   final String? expenseDescription;
-  final int? financialPlatform;
+  final int? financialPlatformId;
   final int? userId;
   final int? categoryId;
   final String? receiptPdf;
@@ -19,7 +19,7 @@ class AddExpense {
     this.expenseDate,
     this.expenseName,
     this.expenseDescription,
-    this.financialPlatform,
+    this.financialPlatformId,
     this.userId,
     this.categoryId,
     this.receiptPdf,
@@ -31,9 +31,10 @@ class AddExpense {
     // Parse string to DateTime
     expenseName: json['expensename'],
     expenseDescription: json["description"],
-    financialPlatform: json["platformId"],
+    financialPlatformId: json['platformid'],
     userId: json["userId"],
     categoryId: json["categoryId"],
+    receiptPdf: json['receipt']
   );
 
   Map<String, dynamic> toMap() {
@@ -42,7 +43,7 @@ class AddExpense {
       "date": expenseDate?.toIso8601String(), // Convert DateTime to string
       "expensename": expenseName,
       "description": expenseDescription,
-      "platformId": financialPlatform,
+      "platformid": financialPlatformId,
       "userId": userId,
       "categoryId": categoryId,
       "receipt": receiptPdf,

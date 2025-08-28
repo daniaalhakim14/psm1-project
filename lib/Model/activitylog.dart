@@ -13,7 +13,7 @@ class ActivityLog{
     return ActivityLog(
       userid: int.parse(json['userid'].toString()),
       activitytypeid: int.parse(json['activitytypeid'].toString()),
-      timestamp: DateTime.parse(json['timestamp']),
+      timestamp:  DateTime.parse(json['timestamp'])
     );
   }
 
@@ -21,7 +21,7 @@ class ActivityLog{
     return {
       'userid': userid,
       'activitytypeid': activitytypeid,
-      'timestamp': timestamp
+      'timestamp':  timestamp.toUtc().toIso8601String(),
     };
   }
 }
