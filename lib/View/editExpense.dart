@@ -44,7 +44,7 @@ class editExpense extends StatefulWidget {
 }
 
 class _editExpenseState extends State<editExpense> {
-  DateTime selectedDate = DateTime.now().toUtc().add(Duration(hours: 8));
+  DateTime selectedDate = DateTime.now(); // local
   String todayDate = 'Today';
   String yesterdayDate = 'Yesterday';
   String textdate = 'Today';
@@ -115,9 +115,12 @@ class _editExpenseState extends State<editExpense> {
 
     // Set date
     if (expense.expenseDate != null) {
-      selectedDate = expense.expenseDate!;
+      selectedDate = expense.expenseDate!.isUtc
+          ? expense.expenseDate!.toLocal()
+          : expense.expenseDate!;
       _updateDateText();
     }
+
 
     // Set category
     if (expense.categoryname != null) {
@@ -152,19 +155,19 @@ class _editExpenseState extends State<editExpense> {
   }
 
   void _updateDateText() {
-    DateTime now = DateTime.now().toLocal();
+    final local = selectedDate.toLocal();
+    final now = DateTime.now();
     DateTime yesterday = now.subtract(Duration(days: 1));
 
-    if (selectedDate.year == now.year &&
-        selectedDate.month == now.month &&
-        selectedDate.day == now.day) {
-      textdate = todayDate;
-    } else if (selectedDate.year == yesterday.year &&
-        selectedDate.month == yesterday.month &&
-        selectedDate.day == yesterday.day) {
-      textdate = yesterdayDate;
+    bool sameDay(DateTime a, DateTime b) =>
+        a.year == b.year && a.month == b.month && a.day == b.day;
+
+    if (sameDay(local, now)) {
+      textdate = 'Today';
+    } else if (sameDay(local, yesterday)) {
+      textdate = 'Yesterday';
     } else {
-      textdate = DateFormat('dd-MM-yyyy').format(selectedDate);
+      textdate = DateFormat('dd-MM-yyyy').format(local);
     }
   }
 

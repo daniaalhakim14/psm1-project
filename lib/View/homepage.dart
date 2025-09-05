@@ -1031,6 +1031,7 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
             if (result != null && result is Map) {
               final uriString = result['pdfUri'] as String?;
               final pdfPath = uriString?.replaceFirst('file://', '');
+              print('pdf path: ${pdfPath}');
 
               // Show loading dialog
               showDialog(
@@ -1048,11 +1049,9 @@ class _homepageState extends State<homepage> with AutomaticKeepAliveClientMixin 
                 File pdfFile = File(pdfPath);
                 final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
                 final receiptParserVM = ReceiptParserViewModel();
-                final success = await receiptParserVM.uploadPdf(
-                  pdfFile,
-                  token!,
-                );
+                final success = await receiptParserVM.uploadPdf(pdfFile, token!,);
                 Navigator.of(context).pop(); // ✅ Dismiss loading dialog
+
                 if (success && receiptParserVM.parsedResult != null) {
                   Navigator.push(
                     context,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:fyp/Model/activitylog.dart';
 import 'package:fyp/Model/expense.dart';
 import 'package:fyp/View/Homepage/financialPlatformCategory.dart';
+import 'package:fyp/View/homepage.dart';
 import 'package:fyp/ViewModel/activitylog/activitylog_viewmodel.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
@@ -46,13 +48,36 @@ late String textdate = todayDate;
 late DateFormat date;
 final TextEditingController _textControllerName = TextEditingController();
 final _textControllerAmount = TextEditingController();
-final _textControllerDescription = TextEditingController(); // to store user input
+final _textControllerDescription =
+    TextEditingController(); // to store user input
 Map<String, dynamic>? _selectedCategory;
 Map<String, dynamic>? _selectedFPCategory;
 File? _uploadedPdf;
 
 class _expenseInputState extends State<expenseInput> {
   bool _isLoading = true;
+
+  // Method to update loading dialog with retry information
+  void _updateLoadingDialog(String message) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context); // Close current dialog
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (_) => AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text(message),
+              ],
+            ),
+          ),
+    );
+  }
 
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
@@ -65,8 +90,10 @@ class _expenseInputState extends State<expenseInput> {
     return DateFormat('dd-MM-yyyy').format(d);
   }
 
-  void _initializeParsedData(List<ExpenseCategories> allCategories,
-      List<FinancialPlatform> allFinancialPlatforms,) {
+  void _initializeParsedData(
+    List<ExpenseCategories> allCategories,
+    List<FinancialPlatform> allFinancialPlatforms,
+  ) {
     final parsed = widget.parsedData;
     _uploadedPdf = widget.pdfFile;
     Map<String, dynamic>? extracted;
@@ -75,10 +102,11 @@ class _expenseInputState extends State<expenseInput> {
     if (parsed != null) {
       if (parsed.containsKey('rawText')) {
         try {
-          final raw = parsed['rawText']
-              .replaceAll(RegExp(r'```json\n?'), '')
-              .replaceAll('```', '')
-              .trim();
+          final raw =
+              parsed['rawText']
+                  .replaceAll(RegExp(r'```json\n?'), '')
+                  .replaceAll('```', '')
+                  .trim();
           extracted = json.decode(raw);
         } catch (e) {
           print("Failed to parse rawText: $e");
@@ -110,13 +138,13 @@ class _expenseInputState extends State<expenseInput> {
           bool parsed = false;
           for (final format in possibleFormats) {
             try {
-              final parsedLocal = DateFormat(format, 'en_US')
-                  .parse(rawDate)
-                  .toLocal();
+              final parsedLocal =
+                  DateFormat(format, 'en_US').parse(rawDate).toLocal();
               setState(() {
                 selectedDate = parsedLocal;
                 textdate = _labelForDate(
-                    parsedLocal); // 👈 will say Today / Yesterday / formatted
+                  parsedLocal,
+                ); // 👈 will say Today / Yesterday / formatted
               });
 
               parsed = true;
@@ -131,14 +159,20 @@ class _expenseInputState extends State<expenseInput> {
 
         // auto categorise
         final rawCategoryName = extracted['category']?['name']?.toString();
-        final categoryName = rawCategoryName?.toLowerCase().replaceAll(
-            RegExp(r'\s+'), '').trim();
+        final categoryName =
+            rawCategoryName
+                ?.toLowerCase()
+                .replaceAll(RegExp(r'\s+'), '')
+                .trim();
         print("Extracted category: $categoryName");
 
         bool matched = false;
         for (var category in allCategories) {
-          final name = category.categoryName?.toLowerCase().replaceAll(
-              RegExp(r'\s+'), '').trim();
+          final name =
+              category.categoryName
+                  ?.toLowerCase()
+                  .replaceAll(RegExp(r'\s+'), '')
+                  .trim();
           //print("🔍 Comparing '$name' with '$categoryName'");
           if (name == categoryName) {
             setState(() {
@@ -159,18 +193,19 @@ class _expenseInputState extends State<expenseInput> {
         }
 
         // auto categorise
-        final rawFinancialPlatformName = extracted['financialPlatform']?['name']
-            ?.toString();
-        final FPName = rawFinancialPlatformName?.toLowerCase().replaceAll(
-            RegExp(r'\s+'), '').trim();
+        final rawFinancialPlatformName =
+            extracted['financialPlatform']?['name']?.toString();
+        final FPName =
+            rawFinancialPlatformName
+                ?.toLowerCase()
+                .replaceAll(RegExp(r'\s+'), '')
+                .trim();
         print("Extracted Financial Platform: $FPName");
 
         bool matchedFP = false;
         for (var fp in allFinancialPlatforms) {
-          final name = fp.name
-              ?.toLowerCase()
-              .replaceAll(RegExp(r'\s+'), '')
-              .trim();
+          final name =
+              fp.name?.toLowerCase().replaceAll(RegExp(r'\s+'), '').trim();
           //print("🔍 Comparing '$name' with '$categoryName'");
           if (name == FPName) {
             setState(() {
@@ -204,7 +239,10 @@ class _expenseInputState extends State<expenseInput> {
     // Wait until the widget tree is built
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final viewModel = Provider.of<expenseViewModel>(context, listen: false);
-      final viewModel_fp = Provider.of<platformViewModel>(context, listen: false);
+      final viewModel_fp = Provider.of<platformViewModel>(
+        context,
+        listen: false,
+      );
       // Optional: fetch category list if not already fetched
       if (viewModel.categoryList.isEmpty) {
         await viewModel
@@ -226,14 +264,8 @@ class _expenseInputState extends State<expenseInput> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
-    final screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
@@ -245,7 +277,8 @@ class _expenseInputState extends State<expenseInput> {
         automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
-        child: Padding(padding: EdgeInsets.only(top: screenHeight * 0.015),
+        child: Padding(
+          padding: EdgeInsets.only(top: screenHeight * 0.015),
           child: Padding(
             padding: EdgeInsets.all(screenWidth * 0.025),
             child: Column(
@@ -279,15 +312,9 @@ class _expenseInputState extends State<expenseInput> {
                                 dateTime.day == yesterday.day) {
                               textdate = yesterdayDate; // Set to 'Yesterday'
                               selectedDate = yesterday;
-                            } else if (dateTime.year == DateTime
-                                .now()
-                                .year &&
-                                dateTime.month == DateTime
-                                    .now()
-                                    .month &&
-                                dateTime.day == DateTime
-                                    .now()
-                                    .day) {
+                            } else if (dateTime.year == DateTime.now().year &&
+                                dateTime.month == DateTime.now().month &&
+                                dateTime.day == DateTime.now().day) {
                               textdate = todayDate; // Set to 'Today'
                             } else {
                               textdate = DateFormat('dd-MM-yyyy').format(
@@ -314,8 +341,7 @@ class _expenseInputState extends State<expenseInput> {
                       child: Padding(
                         padding: EdgeInsets.only(left: 0.2, right: 2),
                         child: TextField(
-                          controller:
-                          _textControllerAmount,
+                          controller: _textControllerAmount,
                           // Ensure this is initialized
                           keyboardType: TextInputType.number,
                           inputFormatters: [
@@ -352,8 +378,7 @@ class _expenseInputState extends State<expenseInput> {
                               minWidth: 0,
                               minHeight: 0,
                             ),
-                            hintText:
-                            '0.00',
+                            hintText: '0.00',
                             // Simplified to match the desired behavior
                             hintStyle: TextStyle(
                               color: Colors.grey.shade400,
@@ -390,9 +415,7 @@ class _expenseInputState extends State<expenseInput> {
                         children: [
                           Image.asset('assets/Icons/id-card.png', scale: 9),
                           Padding(
-                            padding: EdgeInsets.only(
-                              left: screenWidth * 0.025,
-                            ),
+                            padding: EdgeInsets.only(left: screenWidth * 0.025),
                             child: Row(
                               children: [
                                 SizedBox(
@@ -437,7 +460,8 @@ class _expenseInputState extends State<expenseInput> {
                             final selectedcategory = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => categoryPage()),
+                                builder: (context) => categoryPage(),
+                              ),
                             );
                             if (selectedcategory != null) {
                               setState(() {
@@ -456,7 +480,9 @@ class _expenseInputState extends State<expenseInput> {
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.only(
-                                      left: 6, right: 10),
+                                    left: 6,
+                                    right: 10,
+                                  ),
                                   child: DottedBorder(
                                     color: Colors.black,
                                     strokeWidth: 2,
@@ -466,27 +492,33 @@ class _expenseInputState extends State<expenseInput> {
                                       width: 47,
                                       height: 47,
                                       decoration: BoxDecoration(
-                                        color: _selectedCategory != null
-                                            ? _selectedCategory!['color']
-                                            : Colors.grey[300],
+                                        color:
+                                            _selectedCategory != null
+                                                ? _selectedCategory!['color']
+                                                : Colors.grey[300],
                                         shape: BoxShape.circle,
                                       ),
-                                      child: _selectedCategory != null
-                                          ? Center(
-                                        child: Icon(
-                                          _selectedCategory?['icon'],
-                                          size: 30,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                          : const Icon(
-                                          Icons.image, color: Colors.white),
+                                      child:
+                                          _selectedCategory != null
+                                              ? Center(
+                                                child: Icon(
+                                                  _selectedCategory?['icon'],
+                                                  size: 30,
+                                                  color: Colors.white,
+                                                ),
+                                              )
+                                              : const Icon(
+                                                Icons.image,
+                                                color: Colors.white,
+                                              ),
                                     ),
                                   ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(
-                                      left: 10, right: 10),
+                                    left: 10,
+                                    right: 10,
+                                  ),
                                   child: Text(
                                     _selectedCategory != null
                                         ? _selectedCategory!['name']
@@ -504,7 +536,7 @@ class _expenseInputState extends State<expenseInput> {
                             ),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -558,8 +590,10 @@ class _expenseInputState extends State<expenseInput> {
                           onTap: () async {
                             final selectedFPcategory = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) =>
-                                  financialPlatformCategory()),
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => financialPlatformCategory(),
+                              ),
                             );
                             if (selectedFPcategory != null) {
                               setState(() {
@@ -568,69 +602,79 @@ class _expenseInputState extends State<expenseInput> {
                             }
                           },
                           child: Container(
-                              width: screenWidth * 0.95,
-                              height: screenHeight * 0.080,
-                              decoration: BoxDecoration(
-                                color: Colors.white60,
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 6, right: 10),
-                                    child: DottedBorder(
+                            width: screenWidth * 0.95,
+                            height: screenHeight * 0.080,
+                            decoration: BoxDecoration(
+                              color: Colors.white60,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 6,
+                                    right: 10,
+                                  ),
+                                  child: DottedBorder(
+                                    color: Colors.black,
+                                    strokeWidth: 2,
+                                    dashPattern: const [6, 3],
+                                    borderType: BorderType.Circle,
+                                    child: Container(
+                                      width: 47,
+                                      height: 47,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            (_selectedFPCategory != null &&
+                                                    _selectedFPCategory!['color']
+                                                        is Color)
+                                                ? _selectedFPCategory!['color']
+                                                    as Color
+                                                : Colors.grey[300],
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child:
+                                          (_selectedFPCategory != null &&
+                                                  _selectedFPCategory!['iconimage'] !=
+                                                      null)
+                                              ? Center(
+                                                child: Image.memory(
+                                                  _selectedFPCategory!['iconimage']
+                                                      as Uint8List,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              )
+                                              : const Icon(
+                                                Icons.image,
+                                                color: Colors.white,
+                                              ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                // Name (flexible to avoid overflow)
+                                Expanded(
+                                  child: Text(
+                                    _selectedFPCategory != null
+                                        ? (_selectedFPCategory!['fpname']
+                                                ?.toString() ??
+                                            '')
+                                        : 'Select Financial Platform',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 20.0,
                                       color: Colors.black,
-                                      strokeWidth: 2,
-                                      dashPattern: const [6, 3],
-                                      borderType: BorderType.Circle,
-                                      child: Container(
-                                        width: 47,
-                                        height: 47,
-                                        decoration: BoxDecoration(
-                                          color: (_selectedFPCategory != null &&
-                                              _selectedFPCategory!['color'] is Color)
-                                              ? _selectedFPCategory!['color'] as Color
-                                              : Colors.grey[300],
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: (_selectedFPCategory != null &&
-                                            _selectedFPCategory!['iconimage'] !=
-                                                null)
-                                            ? Center(
-                                          child: Image.memory(
-                                            _selectedFPCategory!['iconimage'] as Uint8List,
-                                            fit: BoxFit.contain,
-                                          ),
-                                        )
-                                            : const Icon(
-                                            Icons.image, color: Colors.white),
-                                      ),
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
-                                  // Name (flexible to avoid overflow)
-                                  Expanded(
-                                    child: Text(
-                                      _selectedFPCategory != null
-                                          ? (_selectedFPCategory!['fpname']
-                                          ?.toString() ?? '')
-                                          : 'Select Financial Platform',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 20.0,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(Icons.arrow_forward_ios, size: 20),
-                                ],
-                              )
+                                ),
+                                const Icon(Icons.arrow_forward_ios, size: 20),
+                              ],
+                            ),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -664,9 +708,38 @@ class _expenseInputState extends State<expenseInput> {
           children: [
             GestureDetector(
               onTap: () async {
-                final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
-                final viewModel = Provider.of<expenseViewModel>(context, listen: false,);
-                final viewModelActivity = Provider.of<activitylog_viewModel>(context, listen: false,);
+                // Show loading dialog
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder:
+                      (_) => AlertDialog(
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text('Submitting expense...'),
+                          ],
+                        ),
+                      ),
+                );
+
+                final token =
+                    Provider.of<signUpnLogin_viewmodel>(
+                      context,
+                      listen: false,
+                    ).authToken;
+                final viewModel = Provider.of<expenseViewModel>(
+                  context,
+                  listen: false,
+                );
+                final viewModelActivity = Provider.of<activitylog_viewModel>(
+                  context,
+                  listen: false,
+                );
+
+                // Process PDF in background to avoid blocking UI
                 final pdfBytes = await _uploadedPdf!.readAsBytes();
                 final base64Pdf = base64Encode(pdfBytes);
 
@@ -677,10 +750,14 @@ class _expenseInputState extends State<expenseInput> {
                   expenseDescription: _textControllerDescription.text,
                   financialPlatformId: _selectedFPCategory!['platformid'],
                   receiptPdf: base64Pdf,
-                  userId: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo?.id,
+                  userId:
+                      Provider.of<signUpnLogin_viewmodel>(
+                        context,
+                        listen: false,
+                      ).userInfo?.id,
                   categoryId: _selectedCategory!['categoryId'],
                 );
-
+                /*
                 print({
                   'expenseAmount': double.parse(_textControllerAmount.text),
                   'expenseDate': selectedDate,
@@ -695,54 +772,155 @@ class _expenseInputState extends State<expenseInput> {
                       ?.id,
                   'categoryId': _selectedCategory?['categoryId'],
                 });
-
-
+                 */
                 // Activity log
-                ActivityLog activitylog = ActivityLog(userid: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id,
-                    activitytypeid: 2, // id code for - add expense
-                    timestamp: DateTime.now()
+                ActivityLog activitylog = ActivityLog(
+                  userid:
+                      Provider.of<signUpnLogin_viewmodel>(
+                        context,
+                        listen: false,
+                      ).userInfo!.id,
+                  activitytypeid: 2, // id code for - add expense
+                  timestamp: DateTime.now(),
                 );
 
                 try {
                   if (token != null) {
-                    await viewModel.addExpense(expense, token);
-                    await viewModelActivity.logActivity(activitylog, token);
-                    bool dismissedByTimer = true;
+                    // Submit expense to backend with 30-second timeout and retry
+                    bool success = false;
+                    int retryAttempts = 0;
+                    const int maxRetries = 3;
 
-                    await showDialog(context: context,
-                      barrierDismissible: false,
-                      // Prevent dismiss by tapping outside
-                      builder: (BuildContext context) {
-                        // Start a delayed close
-                        Future.delayed(Duration(seconds: 3), () {
-                          if (dismissedByTimer && Navigator.canPop(context)) {
-                            Navigator.of(context).pop(); // Auto close after 3s
-                          }
-                        });
+                    while (!success && retryAttempts < maxRetries) {
+                      try {
+                        retryAttempts++;
+                        print("Attempt $retryAttempts: Submitting expense...");
 
-                        return AlertDialog(
-                          title: const Text('Success'),
-                          content: const Text('Expense added successfully!'),
-                          actions: [
-                            TextButton(
-                              child: const Text('OK'),
-                              onPressed: () {
-                                dismissedByTimer =
-                                false; // User pressed manually
-                                Navigator.of(context).pop(); // Close dialog
-                              },
-                            ),
-                          ],
+                        // Update loading dialog with current attempt
+                        _updateLoadingDialog(
+                          'Submitting expense... (Attempt $retryAttempts/$maxRetries)',
                         );
-                      },
-                    );
 
-                    // fetch updated data
-                    final homeExpenseViewModel = Provider.of<expenseViewModel>(context, listen: false,);
-                    await homeExpenseViewModel.fetchViewExpense(expense.userId!, token,);
-                    await homeExpenseViewModel.fetchViewExpenseFinancialPlatform(expense.userId!, token); // feeds platform pie
-                    await homeExpenseViewModel.fetchListExpense(expense.userId!, token);                  // feeds list
-                    Navigator.pop(context); // Return to previous screen
+                        // Add 30-second timeout to expense submission
+                        success = await viewModel
+                            .addExpense(expense, token)
+                            .timeout(
+                              Duration(seconds: 30),
+                              onTimeout: () {
+                                print(
+                                  "Expense submission timed out after 30 seconds",
+                                );
+                                throw TimeoutException(
+                                  'Expense submission timeout',
+                                  Duration(seconds: 30),
+                                );
+                              },
+                            );
+
+                        if (success) {
+                          print(
+                            "Expense submitted successfully on attempt $retryAttempts",
+                          );
+                        }
+                      } catch (e) {
+                        print("Attempt $retryAttempts failed: $e");
+                        if (retryAttempts >= maxRetries) {
+                          // Show error dialog if all retries failed
+                          Navigator.pop(context); // Close loading dialog
+                          await showDialog(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  title: Text('Error'),
+                                  content: Text(
+                                    'Failed to submit expense after $maxRetries attempts. Please check your connection and try again.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                          );
+                          return; // Exit the function
+                        } else {
+                          // Update dialog to show retry countdown
+                          _updateLoadingDialog(
+                            'Retrying in 2 seconds... (Attempt ${retryAttempts + 1}/$maxRetries)',
+                          );
+                          // Wait 2 seconds before retry
+                          await Future.delayed(Duration(seconds: 2));
+                        }
+                      }
+                    }
+
+                    if (success) {
+                      // Start activity logging in background while showing success dialog
+                      final logActivityFuture = viewModelActivity
+                          .logActivity(activitylog, token)
+                          .timeout(
+                            Duration(seconds: 30),
+                            onTimeout: () {
+                              print(
+                                "Activity logging timed out after 30 seconds",
+                              );
+                              return false; // Return false on timeout instead of throwing
+                            },
+                          );
+
+                      bool dismissedByTimer = true;
+
+                      // Show success dialog immediately, don't wait for activity log
+                      await showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          // Start a delayed close
+                          Future.delayed(Duration(seconds: 3), () {
+                            if (dismissedByTimer && Navigator.canPop(context)) {
+                              Navigator.of(
+                                context,
+                              ).pop(); // Auto close after 3s
+                            }
+                          });
+
+                          return AlertDialog(
+                            title: const Text('Success'),
+                            content: const Text('Expense added successfully!'),
+                            actions: [
+                              TextButton(
+                                child: const Text('OK'),
+                                onPressed: () {
+                                  dismissedByTimer =
+                                      false; // User pressed manually
+                                  Navigator.of(context).pop(); // Close dialog
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      // Navigate immediately, let activity log complete in background
+                      final userinfo =
+                          Provider.of<signUpnLogin_viewmodel>(
+                            context,
+                            listen: false,
+                          ).userInfo;
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => homepage(userInfo: userinfo!),
+                        ),
+                      );
+
+                      // Wait for activity log to complete in background (optional)
+                      logActivityFuture.catchError((error) {
+                        print("Activity log failed: $error");
+                        // Handle error silently or show notification
+                      });
+                    }
                   }
                   // Navigate back on success
                 } catch (e) {
@@ -760,14 +938,8 @@ class _expenseInputState extends State<expenseInput> {
                   borderRadius: BorderRadius.circular(20),
                   color: Color(0xFF5A7BE7),
                 ),
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.85,
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.065,
+                width: MediaQuery.of(context).size.width * 0.85,
+                height: MediaQuery.of(context).size.height * 0.065,
                 child: const Text(
                   'Add Expense',
                   style: TextStyle(
@@ -830,8 +1002,10 @@ class _expenseInputState extends State<expenseInput> {
                 );
 
                 if (confirmed == true) {
-                  onRemove();         // remove preview/file
-                  Navigator.pop(context); // optional: also leave the page (pop once)
+                  onRemove(); // remove preview/file
+                  Navigator.pop(
+                    context,
+                  ); // optional: also leave the page (pop once)
                   // If you need to pop twice, do another Navigator.pop(context);
                 }
               },
@@ -848,13 +1022,17 @@ class _expenseInputState extends State<expenseInput> {
     required String line1,
     required String line2,
     String yesText = 'Yes',
-    String noText  = 'No',
+    String noText = 'No',
     Color? yesColor,
     Color? noColor,
   }) {
-    return showDialog<bool>(context: context, builder: (ctx) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
             decoration: BoxDecoration(
@@ -864,11 +1042,23 @@ class _expenseInputState extends State<expenseInput> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(line1, style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                    textAlign: TextAlign.center),
-                Text(line2, style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),),
+                Text(
+                  line1,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  line2,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -876,24 +1066,44 @@ class _expenseInputState extends State<expenseInput> {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: yesColor ?? Colors.red,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 24,
+                        ),
                       ),
                       onPressed: () => Navigator.of(ctx).pop(true),
-                      child: Text(yesText,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      child: Text(
+                        yesText,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: noColor ?? Colors.green,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 24,
+                        ),
                       ),
                       onPressed: () => Navigator.of(ctx).pop(false),
-                      child: Text(noText,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      child: Text(
+                        noText,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ),

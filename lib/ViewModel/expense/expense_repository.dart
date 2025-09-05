@@ -24,16 +24,26 @@ class expenseCategoryRepository{
     }
   }
 
-  Future<void> addExpense(AddExpense expense,String token) async{
-    final response = await _service.addExpense(expense.toMap(),token);
-    final data = jsonDecode(response.body);
-    // Log the response for debugging
-    // print("Response status: ${response.statusCode}");
-    //print("Response body: ${response.body}");
-    if (response.statusCode != 201) {
-      throw Exception('Failed to add expense to database: ${response.body}');
+  // repository.dart
+  Future<bool> addExpense(AddExpense expense, String token) async {
+    try {
+      final response = await _service.addExpense(expense.toMap(), token);
+
+      // Accept both 201 (Created) and 200 (OK), depending on your backend
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return true;
+      }
+
+      // Optional: log backend error body for debugging
+      // print('Add expense failed: ${response.statusCode} ${response.body}');
+      return false;
+    } catch (e) {
+      // Network/parse error, etc.
+      print('Add expense exception: $e');
+      return false;
     }
   }
+
 
   Future<List<ViewExpense>> getViewExpense(int userid, String token) async {
     final response = await _service.fetchViewExpense(userid, token);

@@ -36,14 +36,22 @@ class expenseViewModel extends ChangeNotifier{
     }
   }
 
-  Future<void> addExpense(AddExpense expense, String token) async{
-    try{
-      await repository.addExpense(expense,token);
-      notifyListeners();
-    }catch (e){
+// expense_viewmodel.dart
+  Future<bool> addExpense(AddExpense expense, String token) async {
+    try {
+      final ok = await repository.addExpense(expense, token);
+      if (ok) {
+        notifyListeners(); // if you have observable state that changed
+        return true;
+      }
+      return false;
+    } catch (e) {
+      // Safety net if repository ever throws
       print('Failed to add new expense: $e');
+      return false; // 👈 important
     }
   }
+
 
   Future<void> fetchViewExpense(int userid, String token) async {
     fetchingData = true; // Indicate that data fetching is in progress

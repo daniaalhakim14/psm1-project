@@ -10,8 +10,6 @@ class TaxMappingViewModel extends ChangeNotifier {
 
   MappedTaxRelief? get mappedResult => _mappedResult;
 
-
-
   Future<void> mapTax(Map<String, dynamic> expensePayload, String token) async {
     final result = await _repository.processTaxMapping(expensePayload, token);
     if (result != null && result.isEligible) {
