@@ -11,8 +11,8 @@ import 'package:fyp/View/Homepage/financialPlatformCategory.dart';
 import 'package:fyp/View/homepage.dart';
 import 'package:fyp/ViewModel/activitylog/activitylog_viewmodel.dart';
 import 'package:fyp/ViewModel/taxMapping/taxMapping_viewmodel.dart';
+import 'package:fyp/services/tax_relief_notification_service.dart';
 import 'package:intl/intl.dart';
-import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import '../Model/Category.dart';
 import '../Model/financialplatformcategory.dart';
@@ -1020,6 +1020,14 @@ class _expenseInputState extends State<expenseInput> {
         if (taxMappingResult != null) {
           print("Tax mapping completed successfully");
           print("Tax mapping result: ${taxMappingResult.toString()}");
+
+          // Show notification if eligible for tax relief
+          if (taxMappingResult.isEligible) {
+            TaxReliefNotificationService.showTaxReliefNotification(
+              context,
+              taxMappingResult,
+            );
+          }
         } else {
           print("Tax mapping failed or timed out");
         }

@@ -52,7 +52,8 @@ class _editExpenseState extends State<editExpense> {
 
   final TextEditingController _textControllerName = TextEditingController();
   final TextEditingController _textControllerAmount = TextEditingController();
-  final TextEditingController _textControllerDescription = TextEditingController();
+  final TextEditingController _textControllerDescription =
+      TextEditingController();
 
   Map<String, dynamic>? _selectedCategory;
   Map<String, dynamic>? _selectedFPCategory;
@@ -75,7 +76,8 @@ class _editExpenseState extends State<editExpense> {
   }
 
   Future<void> _loadExpenseDetails() async {
-    final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
+    final token =
+        Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
     final viewModel = Provider.of<expenseViewModel>(context, listen: false);
 
     if (token != null) {
@@ -85,7 +87,7 @@ class _editExpenseState extends State<editExpense> {
 
         // Find the specific expense
         final expense = viewModel.listExpense.firstWhere(
-              (exp) => exp.expenseid == widget.expensedetail.expenseid,
+          (exp) => exp.expenseid == widget.expensedetail.expenseid,
           orElse: () => widget.expensedetail, // Fallback to passed expense
         );
 
@@ -115,12 +117,12 @@ class _editExpenseState extends State<editExpense> {
 
     // Set date
     if (expense.expenseDate != null) {
-      selectedDate = expense.expenseDate!.isUtc
-          ? expense.expenseDate!.toLocal()
-          : expense.expenseDate!;
+      selectedDate =
+          expense.expenseDate!.isUtc
+              ? expense.expenseDate!.toLocal()
+              : expense.expenseDate!;
       _updateDateText();
     }
-
 
     // Set category
     if (expense.categoryname != null) {
@@ -133,12 +135,12 @@ class _editExpenseState extends State<editExpense> {
     }
 
     // Set financial platform
-    if (expense.name !=null){
-      _selectedFPCategory ={
+    if (expense.name != null) {
+      _selectedFPCategory = {
         'platformid': expense.platformid,
-        'fpname':expense.name,
-        'iconimage':expense.iconimage,
-        'iconcolorexpense':expense.iconColorExpense
+        'fpname': expense.name,
+        'iconimage': expense.iconimage,
+        'iconcolorexpense': expense.iconColorExpense,
       };
     }
 
@@ -194,9 +196,7 @@ class _editExpenseState extends State<editExpense> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -319,9 +319,7 @@ class _editExpenseState extends State<editExpense> {
                     children: [
                       Image.asset('assets/Icons/id-card.png', scale: 9),
                       Padding(
-                        padding: EdgeInsets.only(
-                          left: screenWidth * 0.025,
-                        ),
+                        padding: EdgeInsets.only(left: screenWidth * 0.025),
                         child: SizedBox(
                           width: screenWidth * 0.74,
                           height: screenHeight * 0.065,
@@ -373,7 +371,10 @@ class _editExpenseState extends State<editExpense> {
                           child: Row(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(left: 6, right: 10),
+                                padding: const EdgeInsets.only(
+                                  left: 6,
+                                  right: 10,
+                                ),
                                 child: DottedBorder(
                                   color: Colors.black,
                                   strokeWidth: 2,
@@ -383,25 +384,33 @@ class _editExpenseState extends State<editExpense> {
                                     width: 47,
                                     height: 47,
                                     decoration: BoxDecoration(
-                                      color: _selectedCategory != null
-                                          ? _selectedCategory!['color']
-                                          : Colors.grey[300],
+                                      color:
+                                          _selectedCategory != null
+                                              ? _selectedCategory!['color']
+                                              : Colors.grey[300],
                                       shape: BoxShape.circle,
                                     ),
-                                    child: _selectedCategory != null
-                                        ? Center(
-                                      child: Icon(
-                                        _selectedCategory?['icon'],
-                                        size: 30,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                        : const Icon(
-                                        Icons.image, color: Colors.white),
+                                    child:
+                                        _selectedCategory != null
+                                            ? Center(
+                                              child: Icon(
+                                                _selectedCategory?['icon'],
+                                                size: 30,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                            : const Icon(
+                                              Icons.image,
+                                              color: Colors.white,
+                                            ),
                                   ),
                                 ),
                               ),
-                              Padding(padding: const EdgeInsets.only(left: 10, right: 10),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 10,
+                                  right: 10,
+                                ),
                                 child: Text(
                                   _selectedCategory != null
                                       ? _selectedCategory!['name']
@@ -428,11 +437,13 @@ class _editExpenseState extends State<editExpense> {
                   padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
                   child: Row(
                     children: [
-                      const Icon(CupertinoIcons.doc, size: 60, color: Colors.black87),
+                      const Icon(
+                        CupertinoIcons.doc,
+                        size: 60,
+                        color: Colors.black87,
+                      ),
                       Padding(
-                        padding: EdgeInsets.only(
-                          left: screenWidth * 0.025,
-                        ),
+                        padding: EdgeInsets.only(left: screenWidth * 0.025),
                         child: SizedBox(
                           width: screenWidth * 0.74,
                           height: screenHeight * 0.065,
@@ -470,8 +481,10 @@ class _editExpenseState extends State<editExpense> {
                           onTap: () async {
                             final selectedFPcategory = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) =>
-                                  financialPlatformCategory()),
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => financialPlatformCategory(),
+                              ),
                             );
                             if (selectedFPcategory != null) {
                               setState(() {
@@ -480,69 +493,79 @@ class _editExpenseState extends State<editExpense> {
                             }
                           },
                           child: Container(
-                              width: screenWidth * 0.95,
-                              height: screenHeight * 0.080,
-                              decoration: BoxDecoration(
-                                color: Colors.white60,
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 6, right: 10),
-                                    child: DottedBorder(
+                            width: screenWidth * 0.95,
+                            height: screenHeight * 0.080,
+                            decoration: BoxDecoration(
+                              color: Colors.white60,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 6,
+                                    right: 10,
+                                  ),
+                                  child: DottedBorder(
+                                    color: Colors.black,
+                                    strokeWidth: 2,
+                                    dashPattern: const [6, 3],
+                                    borderType: BorderType.Circle,
+                                    child: Container(
+                                      width: 47,
+                                      height: 47,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            (_selectedFPCategory != null &&
+                                                    _selectedFPCategory!['color']
+                                                        is Color)
+                                                ? _selectedFPCategory!['color']
+                                                    as Color
+                                                : Colors.grey[300],
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child:
+                                          (_selectedFPCategory != null &&
+                                                  _selectedFPCategory!['iconimage'] !=
+                                                      null)
+                                              ? Center(
+                                                child: Image.memory(
+                                                  _selectedFPCategory!['iconimage']
+                                                      as Uint8List,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              )
+                                              : const Icon(
+                                                Icons.image,
+                                                color: Colors.white,
+                                              ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                // Name (flexible to avoid overflow)
+                                Expanded(
+                                  child: Text(
+                                    _selectedFPCategory != null
+                                        ? (_selectedFPCategory!['fpname']
+                                                ?.toString() ??
+                                            '')
+                                        : 'Select Financial Platform',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 20.0,
                                       color: Colors.black,
-                                      strokeWidth: 2,
-                                      dashPattern: const [6, 3],
-                                      borderType: BorderType.Circle,
-                                      child: Container(
-                                        width: 47,
-                                        height: 47,
-                                        decoration: BoxDecoration(
-                                          color: (_selectedFPCategory != null &&
-                                              _selectedFPCategory!['color'] is Color)
-                                              ? _selectedFPCategory!['color'] as Color
-                                              : Colors.grey[300],
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: (_selectedFPCategory != null &&
-                                            _selectedFPCategory!['iconimage'] !=
-                                                null)
-                                            ? Center(
-                                          child: Image.memory(
-                                            _selectedFPCategory!['iconimage'] as Uint8List,
-                                            fit: BoxFit.contain,
-                                          ),
-                                        )
-                                            : const Icon(
-                                            Icons.image, color: Colors.white),
-                                      ),
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
-                                  // Name (flexible to avoid overflow)
-                                  Expanded(
-                                    child: Text(
-                                      _selectedFPCategory != null
-                                          ? (_selectedFPCategory!['fpname']
-                                          ?.toString() ?? '')
-                                          : 'Select Financial Platform',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 20.0,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(Icons.arrow_forward_ios, size: 20),
-                                ],
-                              )
+                                ),
+                                const Icon(Icons.arrow_forward_ios, size: 20),
+                              ],
+                            ),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -567,12 +590,17 @@ class _editExpenseState extends State<editExpense> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => PdfViewerPage(pdfBytes: pdfBytes),
+                              builder:
+                                  (context) =>
+                                      PdfViewerPage(pdfBytes: pdfBytes),
                             ),
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
@@ -582,7 +610,13 @@ class _editExpenseState extends State<editExpense> {
                             children: const [
                               Icon(Icons.picture_as_pdf, color: Colors.red),
                               SizedBox(width: 12),
-                              Expanded(child: Text('Receipt.pdf', style: TextStyle(fontSize: 16), overflow: TextOverflow.ellipsis)),
+                              Expanded(
+                                child: Text(
+                                  'Receipt.pdf',
+                                  style: TextStyle(fontSize: 16),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                               Icon(Icons.open_in_new, color: Colors.grey),
                             ],
                           ),
@@ -610,16 +644,17 @@ class _editExpenseState extends State<editExpense> {
                 borderRadius: BorderRadius.circular(20),
                 color: _isUpdating ? Colors.grey : const Color(0xFF5A7BE7),
               ),
-              child: _isUpdating
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                'Update Expense',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
-                  color: Colors.white,
-                ),
-              ),
+              child:
+                  _isUpdating
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                        'Update Expense',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18.0,
+                          color: Colors.white,
+                        ),
+                      ),
             ),
           ),
         ),
@@ -646,12 +681,10 @@ class _editExpenseState extends State<editExpense> {
               style: const TextStyle(fontSize: 16),
             ),
           ),
-          ],
+        ],
       ),
     );
   }
-
-
 
   Future<void> _updateExpense() async {
     if (_isUpdating) return;
@@ -660,7 +693,8 @@ class _editExpenseState extends State<editExpense> {
       _isUpdating = true;
     });
 
-    final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
+    final token =
+        Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
     final viewModel = Provider.of<expenseViewModel>(context, listen: false);
 
     if (token == null) {
@@ -675,9 +709,9 @@ class _editExpenseState extends State<editExpense> {
 
     // Validation
     if (_textControllerAmount.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an amount')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter an amount')));
       setState(() {
         _isUpdating = false;
       });
@@ -695,9 +729,9 @@ class _editExpenseState extends State<editExpense> {
     }
 
     if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
       setState(() {
         _isUpdating = false;
       });
@@ -720,16 +754,22 @@ class _editExpenseState extends State<editExpense> {
         financialPlatform: _selectedFPCategory!['platformid'],
         userId: widget.userid,
         categoryId: _selectedCategory!['categoryId'],
-      //  paymentType: dropdownValue,
+        //  paymentType: dropdownValue,
       );
-      final viewModelActivity = Provider.of<activitylog_viewModel>(context, listen: false,);
+      final viewModelActivity = Provider.of<activitylog_viewModel>(
+        context,
+        listen: false,
+      );
       // Activity log
       ActivityLog activitylog = ActivityLog(
-        userid: Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id,
+        userid:
+            Provider.of<signUpnLogin_viewmodel>(
+              context,
+              listen: false,
+            ).userInfo!.id,
         activitytypeid: 3, // id code for - edit expense
         timestamp: DateTime.now(),
       );
-
 
       /*
       print("🔧 Updating Expense:");
@@ -748,7 +788,7 @@ class _editExpenseState extends State<editExpense> {
       await viewModelActivity.logActivity(activitylog, token);
       bool dismissedByTimer = true;
       // Show success message
-       AlertDialog(
+      AlertDialog(
         title: const Text('Success'),
         content: const Text('Expense updated successfully!'),
         actions: [
@@ -775,12 +815,11 @@ class _editExpenseState extends State<editExpense> {
 
       // Return to previous screen with success indicator
       Navigator.pop(context, true);
-
     } catch (e) {
       print("Failed to update expense: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update expense: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update expense: $e')));
     } finally {
       setState(() {
         _isUpdating = false;
