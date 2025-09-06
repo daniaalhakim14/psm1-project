@@ -5,13 +5,13 @@ import 'package:fyp/View/selectitempage.dart';
 import 'package:fyp/ViewModel/compareItems/compareItems_viewmodel.dart';
 import 'package:fyp/ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
 import 'package:fyp/ViewModel/taxRelief/taxRelief_viewmodel.dart';
+import 'package:fyp/ViewModel/taxMapping/taxMapping_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'ViewModel/activitylog/activitylog_viewmodel.dart';
 import 'ViewModel/cart/cart_viewmodel.dart';
 import 'ViewModel/expense/expense_viewmodel.dart';
 import 'ViewModel/financialplatform/paltform_viewmodel.dart';
 import 'ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
-
 
 void main() {
   runApp(
@@ -21,6 +21,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => expenseViewModel()),
         ChangeNotifierProvider(create: (_) => itemPrice_viewmodel()),
         ChangeNotifierProvider(create: (_) => TaxReliefViewModel()),
+        ChangeNotifierProvider(create: (_) => TaxMappingViewModel()),
         ChangeNotifierProvider(create: (_) => compareItems_viewmodel()),
         ChangeNotifierProvider(create: (_) => cartViewModel()),
         ChangeNotifierProvider(create: (_) => activitylog_viewModel()),
@@ -30,7 +31,6 @@ void main() {
     ),
   );
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -48,5 +48,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-

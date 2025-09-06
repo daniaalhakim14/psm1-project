@@ -6,8 +6,7 @@ import '../../Model/expense.dart';
 import 'expense_repository.dart';
 
 // ChangeNotifier allows View Model to notify listeners when data changes
-class expenseViewModel extends ChangeNotifier{
-
+class expenseViewModel extends ChangeNotifier {
   final repository = expenseCategoryRepository();
   final expenseCategoryRepository _repository = expenseCategoryRepository();
 
@@ -19,7 +18,8 @@ class expenseViewModel extends ChangeNotifier{
   List<ListExpense> _listExpense = [];
   List<ListExpense> get listExpense => _listExpense;
   List<ViewExpenseFinancialPlatform> _viewExpenseFinancialPlatform = [];
-  List<ViewExpenseFinancialPlatform> get viewExpenseFinancialPlatform => _viewExpenseFinancialPlatform;
+  List<ViewExpenseFinancialPlatform> get viewExpenseFinancialPlatform =>
+      _viewExpenseFinancialPlatform;
 
   Future<void> fetchCategories() async {
     fetchingData = true;
@@ -36,7 +36,7 @@ class expenseViewModel extends ChangeNotifier{
     }
   }
 
-// expense_viewmodel.dart
+  // expense_viewmodel.dart
   Future<bool> addExpense(AddExpense expense, String token) async {
     try {
       final ok = await repository.addExpense(expense, token);
@@ -52,12 +52,11 @@ class expenseViewModel extends ChangeNotifier{
     }
   }
 
-
   Future<void> fetchViewExpense(int userid, String token) async {
     fetchingData = true; // Indicate that data fetching is in progress
     notifyListeners();
     try {
-      _ViewExpense = await repository.getViewExpense(userid,token);
+      _ViewExpense = await repository.getViewExpense(userid, token);
       // ✅ Print each expense (or just selected fields)
       /*
       for (var expense in _ViewExpense) {
@@ -73,10 +72,10 @@ class expenseViewModel extends ChangeNotifier{
     }
   }
 
-  Future<void> fetchListExpense(int userid, String token) async{
+  Future<void> fetchListExpense(int userid, String token) async {
     fetchingData = true;
     notifyListeners();
-    try{
+    try {
       /*
       for (var expense in _listExpense) {
         print('📌 ExpenseID: ${expense.expenseid}, Name: ${expense.expenseName}, Amount: ${expense.expenseAmount}, Date: ${expense.expenseDate}');
@@ -84,18 +83,22 @@ class expenseViewModel extends ChangeNotifier{
        */
 
       _listExpense = await repository.getListExpense(userid, token);
-    }catch(e){
+    } catch (e) {
       print('Failed to load list expense: $e');
       _listExpense = [];
-    } finally{
+    } finally {
       fetchingData = false;
       notifyListeners();
     }
   }
 
-  Future<void> fetchViewExpenseFinancialPlatform(int userid, String token) async{
+  Future<void> fetchViewExpenseFinancialPlatform(
+    int userid,
+    String token,
+  ) async {
     try {
-      _viewExpenseFinancialPlatform = await repository.getViewExpenseFinancialPlatform(userid, token);
+      _viewExpenseFinancialPlatform = await repository
+          .getViewExpenseFinancialPlatform(userid, token);
       // ✅ Print each expense (or just selected fields)
       /*
       for (var expense in _viewExpenseFinancialPlatform) {
@@ -112,23 +115,27 @@ class expenseViewModel extends ChangeNotifier{
     }
   }
 
-  Future<void> updateExpense(UpdateExpense updateexpense, String token) async{
-    try{
+  Future<void> updateExpense(UpdateExpense updateexpense, String token) async {
+    try {
       await repository.updateExpense(updateexpense, token);
       notifyListeners();
-    }catch (e){
+    } catch (e) {
       print('Failed to update expense: $e');
     }
   }
 
-  Future<void> deleteExpense(int expenseId,int userid,String token) async {
+  Future<void> deleteExpense(int expenseId, int userid, String token) async {
     try {
-      await repository.deleteExpense(DeleteExpense(expenseId: expenseId),userid,token);
+      await repository.deleteExpense(
+        DeleteExpense(expenseId: expenseId),
+        userid,
+        token,
+      );
       notifyListeners();
       print('Transaction deleted successfully!');
       // Refresh the transaction list after deletion
-      await fetchListExpense(userid,token);
-      await fetchViewExpense(userid,token);
+      await fetchListExpense(userid, token);
+      await fetchViewExpense(userid, token);
     } catch (e) {
       print('Failed to delete transaction: $e');
     }

@@ -10,6 +10,7 @@ import 'package:fyp/Model/expense.dart';
 import 'package:fyp/View/Homepage/financialPlatformCategory.dart';
 import 'package:fyp/View/homepage.dart';
 import 'package:fyp/ViewModel/activitylog/activitylog_viewmodel.dart';
+import 'package:fyp/ViewModel/taxMapping/taxMapping_viewmodel.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
@@ -857,16 +858,11 @@ class _expenseInputState extends State<expenseInput> {
 
                     if (success) {
                       // Start activity logging in background while showing success dialog
-                      final logActivityFuture = viewModelActivity
-                          .logActivity(activitylog, token)
-                          .timeout(
-                            Duration(seconds: 30),
-                            onTimeout: () {
-                              print(
-                                "Activity logging timed out after 30 seconds",
-                              );
-                              return false; // Return false on timeout instead of throwing
-                            },
+                      final logActivityFuture =
+                          _performActivityLoggingWithTimeout(
+                            viewModelActivity,
+                            activitylog,
+                            token,
                           );
 
                       bool dismissedByTimer = true;
@@ -915,11 +911,13 @@ class _expenseInputState extends State<expenseInput> {
                         ),
                       );
 
-                      // Wait for activity log to complete in background (optional)
-                      logActivityFuture.catchError((error) {
-                        print("Activity log failed: $error");
-                        // Handle error silently or show notification
-                      });
+                      // Wait for activity log to complete, then start tax mapping
+                      _performTaxMapping(
+                        logActivityFuture,
+                        viewModel,
+                        token,
+                        base64Pdf,
+                      );
                     }
                   }
                   // Navigate back on success
@@ -954,6 +952,82 @@ class _expenseInputState extends State<expenseInput> {
         ),
       ),
     );
+  }
+
+  // Method to handle activity logging with proper timeout and return type
+  Future<bool> _performActivityLoggingWithTimeout(
+    activitylog_viewModel viewModelActivity,
+    ActivityLog activitylog,
+    String token,
+  ) async {
+    try {
+      await viewModelActivity
+          .logActivity(activitylog, token)
+          .timeout(
+            Duration(seconds: 30),
+            onTimeout: () {
+              print("Activity logging timed out after 30 seconds");
+              throw TimeoutException(
+                'Activity logging timeout',
+                Duration(seconds: 30),
+              );
+            },
+          );
+      return true; // Success
+    } catch (e) {
+      print("Activity logging failed: $e");
+      return false; // Failed
+    }
+  }
+
+  // Method to handle tax mapping after activity logging is completed
+  void _performTaxMapping(
+    Future<bool> logActivityFuture,
+    expenseViewModel viewModel,
+    String token,
+    String base64Pdf,
+  ) async {
+    try {
+      // Wait for activity logging to complete
+      final activityLogSuccess = await logActivityFuture;
+      print("Activity logging completed with result: $activityLogSuccess");
+
+      // Get tax mapping viewmodel
+      final taxMappingViewModel = Provider.of<TaxMappingViewModel>(
+        context,
+        listen: false,
+      );
+      final userId =
+          Provider.of<signUpnLogin_viewmodel>(
+            context,
+            listen: false,
+          ).userInfo?.id;
+
+      if (userId != null) {
+        print("Starting tax mapping process...");
+
+        // Perform tax mapping in background
+        final taxMappingResult = await taxMappingViewModel
+            .performTaxMappingForUser(base64Pdf, userId, token)
+            .timeout(
+              Duration(seconds: 30),
+              onTimeout: () {
+                print("Tax mapping timed out after 30 seconds");
+                return null;
+              },
+            );
+
+        if (taxMappingResult != null) {
+          print("Tax mapping completed successfully");
+          print("Tax mapping result: ${taxMappingResult.toString()}");
+        } else {
+          print("Tax mapping failed or timed out");
+        }
+      }
+    } catch (error) {
+      print("Error in tax mapping process: $error");
+      // Handle error silently since user has already navigated away
+    }
   }
 
   Widget pdfUploadPreview(File pdfFile, VoidCallback onRemove) {

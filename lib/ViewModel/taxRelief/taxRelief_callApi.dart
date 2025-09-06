@@ -36,18 +36,12 @@ class TaxReliefCallApi {
     );
   }
 
-  Future<http.Response> fetchReliefTypeInfo(int categoryid, String token) async{
-    final endpoint = '/taxRelief/getReliefTypeInfo/$categoryid';
-    final url = '${AppConfig.baseUrl}$endpoint';
-    print(url);
-    return await http.get(
-      Uri.parse(url),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-  }
-
-  Future<http.Response> fetchReliefCategoryInfo(int categoryid, String token) async{
-    final endpoint = '/taxRelief/getReliefCategoryInfo/$categoryid';
+  Future<http.Response> fetchReliefItem(
+    int categoryid,
+    int userid,
+    String token,
+  ) async {
+    final endpoint = '/taxRelief/getReliefItem/$categoryid/$userid';
     final url = '${AppConfig.baseUrl}$endpoint';
     print(url);
     return await http.get(

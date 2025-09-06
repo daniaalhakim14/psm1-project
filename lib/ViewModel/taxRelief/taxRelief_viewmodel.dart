@@ -5,47 +5,46 @@ import 'taxRelief_repository.dart';
 class TaxReliefViewModel extends ChangeNotifier {
   final TaxReliefRepository repository = TaxReliefRepository();
 
-  List<TotalCanClaim> _totalReliefList = [];
-  List<TotalCanClaim> get totalReliefList => _totalReliefList;
+  List<TotalCanClaim> _totalItemAmount = [];
+  List<TotalCanClaim> get totalItemAmount => _totalItemAmount;
+
   List<TotalEligibleClaim> _totalEligibleClaim = [];
   List<TotalEligibleClaim> get totalEligibleClaim => _totalEligibleClaim;
 
   List<TaxReliefCategory> _taxReliefCategory = [];
   List<TaxReliefCategory> get taxReliefCategory => _taxReliefCategory;
 
-
-  List<ReliefTypeInfo>  _reliefTypeInfo = [];
-  List<ReliefTypeInfo> get reliefTypeInfo => _reliefTypeInfo;
-
-  List<ReliefCategoryInfo> _reliefCategoryInfo = [];
-  List<ReliefCategoryInfo> get reliefCategoryInfo => _reliefCategoryInfo;
+  List<TaxReliefItem> _taxReliefItem = [];
+  List<TaxReliefItem> get taxReliefItem => _taxReliefItem;
 
   bool fetchingData = false;
-
 
   Future<void> fetchTotalCanClaim(String token) async {
     fetchingData = true;
     notifyListeners();
     try {
-      _totalReliefList = await repository.getTotalCanClaim(token);
+      _totalItemAmount = await repository.getTotalCanClaim(token);
     } catch (e) {
       print('Failed to get total amount of relief: $e');
-      _totalReliefList = [];
+      _totalItemAmount = [];
     } finally {
       fetchingData = false;
       notifyListeners();
     }
   }
 
-  Future<void> fetchTotalEligibleClaim(int userid, String token) async{
+  Future<void> fetchTotalEligibleClaim(int userid, String token) async {
     fetchingData = true;
     notifyListeners();
-    try{
-      _totalEligibleClaim = await repository.getTotalEligibleClaim(userid, token);
-    } catch(e){
+    try {
+      _totalEligibleClaim = await repository.getTotalEligibleClaim(
+        userid,
+        token,
+      );
+    } catch (e) {
       print('Failed to get totall eligible amount: $e');
       _totalEligibleClaim = [];
-    }finally{
+    } finally {
       fetchingData = false;
       notifyListeners();
     }
@@ -66,38 +65,20 @@ class TaxReliefViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchReliefTypeInfo(int categoryid, String token) async {
+  Future<void> fetchTaxReliefItem(int userid, int categoryid, String token) async{
     fetchingData = true;
     notifyListeners();
     try {
-      _reliefTypeInfo = await repository.getReliefTypeInfo(categoryid, token);
+      _taxReliefItem = await repository.getTaxReliefItem(userid, categoryid, token);
     } catch (e, stacktrace) {
-      print('❌ Failed to get tax relief: $e');
+      print('❌ Failed to get tax relief item: $e');
       print('📍 Stacktrace: $stacktrace');
-      _reliefTypeInfo = [];
+      _taxReliefItem = [];
     } finally {
       fetchingData = false;
       notifyListeners();
     }
   }
-
-
-  Future<void> fetchReliefCategoryInfo(int categoryid, String token) async {
-    fetchingData = true;
-    notifyListeners();
-    try {
-      _reliefCategoryInfo = await repository.getReliefCategoryInfo(categoryid, token);
-    } catch (e, stacktrace) {
-      print('❌ Failed to get tax relief: $e');
-      print('📍 Stacktrace: $stacktrace');
-      _reliefCategoryInfo = [];
-
-    } finally {
-      fetchingData = false;
-      notifyListeners();
-    }
-  }
-
 
   @override
   void dispose() {

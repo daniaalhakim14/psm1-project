@@ -1,7 +1,7 @@
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp/View/individualRelief.dart';
-import 'package:fyp/ViewModel/expense/expense_viewmodel.dart';
+import 'package:fyp/View/taxReliefCategory.dart';
 import 'package:provider/provider.dart';
 import '../Model/signupLoginpage.dart';
 import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
@@ -23,7 +23,10 @@ class _taxExemptState extends State<taxExempt> {
   void initState() {
     super.initState();
     final userid =
-        Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id;
+        Provider.of<signUpnLogin_viewmodel>(
+          context,
+          listen: false,
+        ).userInfo!.id;
     final token =
         Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
     if (token != null) {
@@ -79,11 +82,18 @@ class _taxExemptState extends State<taxExempt> {
                 if (viewModel.fetchingData) {
                   return Center(child: CircularProgressIndicator());
                 }
-                if (viewModel.totalReliefList.isEmpty || viewModel.totalEligibleClaim.isEmpty) {
+                if (viewModel.totalItemAmount.isEmpty ||
+                    viewModel.totalEligibleClaim.isEmpty) {
                   return Text("No data");
                 }
-                final totalRelief = viewModel.totalReliefList.isNotEmpty ? viewModel.totalReliefList.first.totalRelief : 0.0;
-                final totalEligible = viewModel.totalEligibleClaim.isNotEmpty ? viewModel.totalEligibleClaim.first.claimedamount : 0.0;
+                final totalRelief =
+                    viewModel.totalItemAmount.isNotEmpty
+                        ? viewModel.totalItemAmount.first.totalRelief
+                        : 0.0;
+                final totalEligible =
+                    viewModel.totalEligibleClaim.isNotEmpty
+                        ? viewModel.totalEligibleClaim.first.claimedamount
+                        : 0.0;
                 return Row(
                   children: [
                     Column(
@@ -172,82 +182,43 @@ class _taxExemptState extends State<taxExempt> {
               ],
             ),
           ),
-          SizedBox(height: 8,),
-
+          SizedBox(height: 8),
           Expanded(
             child: Consumer<TaxReliefViewModel>(
               builder: (context, viewModel, _) {
                 if (viewModel.fetchingData) {
                   return Center(child: CircularProgressIndicator());
                 }
-
                 if (viewModel.taxReliefCategory.isEmpty) {
                   return Center(
                     child: Text(
                       'No tax relief categories available',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
                   );
                 }
 
+                // Show Tax Relief Category
                 return ListView.builder(
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
                   itemCount: viewModel.taxReliefCategory.length,
                   itemBuilder: (context, index) {
                     final category = viewModel.taxReliefCategory[index];
-
-                    // Get the appropriate icon based on category type
-                    String getIconPath(String categoryName) {
-                      if (categoryName.toLowerCase().contains('individual')) {
-                        return 'assets/Icons/man.png';
-                      } else if (categoryName.toLowerCase().contains('medical') ||
-                          categoryName.toLowerCase().contains('special')) {
-                        return 'assets/Icons/medical.png';
-                      } else if (categoryName.toLowerCase().contains('lifestyle')) {
-                        return 'assets/Icons/lifestyle.png';
-                      } else if (categoryName.toLowerCase().contains('child')) {
-                        return 'assets/Icons/children.png';
-                      } else if (categoryName.toLowerCase().contains('insurance')) {
-                        return 'assets/Icons/secure.png';
-                      } else {
-                        return 'assets/Icons/no_picture.png'; // fallback icon
-                      }
-                    }
-
                     return TaxExemptCard(
-                      imagePath: getIconPath(category.relieftype ?? ''),
-                      title: category.relieftype ?? 'Unknown Category',
-                      subtitle: 'Up to RM${category.amountCanClaim?.toStringAsFixed(2) ?? '0'}',
-                      used: category.eligibleAmount ?? 0.0,
-                      limit: category.amountCanClaim ?? 0.0,
+                      iconBytes: category.iconImage,
+                      title: category.categoryName,
+                      subtitle:
+                          'Up to RM${category.amountCanClaim.toStringAsFixed(2)}',
+                      used: category.eligibleAmount,
+                      limit: category.amountCanClaim,
                       onTap: () {
-                        // Navigate to individual relief page
-                        /*
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => individualRelief(
-                              userInfo: widget.userInfo,
-                              categoryId: category.id,
-                              categoryName: category.categoryName,
-                              maxAmount: category.maxAmount,
-                              usedAmount: category.usedAmount,
-                            ),
-                          ),
-                        );
-                         */
-                        final iconPath = getIconPath(category.relieftype ?? '');
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => individualRelief(
-                              categoryId: category.relieftypeid,
-                              iconPath: iconPath,
-                            ),
+                            builder:
+                                (context) => taxReliefCategory(
+                                  categoryId: category.reliefcategoryid,
+                                ),
                           ),
                         );
                       },
@@ -257,8 +228,6 @@ class _taxExemptState extends State<taxExempt> {
               },
             ),
           ),
-
-
         ],
       ),
       bottomNavigationBar: BottomAppBar(
@@ -321,8 +290,8 @@ class _taxExemptState extends State<taxExempt> {
   }
 }
 
-class TaxExemptCard extends StatelessWidget {
-  final String imagePath;
+class TaxExemptCard extends StatefulWidget {
+  final List<int>? iconBytes;
   final String title;
   final String subtitle;
   final double used;
@@ -330,7 +299,7 @@ class TaxExemptCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const TaxExemptCard({
-    required this.imagePath,
+    required this.iconBytes,
     required this.title,
     required this.subtitle,
     required this.used,
@@ -339,12 +308,17 @@ class TaxExemptCard extends StatelessWidget {
   });
 
   @override
+  _TaxExemptCardState createState() => _TaxExemptCardState();
+}
+
+class _TaxExemptCardState extends State<TaxExemptCard> {
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final progressValue = limit > 0 ? used / limit : 0.0;
+    final progressValue = widget.limit > 0 ? widget.used / widget.limit : 0.0;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         width: screenWidth * 0.98,
@@ -373,18 +347,25 @@ class TaxExemptCard extends StatelessWidget {
                     color: Color(0xFFE3ECF5),
                     shape: BoxShape.circle,
                   ),
-                  child: Center(
-                    child: Image.asset(
-                      imagePath,
-                      scale: 8,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.receipt,
-                          size: 30,
-                          color: Color(0xFF5A7BE7),
-                        );
-                      },
-                    ),
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.grey.shade300,
+                    child:
+                        widget.iconBytes != null
+                            ? ClipOval(
+                              child: Image.memory(
+                                Uint8List.fromList(widget.iconBytes!),
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
+                                filterQuality: FilterQuality.high,
+                              ),
+                            )
+                            : const Icon(
+                              Icons.receipt,
+                              size: 24,
+                              color: Color(0xFF5A7BE7),
+                            ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -393,7 +374,7 @@ class TaxExemptCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        widget.title,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -402,7 +383,7 @@ class TaxExemptCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        subtitle,
+                        widget.subtitle,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
@@ -413,7 +394,7 @@ class TaxExemptCard extends StatelessWidget {
                 ),
                 // Used amount text
                 Text(
-                  '${used.toStringAsFixed(2)} used',
+                  '${widget.used.toStringAsFixed(2)} used',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -438,11 +419,8 @@ class TaxExemptCard extends StatelessWidget {
             const Align(
               alignment: Alignment.bottomRight,
               child: Text(
-                'view details',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
+                'View Category',
+                style: TextStyle(fontSize: 12, color: Colors.blueAccent),
               ),
             ),
           ],

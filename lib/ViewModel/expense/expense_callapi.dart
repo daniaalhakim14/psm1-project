@@ -17,7 +17,10 @@ class expense_callApi {
     return await http.get(Uri.parse(url));
   }
 
-  Future<http.Response> addExpense(Map<String, dynamic> expenseData, String token) async {
+  Future<http.Response> addExpense(
+    Map<String, dynamic> expenseData,
+    String token,
+  ) async {
     // change to Expense
     String endpoint = '/expense'; // Update this to match your API endpoint
     String url = '${AppConfig.baseUrl}$endpoint';
@@ -26,8 +29,10 @@ class expense_callApi {
 
     final response = await http.post(
       Uri.parse(url),
-      headers: {'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(expenseData),
     );
 
@@ -41,39 +46,56 @@ class expense_callApi {
     // change to Expense
     String endpoint = '/expense/$userid';
     String url = '${AppConfig.baseUrl}$endpoint';
-    return await http.get(Uri.parse(url),
-        headers: {'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'}
+    return await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
   }
 
-  Future<http.Response> fetchListExpense(int userid, String token) async{
+  Future<http.Response> fetchListExpense(int userid, String token) async {
     String endpoint = '/expense/listExpense/$userid';
     String url = '${AppConfig.baseUrl}$endpoint';
-    return await http.get(Uri.parse(url),
-        headers: {'Content-Type': 'application/json',
-          'Authorization' : 'Bearer $token'}
+    return await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
   }
 
-  Future<http.Response> fetchViewExpenseFinancialPlatform(int userid, String token)async{
+  Future<http.Response> fetchViewExpenseFinancialPlatform(
+    int userid,
+    String token,
+  ) async {
     String endpoint = '/expense/financialPlatform/$userid'; // to change
     String url = '${AppConfig.baseUrl}$endpoint';
-    return await http.get(Uri.parse(url),
-        headers: {'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'}
+    return await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
   }
 
-  Future<http.Response> updateExpense(int expenseId, Map<String, dynamic> expenseData, String token) async {
+  Future<http.Response> updateExpense(
+    int expenseId,
+    Map<String, dynamic> expenseData,
+    String token,
+  ) async {
     String endpoint = '/expense/updateExpense/$expenseId'; // your backend route
     String url = '${AppConfig.baseUrl}$endpoint';
     print('url $url');
 
-    final response = await http.put(Uri.parse(url),
+    final response = await http.put(
+      Uri.parse(url),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token'
+        'Authorization': 'Bearer $token',
       },
       body: jsonEncode(expenseData),
     );
@@ -84,15 +106,21 @@ class expense_callApi {
     return response;
   }
 
-
-  Future<http.Response> deleteExpense(int expenseId, int userid,String token) async {
+  Future<http.Response> deleteExpense(
+    int expenseId,
+    int userid,
+    String token,
+  ) async {
     String endpoint = '/expense/deleteExpense/$expenseId';
     String url = '${AppConfig.baseUrl}$endpoint';
     //print("Deleting expense with ID: $expenseId");
 
-    final response = await http.delete(Uri.parse(url),
-        headers: {'Content-Type': 'application/json',
-          'Authorization' : 'Bearer $token'}
+    final response = await http.delete(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
 
     print("Response status: ${response.statusCode}");
@@ -106,5 +134,4 @@ class expense_callApi {
     _httpClient.close(); // Close the HTTP client to release resources
     print("HTTP client closed.");
   }
-
 }

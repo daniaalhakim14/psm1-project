@@ -1,20 +1,52 @@
+// A bridge between view layer and repository (data layer)
 import 'package:flutter/material.dart';
-import 'package:fyp/ViewModel/taxMapping/taxMapping_repository.dart';
-
 import '../../Model/taxMapping.dart';
+import 'taxMapping_repository.dart';
 
-
+// ChangeNotifier allows View Model to notify listeners when data changes
 class TaxMappingViewModel extends ChangeNotifier {
   final TaxMappingRepository _repository = TaxMappingRepository();
-  MappedTaxRelief? _mappedResult;
 
+  bool fetchingData = false;
+  MappedTaxRelief? _mappedResult;
   MappedTaxRelief? get mappedResult => _mappedResult;
 
-  Future<void> mapTax(Map<String, dynamic> expensePayload, String token) async {
-    final result = await _repository.processTaxMapping(expensePayload, token);
-    if (result != null && result.isEligible) {
-      _mappedResult = result;
+  Future<MappedTaxRelief?> performTaxMappingForUser(
+    String base64Pdf,
+    int userId,
+    String token,
+  ) async {
+    fetchingData = true;
+    notifyListeners();
+
+    try {
+      _mappedResult = await _repository.processTaxMappingWithTimeout(
+        base64Pdf,
+        userId,
+        token,
+      );
+
+      if (_mappedResult != null && _mappedResult!.isEligible) {
+        print("Tax mapping successful - eligible for relief");
+      } else {
+        print("Tax mapping completed - not eligible for relief");
+      }
+
+      return _mappedResult;
+    } catch (e) {
+      print('Failed to perform tax mapping: $e');
+      _mappedResult = null;
+      return null;
+    } finally {
+      fetchingData = false;
       notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _repository.dispose();
+    super.dispose();
+    print("🧹 TaxMappingViewModel disposed.");
   }
 }
