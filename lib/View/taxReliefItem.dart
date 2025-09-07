@@ -580,6 +580,8 @@ class TaxReliefCard extends StatefulWidget {
 }
 
 class _TaxReliefCardState extends State<TaxReliefCard> {
+  bool _isReasoningExpanded = false; // Add this state variable
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -752,27 +754,59 @@ class _TaxReliefCardState extends State<TaxReliefCard> {
                 const SizedBox(height: 12),
                 const Divider(),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.psychology, size: 16, color: Colors.blue),
-                    const SizedBox(width: 4),
-                    const Text(
-                      "AI Reasoning:",
-                      style: TextStyle(
+                // Header that's always visible and clickable
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isReasoningExpanded = !_isReasoningExpanded;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.psychology, size: 16, color: Colors.blue),
+                        const SizedBox(width: 4),
+                        const Text(
+                          "AI Reasoning:",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const Spacer(),
+                        AnimatedRotation(
+                          turns: _isReasoningExpanded ? 0.5 : 0.0,
+                          duration: const Duration(milliseconds: 300),
+                          child: const Icon(
+                            Icons.keyboard_arrow_down,
+                            size: 16,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Expandable content
+                AnimatedCrossFade(
+                  firstChild: const SizedBox.shrink(),
+                  secondChild: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      widget.reasoning!,
+                      style: const TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        fontStyle: FontStyle.italic,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.reasoning!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
                   ),
+                  crossFadeState: _isReasoningExpanded
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  duration: const Duration(milliseconds: 300),
                 ),
               ],
             ],
