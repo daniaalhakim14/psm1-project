@@ -36,11 +36,7 @@ class TaxReliefCallApi {
     );
   }
 
-  Future<http.Response> fetchReliefItem(
-    int categoryid,
-    int userid,
-    String token,
-  ) async {
+  Future<http.Response> fetchReliefItem(int categoryid, int userid, String token,) async {
     final endpoint = '/taxRelief/getReliefItem/$categoryid/$userid';
     final url = '${AppConfig.baseUrl}$endpoint';
     print(url);

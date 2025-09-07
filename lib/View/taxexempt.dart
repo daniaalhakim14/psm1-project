@@ -207,8 +207,7 @@ class _taxExemptState extends State<taxExempt> {
                     return TaxExemptCard(
                       iconBytes: category.iconImage,
                       title: category.categoryName,
-                      subtitle:
-                          'Up to RM${category.amountCanClaim.toStringAsFixed(2)}',
+                      subtitle: 'Up to RM${category.amountCanClaim.toStringAsFixed(2)}',
                       used: category.eligibleAmount,
                       limit: category.amountCanClaim,
                       onTap: () {

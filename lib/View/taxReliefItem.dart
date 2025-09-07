@@ -50,15 +50,9 @@ class _taxReliefItemState extends State<taxReliefItem> {
         backgroundColor: const Color(0xFF5A7BE7),
         title: Consumer<TaxReliefViewModel>(
           builder: (context, viewModel, _) {
-            final itemname =
-                viewModel.taxReliefItem.isNotEmpty
-                    ? viewModel.taxReliefItem
-                        .firstWhere(
-                          (item) => item.reliefitemid == widget.categoryId,
-                          orElse: () => viewModel.taxReliefItem.first,
-                        )
-                        .itemname
-                    : 'Tax Relief';
+            final itemname = viewModel.taxReliefItem.isNotEmpty ? viewModel.taxReliefItem.firstWhere(
+                  (item) => item.reliefitemid == widget.categoryId,
+              orElse: () => viewModel.taxReliefItem.first,).itemname : 'Tax Relief';
             return Text(
               itemname,
               style: const TextStyle(
@@ -78,19 +72,18 @@ class _taxReliefItemState extends State<taxReliefItem> {
                   if (viewModel.fetchingData) {
                     return Center(child: const CircularProgressIndicator());
                   }
+                  // Find the specific category for this page
+                  final currentItem = viewModel.taxReliefItem.firstWhere(
+                        (cat) => cat.reliefitemid == widget.categoryId, orElse: () => viewModel.taxReliefItem.first,
+                  );
+                  final reliefType = currentItem.itemname;
+                  final description = currentItem.description ?? 'No description available';
+                  final totalUsed = currentItem.totalItemClaimedAmount ?? 0.0;
+                  final maxAllowed = currentItem.totalItemReliefLimit ?? 0.0;
+
                   if (viewModel.taxReliefItem.isEmpty) {
                     return const Text("No tax relief item found.");
                   }
-                  // Find the specific category for this page
-                  final currentItem = viewModel.taxReliefItem.firstWhere(
-                    (cat) => cat.reliefitemid == widget.categoryId,
-                    orElse: () => viewModel.taxReliefItem.first,
-                  );
-                  final reliefType = currentItem.itemname;
-                  final description =
-                      currentItem.description ?? 'No description available';
-                  final totalUsed = currentItem.totalItemClaimedAmount ?? 0.0;
-                  final maxAllowed = currentItem.totalItemRelief ?? 0.0;
 
                   return Column(
                     children: [
@@ -159,7 +152,7 @@ class _taxReliefItemState extends State<taxReliefItem> {
                       */
                       TaxReliefCard(
                         title: currentItem.itemname,
-                        max: currentItem.totalItemRelief ?? 0.0,
+                        max: currentItem.totalItemReliefLimit ?? 0.0,
                         used: currentItem.totalItemClaimedAmount ?? 0.0,
                       ),
                     ],

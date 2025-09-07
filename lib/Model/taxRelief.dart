@@ -44,11 +44,15 @@ class TotalEligibleClaim {
 class TaxReliefCategory {
   final int reliefcategoryid;
   final String categoryName;
-  final double amountCanClaim; // To show the total Amount of Tax Relief Can claim for all categoory
-  final double eligibleAmount; // To show the total Amount of Tax Relief Eligible claimed for all category
+  final double
+  amountCanClaim; // To show the total Amount of Tax Relief Can claim for all categoory
+  final double
+  eligibleAmount; // To show the total Amount of Tax Relief Eligible claimed for all category
   final String? description; // Category Desciption
-  final double?totalCategoryRelief; // To show total Amount of Tax Relief Can claim for a category
-  final double?totalCategoryClaimedAmount; // To show total Amount of Tax Relief Eligible claimed for acategory
+  final double?
+  totalCategoryRelief; // To show total Amount of Tax Relief Can claim for a category
+  final double?
+  totalCategoryClaimedAmount; // To show total Amount of Tax Relief Eligible claimed for acategory
   final List<int>? iconImage; // Category icon image bytes from backend
 
   TaxReliefCategory({
@@ -65,8 +69,12 @@ class TaxReliefCategory {
   factory TaxReliefCategory.fromJson(Map<String, dynamic> json) {
     // Handle both API response formats
     return TaxReliefCategory(
-      reliefcategoryid: int.tryParse(json['reliefcategoryid']?.toString() ?? '0') ?? 0,
-      categoryName: json['categoryName']?.toString() ?? json['categoryname']?.toString() ?? '',
+      reliefcategoryid:
+          int.tryParse(json['reliefcategoryid']?.toString() ?? '0') ?? 0,
+      categoryName:
+          json['categoryName']?.toString() ??
+          json['categoryname']?.toString() ??
+          '',
       amountCanClaim: _parseDouble(json['amountCanClaim']),
       eligibleAmount: _parseDouble(json['eligibleAmount']),
       description: json['description'],
@@ -118,8 +126,10 @@ class TaxReliefItem {
   final double amountCanClaim;
   final double eligibleAmount;
   final String? description; // Category Desciption
-  final double? totalItemRelief; // To show total Amount of Tax Relief Can claim for a item
-  final double? totalItemClaimedAmount; // To show total Amount of Tax Relief Eligible claimed for a item
+  final double?
+  totalItemReliefLimit; // To show total Amount of Tax Relief Can claim for a item
+  final double?
+  totalItemClaimedAmount; // To show total Amount of Tax Relief Eligible claimed for a item
 
   TaxReliefItem({
     required this.reliefitemid,
@@ -127,7 +137,7 @@ class TaxReliefItem {
     required this.amountCanClaim,
     required this.eligibleAmount,
     this.description,
-    this.totalItemRelief,
+    this.totalItemReliefLimit,
     this.totalItemClaimedAmount,
   });
   factory TaxReliefItem.fromJson(Map<String, dynamic> json) => TaxReliefItem(
@@ -136,10 +146,12 @@ class TaxReliefItem {
     amountCanClaim: _parseDouble(json['amountCanClaim']),
     eligibleAmount: _parseDouble(json['eligibleAmount']),
     description: json['description'],
-    totalItemRelief: _parseDouble(json['totalItemRelief']),
+    totalItemReliefLimit: _parseDouble(
+      json['totalItemReliefLimit'],
+    ), // From SQL: COALESCE(tri.reliefamount, 0) AS totalItemReliefLimit
     totalItemClaimedAmount: _parseDouble(
       json['totalItemClaimedAmount'],
-    ),
+    ), // From SQL: COALESCE(SUM(ee.eligibleamount), 0) AS totalItemClaimedAmount
   );
 
   static double _parseDouble(dynamic value) {

@@ -28,13 +28,11 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
         Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
     if (token != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final viewModel = Provider.of<TaxReliefViewModel>(
-          context,
-          listen: false,
-        );
+        final viewModelCategory = Provider.of<TaxReliefViewModel>(context, listen: false,);
+        final viewModelItem = Provider.of<TaxReliefViewModel>(context, listen: false,);
         // Fetch tax relief categories for the user - this will include our specific category
-        viewModel.fetchTaxReliefCategory(userid, token);
-        viewModel.fetchTaxReliefItem(userid, widget.categoryId, token);
+        viewModelCategory.fetchTaxReliefCategory(userid, token);
+        viewModelItem.fetchTaxReliefItem(userid, widget.categoryId, token);
       });
     }
   }
@@ -46,13 +44,13 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
         backgroundColor: const Color(0xFF5A7BE7),
         automaticallyImplyLeading: true,
         title: Consumer<TaxReliefViewModel>(
-          builder: (context, viewModel, _) {
+          builder: (context, viewModelCategory, _) {
             final categoryname =
-                viewModel.taxReliefCategory.isNotEmpty
-                    ? viewModel.taxReliefCategory
+            viewModelCategory.taxReliefCategory.isNotEmpty
+                    ? viewModelCategory.taxReliefCategory
                         .firstWhere(
                           (cat) => cat.reliefcategoryid == widget.categoryId,
-                          orElse: () => viewModel.taxReliefCategory.first,
+                          orElse: () => viewModelCategory.taxReliefCategory.first,
                         )
                         .categoryName
                     : 'Tax Relief';
@@ -72,24 +70,25 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
           child: Column(
             children: [
               Consumer<TaxReliefViewModel>(
-                builder: (context, viewModel, _) {
-                  if (viewModel.fetchingData) {
+                builder: (context, viewModelCategory, _) {
+                  if (viewModelCategory.fetchingData) {
                     return Center(child: const CircularProgressIndicator());
                   }
-                  if (viewModel.taxReliefCategory.isEmpty) {
-                    return const Text("No tax relief data found.");
-                  }
+
                   // Find the specific category for this page
-                  final currentCategory = viewModel.taxReliefCategory
+                  final currentCategory = viewModelCategory.taxReliefCategory
                       .firstWhere(
                         (cat) => cat.reliefcategoryid == widget.categoryId,
-                        orElse: () => viewModel.taxReliefCategory.first,
+                        orElse: () => viewModelCategory.taxReliefCategory.first,
                       );
                   final reliefType = currentCategory.categoryName;
                   final description =
                       currentCategory.description ?? 'No description available';
                   final totalUsed = currentCategory.totalUsed;
                   final maxAllowed = currentCategory.totalAvailable;
+                  if (viewModelCategory.taxReliefCategory.isEmpty) {
+                    return const Text("No tax relief data found.");
+                  }
 
                   return Column(
                     children: [
@@ -106,11 +105,11 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
                       Container(
                         height: 400, // Fixed height instead of Expanded
                         child: Consumer<TaxReliefViewModel>(
-                          builder: (context, viewModel, _) {
-                            if (viewModel.fetchingData) {
+                          builder: (context, viewModelItem, _) {
+                            if (viewModelItem.fetchingData) {
                               return Center(child: CircularProgressIndicator());
                             }
-                            if (viewModel.taxReliefItem.isEmpty) {
+                            if (viewModelItem.taxReliefItem.isEmpty) {
                               return Center(
                                 child: Text(
                                   'No tax relief item available',
@@ -125,16 +124,16 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
                             // Show Tax Relief Category
                             return ListView.builder(
                               padding: EdgeInsets.symmetric(horizontal: 8.0),
-                              itemCount: viewModel.taxReliefItem.length,
+                              itemCount: viewModelItem.taxReliefItem.length,
                               itemBuilder: (context, index) {
-                                final item = viewModel.taxReliefItem[index];
+                                final item = viewModelItem.taxReliefItem[index];
+                                print('name: ${item.itemname} \n limit: ${item.totalItemReliefLimit!} used:${item.totalItemClaimedAmount}');
                                 return TaxExemptCard(
                                   //iconBytes: category.iconImage,
                                   title: item.itemname,
-                                  subtitle:
-                                      'Up to RM${item.amountCanClaim.toStringAsFixed(2)}',
-                                  used: item.eligibleAmount,
-                                  limit: item.amountCanClaim,
+                                  subtitle: 'Up to RM${item.totalItemReliefLimit}',
+                                  used: item.totalItemClaimedAmount!,
+                                  limit: item.totalItemReliefLimit!,
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -288,6 +287,7 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
   }
 }
 
+/*
 class TaxReliefCard extends StatefulWidget {
   final String title;
   final double max;
@@ -347,6 +347,7 @@ class _TaxReliefCardState extends State<TaxReliefCard> {
     );
   }
 }
+ */
 
 class TaxExemptCard extends StatefulWidget {
   //final List<int>? iconBytes;
@@ -374,6 +375,7 @@ class _TaxExemptCardState extends State<TaxExemptCard> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final progressValue = widget.limit > 0 ? widget.used / widget.limit : 0.0;
+    //print('limit: ${widget.used} \n user:${widget.limit}');
 
     return GestureDetector(
       onTap: widget.onTap,
