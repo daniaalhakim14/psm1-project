@@ -1,9 +1,11 @@
+import "dart:convert";
 import "dart:typed_data";
 import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
 import "package:fyp/ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart";
 import "package:fyp/ViewModel/taxRelief/taxRelief_viewmodel.dart";
 import "package:fyp/Model/taxRelief.dart";
+import "package:fyp/View/PdfViewerPage.dart";
 import "package:percent_indicator/linear_percent_indicator.dart";
 import "package:provider/provider.dart";
 
@@ -642,20 +644,40 @@ class _TaxReliefCardState extends State<TaxReliefCard> {
                     const SizedBox(width: 8),
                   ],
                   // Receipt button
-                  IconButton(
-                    icon: const Icon(Icons.receipt_long),
-                    onPressed: () {
-                      if (widget.receipt != null &&
-                          widget.receipt!.isNotEmpty) {
-                        _showReceiptDialog(context);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('No receipt available for this item'),
-                          ),
-                        );
-                      }
+                  GestureDetector(
+                    onTap: () {
+                      _openReceipt(widget.receipt);
                     },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(
+                            Icons.picture_as_pdf,
+                            color: Colors.red,
+                            size: 20,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Receipt',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -760,75 +782,139 @@ class _TaxReliefCardState extends State<TaxReliefCard> {
     );
   }
 
+  void _openReceipt(String? receipt) {
+    if (receipt == null || receipt.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No receipt available for this item')),
+      );
+      return;
+    }
+
+    try {
+      // Handle different receipt data formats
+      Uint8List pdfBytes;
+
+      //print('🔍 Receipt Debug Info:');
+      //print('   📄 Receipt length: ${receipt.length}');
+      //print('   📄 Is base64: ${_isBase64(receipt)}');
+
+      // Check if it's hex-encoded data (starts with \\x)
+      if (receipt.startsWith('\\x')) {
+        print('   🔧 Processing hex-encoded data...');
+        pdfBytes = _convertHexStringToBytes(receipt);
+      } else {
+        // Try to parse as JSON first (in case it's a Buffer object)
+        try {
+          final jsonData = jsonDecode(receipt);
+          if (jsonData is Map<String, dynamic> &&
+              jsonData['type'] == 'Buffer' &&
+              jsonData['data'] is List) {
+            print('   📦 Found Buffer object, converting...');
+            final bytes = List<int>.from(jsonData['data']);
+            pdfBytes = Uint8List.fromList(bytes);
+          } else {
+            throw Exception('Not a Buffer object');
+          }
+        } catch (jsonError) {
+          print('   📝 Not JSON or Buffer format, trying other methods...');
+
+          // Check if it's already base64 encoded
+          if (_isBase64(receipt)) {
+            print('   ✅ Decoding as base64');
+            pdfBytes = base64Decode(receipt);
+          } else {
+            print('   ⚠️ Not base64, treating as raw data');
+            // If it's raw data, convert to bytes
+            pdfBytes = Uint8List.fromList(receipt.codeUnits);
+          }
+        }
+      }
+
+      // Validate that we have valid PDF data
+      if (pdfBytes.isEmpty) {
+        throw Exception('Empty PDF data');
+      }
+
+      print('   📊 PDF bytes length: ${pdfBytes.length}');
+
+      // Check for PDF magic number (PDF files start with %PDF)
+      if (pdfBytes.length >= 4) {
+        final header = String.fromCharCodes(pdfBytes.take(4));
+        print('   📋 File header: $header');
+        if (header != '%PDF') {
+          print('   ⚠️ Warning: File does not appear to be a PDF');
+          // Still try to open it, maybe it's a different format
+        }
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PdfViewerPage(pdfBytes: pdfBytes),
+        ),
+      );
+    } catch (e) {
+      print('Error processing receipt: $e');
+      print('Receipt data length: ${receipt.length}');
+      print('Is base64: ${_isBase64(receipt)}');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening receipt: ${e.toString()}'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  bool _isBase64(String str) {
+    try {
+      // Check if string contains only valid base64 characters
+      final base64Regex = RegExp(r'^[A-Za-z0-9+/]*={0,2}$');
+      if (!base64Regex.hasMatch(str)) {
+        return false;
+      }
+
+      // Try to decode to validate
+      base64Decode(str);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Uint8List _convertHexStringToBytes(String hexString) {
+    // Remove the \x prefix and convert hex pairs to bytes
+    String cleanHex = hexString.replaceAll('\\x', '');
+
+    print('   🔧 Clean hex length: ${cleanHex.length}');
+    print(
+      '   🔧 First 20 hex chars: ${cleanHex.length > 20 ? cleanHex.substring(0, 20) : cleanHex}',
+    );
+
+    List<int> bytes = [];
+
+    // Process hex string in pairs
+    for (int i = 0; i < cleanHex.length; i += 2) {
+      if (i + 1 < cleanHex.length) {
+        String hexPair = cleanHex.substring(i, i + 2);
+        try {
+          int byte = int.parse(hexPair, radix: 16);
+          bytes.add(byte);
+        } catch (e) {
+          print('   ❌ Error parsing hex pair: $hexPair at position $i');
+          // Skip invalid hex pairs
+        }
+      }
+    }
+
+    print('   ✅ Converted ${bytes.length} bytes from hex string');
+    return Uint8List.fromList(bytes);
+  }
+
   Color _getConfidenceColor(double confidence) {
     if (confidence >= 0.8) return Colors.green;
     if (confidence >= 0.6) return Colors.orange;
     return Colors.red;
-  }
-
-  void _showReceiptDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              const Icon(Icons.receipt, color: Colors.blue),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Receipt - ${widget.expensename}',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.date != null && widget.date!.isNotEmpty) ...[
-                  Text(
-                    "Date: ${widget.date}",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                Text(
-                  "Amount: RM${widget.expenseamount.toStringAsFixed(2)}",
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                Text(
-                  "Eligible: RM${widget.eligibleamount.toStringAsFixed(2)}",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.green,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 8),
-                const Text(
-                  "Receipt Content:",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(widget.receipt ?? 'No receipt content available'),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
   }
 }

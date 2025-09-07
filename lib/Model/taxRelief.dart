@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 // Total Amount of Tax Relief Can claim
 class TotalCanClaim {
   final double totalRelief;
@@ -145,13 +147,30 @@ class EligibleExpense {
   });
 
   factory EligibleExpense.fromJson(Map<String, dynamic> json) {
+    // Handle receipt data properly - it might be a Buffer object or string
+    String? receiptData;
+    if (json['receipt'] != null) {
+      final rawReceipt = json['receipt'];
+      if (rawReceipt is Map<String, dynamic> &&
+          rawReceipt['type'] == 'Buffer' &&
+          rawReceipt['data'] is List) {
+        // Convert Buffer data to base64 string for easier handling
+        final bytes = List<int>.from(rawReceipt['data']);
+        receiptData = base64Encode(bytes);
+      } else if (rawReceipt is String) {
+        receiptData = rawReceipt;
+      } else {
+        receiptData = rawReceipt?.toString();
+      }
+    }
+
     return EligibleExpense(
       expenseid: int.tryParse(json['expenseid']?.toString() ?? '0') ?? 0,
       expensename: json['expensename']?.toString() ?? '',
       amount: _parseDouble(json['amount']),
       date: json['date']?.toString(),
       description: json['description']?.toString(),
-      receipt: json['receipt']?.toString(),
+      receipt: receiptData,
       eligibleamount: _parseDouble(json['eligibleamount']),
       confidence: _parseDouble(json['confidence']),
       reasoning: json['reasoning']?.toString(),
@@ -209,24 +228,37 @@ class TaxReliefItem {
     this.expenseamount,
     this.eligibleExpenses,
   });
-  factory TaxReliefItem.fromJson(Map<String, dynamic> json) => TaxReliefItem(
-    reliefitemid: int.tryParse(json['reliefitemid'].toString()) ?? 0,
-    itemname: json['itemname'] ?? '',
-    amountCanClaim: _parseDouble(json['amountCanClaim']),
-    eligibleAmount: _parseDouble(json['eligibleAmount']),
-    description: json['description']?.toString(),
-    totalItemReliefLimit: _parseDouble(json['totalItemReliefLimit']),
-    totalItemClaimedAmount: _parseDouble(json['totalItemClaimedAmount']),
-    receipt: json['receipt']?.toString(),
-    expensename: json['expensename']?.toString(),
-    expenseamount: _parseDouble(json['expenseamount']),
-    eligibleExpenses:
-        json['eligibleexpenses'] != null
-            ? (json['eligibleexpenses'] as List<dynamic>)
-                .map((e) => EligibleExpense.fromJson(e as Map<String, dynamic>))
-                .toList()
-            : null,
-  );
+  factory TaxReliefItem.fromJson(Map<String, dynamic> json) {
+    return TaxReliefItem(
+      reliefitemid: int.tryParse(json['reliefitemid'].toString()) ?? 0,
+      itemname: json['itemname'] ?? '',
+      amountCanClaim: _parseDouble(json['amountCanClaim']),
+      eligibleAmount: _parseDouble(json['eligibleAmount']),
+      description: json['description']?.toString(),
+      totalItemReliefLimit: _parseDouble(json['totalItemReliefLimit']),
+      totalItemClaimedAmount: _parseDouble(json['totalItemClaimedAmount']),
+      receipt: _parseReceipt(json['receipt']),
+      expensename: json['expensename']?.toString(),
+      expenseamount: _parseDouble(json['expenseamount']),
+      eligibleExpenses:
+          json['eligibleexpenses'] != null
+              ? (json['eligibleexpenses'] as List<dynamic>)
+                  .map((e) {
+                    try {
+                      return EligibleExpense.fromJson(
+                        e as Map<String, dynamic>,
+                      );
+                    } catch (error) {
+                      print('Error parsing eligible expense: $error');
+                      return null;
+                    }
+                  })
+                  .where((e) => e != null)
+                  .cast<EligibleExpense>()
+                  .toList()
+              : null,
+    );
+  }
 
   static double _parseDouble(dynamic value) {
     if (value == null) return 0.0;
@@ -234,5 +266,22 @@ class TaxReliefItem {
     if (value is int) return value.toDouble();
     if (value is String) return double.tryParse(value) ?? 0.0;
     return 0.0;
+  }
+
+  static dynamic _parseReceipt(dynamic value) {
+    if (value == null) return null;
+
+    // Handle receipt data properly - it might be a Buffer object or string
+    if (value is Map<String, dynamic> &&
+        value['type'] == 'Buffer' &&
+        value['data'] is List) {
+      // Convert Buffer data to base64 string for easier handling
+      final bytes = List<int>.from(value['data']);
+      return base64Encode(bytes);
+    } else if (value is String) {
+      return value;
+    } else {
+      return value?.toString();
+    }
   }
 }
