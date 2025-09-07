@@ -57,6 +57,7 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF5A7BE7),
         automaticallyImplyLeading: true,
@@ -183,6 +184,7 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
     double maxAllowed,
     double totalUsed,
     List<int>? iconBytes,
+
   ) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -193,6 +195,7 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
       height: screenHeight * 0.15,
       child: Card(
         elevation: 4,
+        color: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -516,7 +519,7 @@ class _TaxExemptCardState extends State<TaxExemptCard> {
                 ),
                 // Used amount text
                 Text(
-                  '${widget.used.toStringAsFixed(2)} used',
+                  'RM${widget.used.toStringAsFixed(2)} used',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

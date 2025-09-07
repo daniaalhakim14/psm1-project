@@ -62,6 +62,7 @@ class _taxReliefItemState extends State<taxReliefItem> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF5A7BE7),
         title: Consumer<TaxReliefViewModel>(
@@ -220,6 +221,7 @@ class _taxReliefItemState extends State<taxReliefItem> {
       width: screenWidth * 0.95,
       height: screenHeight * 0.15,
       child: Card(
+        color: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
@@ -520,6 +522,7 @@ class _taxReliefItemState extends State<taxReliefItem> {
     return Container(
       width: screenWidth * 0.95,
       child: Card(
+        color: Colors.white,
         margin: const EdgeInsets.only(bottom: 12),
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

@@ -20,13 +20,6 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
   String? emailError;
   String? passwordError;
   String? repeatPasswordError;
-  String? dobError;
-  String? genderError;
-  String? addressError;
-  //String? cityError;
-  //String? postcodeError;
-  //String? stateError;
-  //String? countryError;
   String? phoneNumberError;
 
   void resetErrors() {
@@ -35,13 +28,6 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     emailError = null;
     passwordError = null;
     repeatPasswordError = null;
-    dobError = null;
-    genderError = null;
-    addressError = null;
-    //cityError = null;
-    //postcodeError = null;
-    //stateError = null;
-    //countryError = null;
     phoneNumberError = null;
     notifyListeners();
   }
@@ -52,13 +38,6 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     required String email,
     required String password,
     required String repeatPassword,
-    required String dob,
-    required String gender,
-    required String address,
-    //equired String city,
-    //required String postcode,
-    //required String state,
-    //required String country,
     required String phoneNumber,
   }) async {
     resetErrors();
@@ -82,30 +61,6 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     if (repeatPassword.isEmpty || password != repeatPassword) {
       repeatPasswordError = 'Passwords do not match';
     }
-    if (dob.isEmpty) {
-      dobError = 'Please enter a valid date of birth';
-    }
-    if (gender.isEmpty) {
-      genderError = 'Please enter your gender';
-    }
-    if (address.isEmpty) {
-      addressError = 'Address cannot be empty';
-    }
-    /*
-    if(city.isEmpty){
-      cityError = 'City canno be empty';
-    }
-    if(postcode.isEmpty){
-      postcodeError = 'City canno be empty';
-    }
-    if(city.isEmpty){
-      stateError = 'City canno be empty';
-    }
-    if(country.isEmpty){
-      countryError = 'City canno be empty';
-    }
-
-     */
     if (phoneNumber.isEmpty ||
         !RegExp(r"^\+?[0-9]{1,4}?[0-9]{7,15}$").hasMatch(phoneNumber)) {
       phoneNumberError = 'Enter a valid phone number';
@@ -116,12 +71,6 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
         emailError != null ||
         passwordError != null ||
         repeatPasswordError != null ||
-        dobError != null ||
-        addressError != null ||
-        //cityError != null ||
-        //postcodeError != null ||
-        //stateError != null ||
-        //countryError != null||
         phoneNumberError != null) {
       notifyListeners();
       return false;
@@ -137,13 +86,6 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
         lastName: lastName,
         email: email,
         password: password,
-        dob: dob,
-        gender: gender,
-        address: address,
-        //city: city,
-        //postcode: postcode,
-        //state: state,
-        //country: country,
         phoneNumber: phoneNumber,
       );
       _isLoading = false;
@@ -156,9 +98,16 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     }
   }
 
-  Future<bool> login(String email, String password, BuildContext context,) async {
+  Future<bool> login(
+    String email,
+    String password,
+    BuildContext context,
+  ) async {
     resetErrors();
-    if (email.isEmpty || !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",).hasMatch(email)) {
+    if (email.isEmpty ||
+        !RegExp(
+          r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+        ).hasMatch(email)) {
       emailError = 'Enter a valid email';
     }
     if (password.isEmpty || password.length < 6) {
@@ -206,12 +155,12 @@ class signUpnLogin_viewmodel extends ChangeNotifier {
     }
   }
 
-  Future<bool> autoLoginWithPrefs(String email,String token)async{
-    try{
+  Future<bool> autoLoginWithPrefs(String email, String token) async {
+    try {
       _token = token;
       await fetchUserDetailsByEmail(email, token);
       return _userInfo != null;
-    }catch (e){
+    } catch (e) {
       print("shared preferences failed: $e");
       return false;
     }

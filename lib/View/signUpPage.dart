@@ -10,10 +10,7 @@ class signUpPage extends StatefulWidget {
   State<signUpPage> createState() => _signUpPageState();
 }
 
-final TextEditingController _firstname = TextEditingController();
-
 class _signUpPageState extends State<signUpPage> {
-  DateTime? selectedDate;
   bool _isPasswordVisible = false;
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -21,17 +18,8 @@ class _signUpPageState extends State<signUpPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _repeatPasswordController =
       TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _genderController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _cityController = TextEditingController();
-  final TextEditingController _postcodeController = TextEditingController();
-  final TextEditingController _stateController = TextEditingController();
-  final TextEditingController _countryController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
 
-  String? selectedGender, selectedCountry, selectedState, selectedCity;
-  final genderOptions = ['Male', 'Female'];
   bool isLoading = false;
 
   Future<void> _signUp() async {
@@ -44,15 +32,7 @@ class _signUpPageState extends State<signUpPage> {
     final String email = _emailController.text;
     final String password = _passwordController.text;
     final String repeatPassword = _repeatPasswordController.text;
-    final String dob = _dobController.text;
-    final String gender = _genderController.text;
-    final String address = _addressController.text;
-    final String city = _cityController.text;
-    final String postcode = _postcodeController.text;
-    final String state = _stateController.text;
-    final String country = _countryController.text;
     final String phoneNumber = _phoneNumberController.text;
-
 
     final success = await viewModel.signUp(
       firstName: firstName,
@@ -60,13 +40,6 @@ class _signUpPageState extends State<signUpPage> {
       email: email,
       password: password,
       repeatPassword: repeatPassword,
-      dob: dob,
-      gender: gender,
-      address: address,
-      //city: city,
-      //postcode: postcode,
-      //state: state,
-      //country: country,
       phoneNumber: phoneNumber,
     );
 
@@ -124,7 +97,10 @@ class _signUpPageState extends State<signUpPage> {
       backgroundColor: Color(0xFFE3ECF5),
       appBar: AppBar(
         backgroundColor: Color(0xFF5A7BE7),
-        title: Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white)),
+        title: Text(
+          'Sign Up',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
@@ -181,66 +157,6 @@ class _signUpPageState extends State<signUpPage> {
                     'Enter your phone number',
                     _phoneNumberController,
                     viewModel.phoneNumberError,
-                  ),
-                  Row(
-                    children: [
-                      Column(
-                        mainAxisSize:
-                            MainAxisSize
-                                .min, // ⬅️ prevents it from taking full height
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start, // aligns to the left
-                        children: [
-                          _textLabel('Date of Birth'),
-                          _dobPickerTextField(
-                            controller: _dobController,
-                            context: context,
-                            width: screenWidth * 0.34,
-                            height: screenHeight * 0.06,
-                            errorText: viewModel.dobError,
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisSize:
-                            MainAxisSize
-                                .min, // ⬅️ prevents it from taking full height
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start, // aligns to the left
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(left: screenWidth * 0.02),
-                            child: _textLabel('Gender'),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: screenWidth * 0.04),
-                            child: _customDropdown(
-                              label: 'Gender',
-                              items: genderOptions,
-                              selectedValue: selectedGender,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedGender = value;
-                                  _genderController.text =
-                                      value ??
-                                      ''; // <-- this line makes the fix
-                                });
-                              },
-                              errorText: viewModel.genderError,
-                              width: screenWidth * 0.29,
-                              height: screenHeight * 0.06,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  _textLabel('Address'),
-                  _inputTextField(
-                    'Address',
-                    'Enter your Address',
-                    _addressController,
-                    viewModel.addressError,
                   ),
                   /*
                   CSCPickerPlus(
@@ -329,7 +245,6 @@ class _signUpPageState extends State<signUpPage> {
   ) {
     final screenSize = MediaQuery.of(context).size;
     final double screenWidth = screenSize.width;
-    final double screenHeight = screenSize.height;
     return Padding(
       padding: EdgeInsets.only(
         left: screenWidth * 0.05,
@@ -397,7 +312,6 @@ class _signUpPageState extends State<signUpPage> {
   ) {
     final screenSize = MediaQuery.of(context).size;
     final double screenWidth = screenSize.width;
-    final double screenHeight = screenSize.height;
     return Padding(
       padding: EdgeInsets.only(
         left: screenWidth * 0.05,
@@ -493,175 +407,5 @@ class _signUpPageState extends State<signUpPage> {
         ),
       ),
     );
-  }
-
-  Widget _dobPickerTextField({
-    required TextEditingController controller,
-    required BuildContext context,
-    double width = double.infinity,
-    double height = 55,
-    String label = 'dd/mm/yyyy',
-    String hint = 'Select your date of birth',
-    String? errorText,
-  }) {
-    final screenSize = MediaQuery.of(context).size;
-    final double screenWidth = screenSize.width;
-    final double screenHeight = screenSize.height;
-    return Padding(
-      padding: EdgeInsets.only(left: screenWidth * 0.05),
-      child: GestureDetector(
-        onTap: () async {
-          final DateTime now = DateTime.now();
-          final DateTime? picked = await showDatePicker(
-            context: context,
-            initialDate: DateTime(1950, 1, 1),
-            firstDate: DateTime(1900),
-            lastDate: DateTime(now.year, now.month, now.day),
-            helpText: 'Date of Birth',
-          );
-          if (picked != null) {
-            controller.text =
-                '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
-          }
-        },
-        child: AbsorbPointer(
-          child: SizedBox(
-            width: width,
-            height: height,
-            child: TextField(
-              controller: controller,
-              decoration: InputDecoration(
-                labelText: label,
-                hintText: hint,
-                hintStyle: const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-                labelStyle: const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(width: 2.5),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.grey, width: 2.5),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue, width: 2.5),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2.5),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2.5),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                errorText: errorText,
-                errorStyle: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _customDropdown({
-    required String label,
-    required List<String> items,
-    required String? selectedValue,
-    required void Function(String?) onChanged,
-    String? errorText,
-    double? width,
-    double height = 55,
-  }) {
-    final screenSize = MediaQuery.of(context).size;
-    final double screenWidth = screenSize.width;
-    final double screenHeight = screenSize.height;
-    return Padding(
-      padding: EdgeInsets.only(left: screenWidth * 0.03),
-      child: SizedBox(
-        width: width ?? double.infinity,
-        height: height,
-        child: DropdownButtonFormField<String>(
-          value: selectedValue,
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: const TextStyle(
-              color: Colors.grey,
-              fontWeight: FontWeight.bold,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(width: 2.5),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(width: 2.5, color: Colors.grey),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(width: 2.5, color: Colors.blue),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(width: 2.5, color: Colors.red),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(width: 2.5, color: Colors.red),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            errorText: errorText,
-            errorStyle: const TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 14,
-            ),
-          ),
-          items:
-              items.map((item) {
-                return DropdownMenuItem<String>(value: item, child: Text(item));
-              }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickDate() async {
-    DateTime now = DateTime.now();
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate ?? DateTime(2002, 11, 1),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(now.year, now.month, now.day),
-      helpText: 'Select Date of Birth',
-    );
-
-    if (picked != null) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
-  }
-
-  String get formattedDate {
-    if (selectedDate == null) return 'Select your date of birth';
-    return '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
   }
 }

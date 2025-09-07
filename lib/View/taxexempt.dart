@@ -219,8 +219,7 @@ class _taxExemptState extends State<taxExempt> {
                         return TaxExemptCard(
                           iconBytes: category.iconImage,
                           title: category.categoryName,
-                          subtitle:
-                              'Up to RM${category.amountCanClaim.toStringAsFixed(2)}',
+                          subtitle: 'Up to RM${category.amountCanClaim.toStringAsFixed(2)}',
                           used: category.eligibleAmount,
                           limit: category.amountCanClaim,
                           onTap: () {
@@ -296,8 +295,7 @@ class _taxExemptState extends State<taxExempt> {
                 size: 48,
                 color: Colors.black,
               ),
-            ),
-          ],
+            ),],
         ),
       ),
     );
@@ -408,7 +406,7 @@ class _TaxExemptCardState extends State<TaxExemptCard> {
                 ),
                 // Used amount text
                 Text(
-                  '${widget.used.toStringAsFixed(2)} used',
+                  'RM${widget.used.toStringAsFixed(2)} used',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
