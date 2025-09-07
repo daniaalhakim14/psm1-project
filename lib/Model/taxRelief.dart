@@ -120,6 +120,66 @@ class TaxReliefCategory {
   }
 }
 
+// Eligible Expense model for individual expense details
+class EligibleExpense {
+  final int expenseid;
+  final String expensename;
+  final double amount;
+  final String? date;
+  final String? description;
+  final String? receipt;
+  final double eligibleamount;
+  final double? confidence;
+  final String? reasoning;
+
+  EligibleExpense({
+    required this.expenseid,
+    required this.expensename,
+    required this.amount,
+    this.date,
+    this.description,
+    this.receipt,
+    required this.eligibleamount,
+    this.confidence,
+    this.reasoning,
+  });
+
+  factory EligibleExpense.fromJson(Map<String, dynamic> json) {
+    return EligibleExpense(
+      expenseid: int.tryParse(json['expenseid']?.toString() ?? '0') ?? 0,
+      expensename: json['expensename']?.toString() ?? '',
+      amount: _parseDouble(json['amount']),
+      date: json['date']?.toString(),
+      description: json['description']?.toString(),
+      receipt: json['receipt']?.toString(),
+      eligibleamount: _parseDouble(json['eligibleamount']),
+      confidence: _parseDouble(json['confidence']),
+      reasoning: json['reasoning']?.toString(),
+    );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  @override
+  String toString() {
+    return 'EligibleExpense{'
+        'expenseid: $expenseid, '
+        'expensename: "$expensename", '
+        'amount: RM$amount, '
+        'eligibleamount: RM$eligibleamount, '
+        'confidence: ${confidence != null ? '${(confidence! * 100).toInt()}%' : 'null'}, '
+        'date: $date, '
+        'reasoning: "${reasoning ?? 'null'}"'
+        '}';
+  }
+}
+
 class TaxReliefItem {
   final int reliefitemid;
   final String itemname;
@@ -130,6 +190,11 @@ class TaxReliefItem {
   totalItemReliefLimit; // To show total Amount of Tax Relief Can claim for a item
   final double?
   totalItemClaimedAmount; // To show total Amount of Tax Relief Eligible claimed for a item
+  final String? receipt; // Receipt from eligible expenses
+  final String? expensename; // Expense name from eligible expenses
+  final double? expenseamount; // Expense amount from eligible expenses
+  final List<EligibleExpense>?
+  eligibleExpenses; // List of all eligible expenses
 
   TaxReliefItem({
     required this.reliefitemid,
@@ -139,19 +204,28 @@ class TaxReliefItem {
     this.description,
     this.totalItemReliefLimit,
     this.totalItemClaimedAmount,
+    this.receipt,
+    this.expensename,
+    this.expenseamount,
+    this.eligibleExpenses,
   });
   factory TaxReliefItem.fromJson(Map<String, dynamic> json) => TaxReliefItem(
     reliefitemid: int.tryParse(json['reliefitemid'].toString()) ?? 0,
-    itemname: json['itemname'],
+    itemname: json['itemname'] ?? '',
     amountCanClaim: _parseDouble(json['amountCanClaim']),
     eligibleAmount: _parseDouble(json['eligibleAmount']),
-    description: json['description'],
-    totalItemReliefLimit: _parseDouble(
-      json['totalItemReliefLimit'],
-    ), // From SQL: COALESCE(tri.reliefamount, 0) AS totalItemReliefLimit
-    totalItemClaimedAmount: _parseDouble(
-      json['totalItemClaimedAmount'],
-    ), // From SQL: COALESCE(SUM(ee.eligibleamount), 0) AS totalItemClaimedAmount
+    description: json['description']?.toString(),
+    totalItemReliefLimit: _parseDouble(json['totalItemReliefLimit']),
+    totalItemClaimedAmount: _parseDouble(json['totalItemClaimedAmount']),
+    receipt: json['receipt']?.toString(),
+    expensename: json['expensename']?.toString(),
+    expenseamount: _parseDouble(json['expenseamount']),
+    eligibleExpenses:
+        json['eligibleexpenses'] != null
+            ? (json['eligibleexpenses'] as List<dynamic>)
+                .map((e) => EligibleExpense.fromJson(e as Map<String, dynamic>))
+                .toList()
+            : null,
   );
 
   static double _parseDouble(dynamic value) {

@@ -59,175 +59,190 @@ class _taxExemptState extends State<taxExempt> {
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF5A7BE7),
       ),
-      body: Column(
-        children: [
-          SizedBox(height: 8),
-          // Top container
-          Container(
-            width: screenWidth * 0.98,
-            height: screenHeight * 0.10,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 8,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Consumer<TaxReliefViewModel>(
-              builder: (context, viewModel, _) {
-                if (viewModel.fetchingData) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (viewModel.totalItemAmount.isEmpty ||
-                    viewModel.totalEligibleClaim.isEmpty) {
-                  return Text("No data");
-                }
-                final totalRelief =
-                    viewModel.totalItemAmount.isNotEmpty
-                        ? viewModel.totalItemAmount.first.totalRelief
-                        : 0.0;
-                final totalEligible =
-                    viewModel.totalEligibleClaim.isNotEmpty
-                        ? viewModel.totalEligibleClaim.first.claimedamount
-                        : 0.0;
-                return Row(
-                  children: [
-                    Column(
-                      mainAxisAlignment:
-                          MainAxisAlignment.center, // Center row content
-                      children: [
-                        Row(
-                          children: [
-                            Image.asset('assets/Icons/claim.png', scale: 12),
-                            Column(
-                              children: [
-                                Text(
-                                  'Total Eligible Claim:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text('RM${totalEligible.toStringAsFixed(2)}'),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(width: 8),
-                    VerticalDivider(
-                      width: 2,
-                      thickness: 1,
-                      color: Colors.black,
-                    ),
-                    SizedBox(width: 8),
-                    Column(
-                      mainAxisAlignment:
-                          MainAxisAlignment.center, // Center row content
-                      children: [
-                        Row(
-                          children: [
-                            Image.asset(
-                              'assets/Icons/Remaining.png',
-                              scale: 12,
-                            ),
-                            Column(
-                              children: [
-                                Text(
-                                  'Remaining Relief:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text('RM${totalRelief.toStringAsFixed(2)}'),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            width: screenWidth * 0.95,
-            height: screenHeight * 0.10,
-            decoration: BoxDecoration(
-              // fully transparent:
-              color: Colors.white.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.black26, width: 1.0),
-            ),
-            child: Row(
-              children: [
-                SizedBox(width: 6),
-                Image.asset('assets/Icons/information.png', scale: 10),
-                SizedBox(width: 6),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Track your tax reliefs',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      'Automatically maps you receipts to\neligible tax relief',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 8),
-          Expanded(
-            child: Consumer<TaxReliefViewModel>(
-              builder: (context, viewModel, _) {
-                if (viewModel.fetchingData) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (viewModel.taxReliefCategory.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No tax relief categories available',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                    ),
-                  );
-                }
+      body: Consumer<TaxReliefViewModel>(
+        builder: (context, viewModel, _) {
+          if (viewModel.fetchingData) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                // Show Tax Relief Category
-                return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  itemCount: viewModel.taxReliefCategory.length,
-                  itemBuilder: (context, index) {
-                    final category = viewModel.taxReliefCategory[index];
-                    return TaxExemptCard(
-                      iconBytes: category.iconImage,
-                      title: category.categoryName,
-                      subtitle: 'Up to RM${category.amountCanClaim.toStringAsFixed(2)}',
-                      used: category.eligibleAmount,
-                      limit: category.amountCanClaim,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => taxReliefCategory(
-                                  categoryId: category.reliefcategoryid,
+          return Column(
+            children: [
+              SizedBox(height: 8),
+              // Top container
+              Container(
+                width: screenWidth * 0.98,
+                height: screenHeight * 0.10,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Builder(
+                  builder: (context) {
+                    if (viewModel.totalItemAmount.isEmpty ||
+                        viewModel.totalEligibleClaim.isEmpty) {
+                      return Center(child: Text("No data"));
+                    }
+                    final totalRelief =
+                        viewModel.totalItemAmount.isNotEmpty
+                            ? viewModel.totalItemAmount.first.totalRelief
+                            : 0.0;
+                    final totalEligible =
+                        viewModel.totalEligibleClaim.isNotEmpty
+                            ? viewModel.totalEligibleClaim.first.claimedamount
+                            : 0.0;
+                    return Row(
+                      children: [
+                        Column(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center, // Center row content
+                          children: [
+                            Row(
+                              children: [
+                                Image.asset(
+                                  'assets/Icons/claim.png',
+                                  scale: 12,
                                 ),
+                                Column(
+                                  children: [
+                                    Text(
+                                      'Total Eligible Claim:',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'RM${totalEligible.toStringAsFixed(2)}',
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 8),
+                        VerticalDivider(
+                          width: 2,
+                          thickness: 1,
+                          color: Colors.black,
+                        ),
+                        SizedBox(width: 8),
+                        Column(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center, // Center row content
+                          children: [
+                            Row(
+                              children: [
+                                Image.asset(
+                                  'assets/Icons/Remaining.png',
+                                  scale: 12,
+                                ),
+                                Column(
+                                  children: [
+                                    Text(
+                                      'Remaining Relief:',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text('RM${totalRelief.toStringAsFixed(2)}'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: screenWidth * 0.95,
+                height: screenHeight * 0.10,
+                decoration: BoxDecoration(
+                  // fully transparent:
+                  color: Colors.white.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.black26, width: 1.0),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(width: 6),
+                    Image.asset('assets/Icons/information.png', scale: 10),
+                    SizedBox(width: 6),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Track your tax reliefs',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Automatically maps you receipts to\neligible tax relief',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 8),
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    if (viewModel.taxReliefCategory.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No tax relief categories available',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
                           ),
+                        ),
+                      );
+                    }
+
+                    // Show Tax Relief Category
+                    return ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      itemCount: viewModel.taxReliefCategory.length,
+                      itemBuilder: (context, index) {
+                        final category = viewModel.taxReliefCategory[index];
+                        return TaxExemptCard(
+                          iconBytes: category.iconImage,
+                          title: category.categoryName,
+                          subtitle:
+                              'Up to RM${category.amountCanClaim.toStringAsFixed(2)}',
+                          used: category.eligibleAmount,
+                          limit: category.amountCanClaim,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => taxReliefCategory(
+                                      categoryId: category.reliefcategoryid,
+                                    ),
+                              ),
+                            );
+                          },
                         );
                       },
                     );
                   },
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,

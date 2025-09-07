@@ -52,15 +52,37 @@ class TaxReliefRepository {
     }
   }
 
-  Future<List<TaxReliefItem>> getTaxReliefItem(int userid, int categoryid, String token,) async {
+  Future<List<TaxReliefItem>> getTaxReliefItem(
+    int userid,
+    int categoryid,
+    String token,
+  ) async {
     final response = await _service.fetchReliefItem(categoryid, userid, token);
+    print("🚀 TaxReliefItem API Call Details:");
+    print("   📍 URL: /taxRelief/getReliefItem/$categoryid/$userid");
+    print("   👤 User ID: $userid");
+    print("   🏷️ Category ID: $categoryid");
+    print("   📱 Status Code: ${response.statusCode}");
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       print("🔍 TaxReliefItem API Response: ${response.body}");
+      print("📊 Response Type: ${data.runtimeType}");
+      print("📝 Data Length: ${data is List ? data.length : 'Not a List'}");
+
+      if (data is List && data.isEmpty) {
+        print("⚠️ Empty response - possible causes:");
+        print("   • No eligible expenses found for this tax relief item");
+        print("   • CategoryID $categoryid might not exist or have no items");
+        print("   • UserID $userid might not have expenses for this category");
+        print("   • Database query might need different parameters");
+      }
+
       return List<TaxReliefItem>.from(
         data.map((x) => TaxReliefItem.fromJson(x)),
       );
     } else {
+      print("❌ API Error: ${response.statusCode} - ${response.body}");
       throw Exception('Failed to fetch Tax Relief Item: ${response.body}');
     }
   }

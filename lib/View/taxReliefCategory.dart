@@ -16,9 +16,20 @@ class taxReliefCategory extends StatefulWidget {
 }
 
 class _taxReliefCategoryState extends State<taxReliefCategory> {
+  bool _isDescriptionExpanded = false; // Add this state variable
+
   @override
   void initState() {
     super.initState();
+    _fetchData();
+  }
+
+  // This method will be called when we come back from taxReliefItem page
+  void _refreshData() {
+    _fetchData();
+  }
+
+  void _fetchData() {
     final userid =
         Provider.of<signUpnLogin_viewmodel>(
           context,
@@ -28,8 +39,14 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
         Provider.of<signUpnLogin_viewmodel>(context, listen: false).authToken;
     if (token != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final viewModelCategory = Provider.of<TaxReliefViewModel>(context, listen: false,);
-        final viewModelItem = Provider.of<TaxReliefViewModel>(context, listen: false,);
+        final viewModelCategory = Provider.of<TaxReliefViewModel>(
+          context,
+          listen: false,
+        );
+        final viewModelItem = Provider.of<TaxReliefViewModel>(
+          context,
+          listen: false,
+        );
         // Fetch tax relief categories for the user - this will include our specific category
         viewModelCategory.fetchTaxReliefCategory(userid, token);
         viewModelItem.fetchTaxReliefItem(userid, widget.categoryId, token);
@@ -46,11 +63,12 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
         title: Consumer<TaxReliefViewModel>(
           builder: (context, viewModelCategory, _) {
             final categoryname =
-            viewModelCategory.taxReliefCategory.isNotEmpty
+                viewModelCategory.taxReliefCategory.isNotEmpty
                     ? viewModelCategory.taxReliefCategory
                         .firstWhere(
                           (cat) => cat.reliefcategoryid == widget.categoryId,
-                          orElse: () => viewModelCategory.taxReliefCategory.first,
+                          orElse:
+                              () => viewModelCategory.taxReliefCategory.first,
                         )
                         .categoryName
                     : 'Tax Relief';
@@ -65,108 +83,97 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
         ),
       ),
 
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
+      body: Consumer<TaxReliefViewModel>(
+        builder: (context, viewModelCategory, _) {
+          if (viewModelCategory.fetchingData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (viewModelCategory.taxReliefCategory.isEmpty) {
+            return const Center(child: Text("No tax relief data found."));
+          }
+
+          // Find the specific category for this page
+          final currentCategory = viewModelCategory.taxReliefCategory
+              .firstWhere(
+                (cat) => cat.reliefcategoryid == widget.categoryId,
+                orElse: () => viewModelCategory.taxReliefCategory.first,
+              );
+          final reliefType = currentCategory.categoryName;
+          final description =
+              currentCategory.description ?? 'No description available';
+          final totalUsed = currentCategory.totalUsed;
+          final maxAllowed = currentCategory.totalAvailable;
+
+          return Column(
             children: [
-              Consumer<TaxReliefViewModel>(
-                builder: (context, viewModelCategory, _) {
-                  if (viewModelCategory.fetchingData) {
-                    return Center(child: const CircularProgressIndicator());
-                  }
-
-                  // Find the specific category for this page
-                  final currentCategory = viewModelCategory.taxReliefCategory
-                      .firstWhere(
-                        (cat) => cat.reliefcategoryid == widget.categoryId,
-                        orElse: () => viewModelCategory.taxReliefCategory.first,
-                      );
-                  final reliefType = currentCategory.categoryName;
-                  final description =
-                      currentCategory.description ?? 'No description available';
-                  final totalUsed = currentCategory.totalUsed;
-                  final maxAllowed = currentCategory.totalAvailable;
-                  if (viewModelCategory.taxReliefCategory.isEmpty) {
-                    return const Text("No tax relief data found.");
-                  }
-
-                  return Column(
-                    children: [
-                      _buildSummaryCard(
-                        reliefType,
-                        maxAllowed,
-                        totalUsed,
-                        currentCategory.iconImage,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildDescriptionBox(description),
-                      const SizedBox(height: 8),
-                      // Since we consolidated models, we show the category info as a card
-                      Container(
-                        height: 400, // Fixed height instead of Expanded
-                        child: Consumer<TaxReliefViewModel>(
-                          builder: (context, viewModelItem, _) {
-                            if (viewModelItem.fetchingData) {
-                              return Center(child: CircularProgressIndicator());
-                            }
-                            if (viewModelItem.taxReliefItem.isEmpty) {
-                              return Center(
-                                child: Text(
-                                  'No tax relief item available',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              );
-                            }
-
-                            // Show Tax Relief Category
-                            return ListView.builder(
-                              padding: EdgeInsets.symmetric(horizontal: 8.0),
-                              itemCount: viewModelItem.taxReliefItem.length,
-                              itemBuilder: (context, index) {
-                                final item = viewModelItem.taxReliefItem[index];
-                                print('name: ${item.itemname} \n limit: ${item.totalItemReliefLimit!} used:${item.totalItemClaimedAmount}');
-                                return TaxExemptCard(
-                                  //iconBytes: category.iconImage,
-                                  title: item.itemname,
-                                  subtitle: 'Up to RM${item.totalItemReliefLimit}',
-                                  used: item.totalItemClaimedAmount!,
-                                  limit: item.totalItemReliefLimit!,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => taxReliefItem(
-                                              categoryId: item.reliefitemid,
-                                              iconImage:
-                                                  currentCategory.iconImage,
-                                            ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            );
-                          },
+              // Fixed header section (Summary + Description)
+              _buildSummaryCard(
+                reliefType,
+                maxAllowed,
+                totalUsed,
+                currentCategory.iconImage,
+              ),
+              const SizedBox(height: 8),
+              _buildDescriptionBox(description),
+              const SizedBox(height: 8),
+              // Scrollable list section
+              Expanded(
+                child: Consumer<TaxReliefViewModel>(
+                  builder: (context, viewModelItem, _) {
+                    if (viewModelItem.fetchingData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (viewModelItem.taxReliefItem.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No tax relief item available',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
                         ),
-                      ),
-                      /*
-                      TaxReliefCard(
-                        title: currentCategory.categoryName,
-                        max: currentCategory.totalAvailable,
-                        used: currentCategory.totalUsed,
-                      ),
-                       */
-                    ],
-                  );
-                },
+                      );
+                    }
+
+                    // Scrollable list of tax relief items
+                    return ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      itemCount: viewModelItem.taxReliefItem.length,
+                      itemBuilder: (context, index) {
+                        final item = viewModelItem.taxReliefItem[index];
+                        return TaxExemptCard(
+                          title: item.itemname,
+                          subtitle: 'Up to RM${item.totalItemReliefLimit}',
+                          used: item.totalItemClaimedAmount!,
+                          limit: item.totalItemReliefLimit!,
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => taxReliefItem(
+                                      categoryId:
+                                          widget
+                                              .categoryId, // Use the parent category ID
+                                      itemId:
+                                          item.reliefitemid, // Use the specific item ID
+                                      iconImage: currentCategory.iconImage,
+                                    ),
+                              ),
+                            );
+                            // Refresh data when returning from taxReliefItem
+                            _refreshData();
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -256,31 +263,84 @@ class _taxReliefCategoryState extends State<taxReliefCategory> {
         elevation: 2,
         color: Colors.blue.shade50,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "📘 Description",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        child: Column(
+          children: [
+            // Header that's always visible and clickable
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _isDescriptionExpanded = !_isDescriptionExpanded;
+                });
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Text(
+                      "📘 Description & Disclosures",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    AnimatedRotation(
+                      turns: _isDescriptionExpanded ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 6),
-              Text(description, style: const TextStyle(fontSize: 14)),
-              const SizedBox(height: 12),
-              const Text(
-                "📌 Disclosures",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            // Expandable content
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Divider(color: Colors.blue, thickness: 1),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "📘 Description",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(description, style: const TextStyle(fontSize: 14)),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "📌 Disclosures",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      "• Claims must be backed with valid documentation (e.g., receipts, certificates).\n"
+                      "• Limits apply per relief type.\n"
+                      "• Some claims require special certifications (e.g., JKM or medical confirmation).",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 6),
-              const Text(
-                "• Claims must be backed with valid documentation (e.g., receipts, certificates).\n"
-                "• Limits apply per relief type.\n"
-                "• Some claims require special certifications (e.g., JKM or medical confirmation).",
-                style: TextStyle(fontSize: 14),
-              ),
-            ],
-          ),
+              crossFadeState:
+                  _isDescriptionExpanded
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 300),
+            ),
+          ],
         ),
       ),
     );
