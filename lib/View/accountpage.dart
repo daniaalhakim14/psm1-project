@@ -6,11 +6,13 @@ import 'package:fyp/View/firstpage.dart';
 import 'package:fyp/View/homepage.dart';
 import 'package:fyp/View/taxexempt.dart';
 import 'package:fyp/View/editProfilePage.dart';
+import 'package:fyp/View/report/report_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 
 import '../Model/signupLoginpage.dart';
 import '../ViewModel/editProfile/editProfile_viewmodel.dart';
+import '../ViewModel/report/report_viewmodel.dart';
 import 'comparepricepage.dart';
 
 class accountpage extends StatefulWidget {
@@ -256,7 +258,16 @@ class _accountpageState extends State<accountpage> {
                     iconPath: 'assets/Icons/report.png',
                     label: 'Generate Report',
                     onTap: () {
-                      // toggle theme
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => ChangeNotifierProvider(
+                                create: (context) => ReportViewModel(),
+                                child: ReportPage(userInfo: currentUserInfo),
+                              ),
+                        ),
+                      );
                     },
                   ),
                 ],

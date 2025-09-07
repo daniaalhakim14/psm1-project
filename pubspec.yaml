@@ -54,6 +54,7 @@ dependencies:
   geolocator: ^14.0.1
   file_picker: ^10.2.0
   printing: ^5.14.2
+  pdf: ^3.10.4
   percent_indicator: ^4.2.5
   permission_handler: ^12.0.1
   dio: ^5.9.0
