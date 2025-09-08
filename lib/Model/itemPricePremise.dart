@@ -127,9 +127,9 @@ class itemSearch {
       itemgroup: json['itemgroup'],
       itemcategory: json['itemcategory'],
       itemimage:
-      json['itemimage'] != null
-          ? base64Decode(json['itemimage']) // Decode Base64 to Uint8List
-          : null,
+          json['itemimage'] != null
+              ? base64Decode(json['itemimage']) // Decode Base64 to Uint8List
+              : null,
       premiseid: int.parse(json['premiseid'].toString()),
       price: double.parse(json['price'].toString()),
       premisename: json['premisename'],
@@ -138,7 +138,8 @@ class itemSearch {
       state: json['state'],
       district: json['district'],
     );
-  }  Map<String, dynamic> toJson() {
+  }
+  Map<String, dynamic> toJson() {
     return {
       'itemcode': itemcode,
       'itemname': itemname,
@@ -148,7 +149,7 @@ class itemSearch {
       'itemgroup': itemgroup,
       'itemcategory': itemcategory,
       'image':
-      itemimage, // Consider converting to base64 if sending as JSON string
+          itemimage, // Consider converting to base64 if sending as JSON string
       'premiseid': premiseid,
       'price': price,
       'premisename': premisename,
@@ -206,6 +207,26 @@ class itemBestDeals {
       }
     }
 
+    // Parse latitude and longitude
+    double? parsedLatitude;
+    double? parsedLongitude;
+
+    if (json['latitude'] != null) {
+      if (json['latitude'] is num) {
+        parsedLatitude = json['latitude'].toDouble();
+      } else {
+        parsedLatitude = double.tryParse(json['latitude'].toString());
+      }
+    }
+
+    if (json['longitude'] != null) {
+      if (json['longitude'] is num) {
+        parsedLongitude = json['longitude'].toDouble();
+      } else {
+        parsedLongitude = double.tryParse(json['longitude'].toString());
+      }
+    }
+
     return itemBestDeals(
       itemcode: int.parse(json['itemcode'].toString()),
       itemname: json['itemname'] as String,
@@ -214,8 +235,16 @@ class itemBestDeals {
       itemimage:
           json['itemimage'] != null ? base64Decode(json['itemimage']) : null,
       price: parsedPrice,
+      premiseid:
+          json['premiseid'] != null
+              ? int.tryParse(json['premiseid'].toString())
+              : null,
       premisename: json['premisename'] as String?,
       address: json['address'] as String?,
+      state: json['state'] as String?,
+      district: json['district'] as String?,
+      latitude: parsedLatitude,
+      longitude: parsedLongitude,
     );
   }
 
@@ -254,7 +283,7 @@ class storeLocation {
     this.state,
     this.latitude,
     this.longitude,
-    this.image
+    this.image,
   });
 
   factory storeLocation.fromJSON(Map<String, dynamic> json) {
@@ -271,4 +300,3 @@ class storeLocation {
     );
   }
 }
-

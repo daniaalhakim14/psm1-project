@@ -98,33 +98,52 @@ class _TaxReliefTabState extends State<TaxReliefTab> {
   }
 
   Widget _buildSummaryCards(ReportViewModel reportViewModel) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _buildSummaryCard(
-            'Total Eligible',
-            _currencyFormat.format(reportViewModel.totalTaxReliefEligible),
-            Icons.check_circle,
-            Colors.green,
-          ),
+        // Top row: Total Limit and Remaining
+        Row(
+          children: [
+            Expanded(
+              child: _buildSummaryCard(
+                'Total Limit',
+                _currencyFormat.format(reportViewModel.totalTaxReliefLimit),
+                Icons.account_balance,
+                Colors.blue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSummaryCard(
+                'Remaining',
+                _currencyFormat.format(reportViewModel.totalTaxReliefRemaining),
+                Icons.savings,
+                Colors.orange,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSummaryCard(
-            'Total Limit',
-            _currencyFormat.format(reportViewModel.totalTaxReliefLimit),
-            Icons.account_balance,
-            Colors.blue,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSummaryCard(
-            'Remaining',
-            _currencyFormat.format(reportViewModel.totalTaxReliefRemaining),
-            Icons.savings,
-            Colors.orange,
-          ),
+        const SizedBox(height: 12),
+        // Bottom row: Total Eligible (centered and wider)
+        Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Container(), // Left spacer
+            ),
+            Expanded(
+              flex: 2,
+              child: _buildSummaryCard(
+                'Total Eligible',
+                _currencyFormat.format(reportViewModel.totalTaxReliefEligible),
+                Icons.check_circle,
+                Colors.green,
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Container(), // Right spacer
+            ),
+          ],
         ),
       ],
     );

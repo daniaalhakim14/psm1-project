@@ -591,6 +591,7 @@ class _TaxReliefCardState extends State<TaxReliefCard> {
     return Container(
       width: screenWidth * 0.95,
       child: Card(
+        color: Colors.white,
         margin: const EdgeInsets.only(bottom: 12),
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -769,7 +770,11 @@ class _TaxReliefCardState extends State<TaxReliefCard> {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: [
-                        const Icon(Icons.psychology, size: 16, color: Colors.blue),
+                        const Icon(
+                          Icons.psychology,
+                          size: 16,
+                          color: Colors.blue,
+                        ),
                         const SizedBox(width: 4),
                         const Text(
                           "AI Reasoning:",
@@ -806,9 +811,10 @@ class _TaxReliefCardState extends State<TaxReliefCard> {
                       ),
                     ),
                   ),
-                  crossFadeState: _isReasoningExpanded
-                      ? CrossFadeState.showSecond
-                      : CrossFadeState.showFirst,
+                  crossFadeState:
+                      _isReasoningExpanded
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
                   duration: const Duration(milliseconds: 300),
                 ),
               ],

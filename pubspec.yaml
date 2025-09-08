@@ -60,9 +60,12 @@ dependencies:
   dio: ^5.9.0
   intl: ^0.19.0
 
+
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.1
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -89,6 +92,7 @@ flutter:
     - assets/Icons/
     - assets/Gifs/
     - assets/Stickers/
+    - assets/MyManageMateLogo.png
   #   - images/a_dot_ham.jpeg
 
 flutter_native_splash:
@@ -121,6 +125,13 @@ flutter_native_splash:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/MyManageMateLogo.png"
+  # adaptive_icon_background: "#ffffff" # Optional: for Android adaptive icons
+  # adaptive_icon_foreground: "assets/images/logo.png" # Optional: for Android adaptive icons
 
 
 

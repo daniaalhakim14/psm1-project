@@ -6,6 +6,7 @@ import '../../ViewModel/report/report_viewmodel.dart';
 import 'widgets/spending_analysis_tab.dart';
 import 'widgets/tax_relief_tab.dart';
 import 'widgets/report_filters.dart';
+import 'widgets/tax_relief_filters.dart';
 import 'widgets/pdf_export_service.dart';
 
 class ReportPage extends StatefulWidget {
@@ -20,18 +21,29 @@ class ReportPage extends StatefulWidget {
 class _ReportPageState extends State<ReportPage> with TickerProviderStateMixin {
   late TabController _tabController;
   final PdfExportService _pdfExportService = PdfExportService();
+  int _currentTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
     _loadInitialData();
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) {
+      setState(() {
+        _currentTabIndex = _tabController.index;
+      });
+    }
   }
 
   void _loadInitialData() {
@@ -158,24 +170,36 @@ class _ReportPageState extends State<ReportPage> with TickerProviderStateMixin {
           Consumer<ReportViewModel>(
             builder: (context, reportViewModel, child) {
               return IconButton(
-                onPressed: reportViewModel.isGeneratingPdf ? null : _exportToPdf,
-                icon: reportViewModel.isGeneratingPdf ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white,
-                    ),
-                  ),
-                ) : const Icon(Icons.picture_as_pdf, color: Colors.white),
+                onPressed:
+                    reportViewModel.isGeneratingPdf ? null : _exportToPdf,
+                icon:
+                    reportViewModel.isGeneratingPdf
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : const Icon(Icons.picture_as_pdf, color: Colors.white),
                 tooltip: 'Export to PDF',
               );
             },
           ),
-          IconButton(onPressed: _refreshData, icon: const Icon(Icons.refresh, color: Colors.white), tooltip: 'Refresh Data',),
+          IconButton(
+            onPressed: _refreshData,
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            tooltip: 'Refresh Data',
+          ),
         ],
-        bottom: TabBar(controller: _tabController, indicatorColor: Colors.white, labelColor: Colors.white, unselectedLabelColor: Colors.white70,
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
           tabs: const [
             Tab(icon: Icon(Icons.analytics), text: 'Spending Analysis'),
             Tab(icon: Icon(Icons.receipt_long), text: 'Tax Relief'),
@@ -184,8 +208,14 @@ class _ReportPageState extends State<ReportPage> with TickerProviderStateMixin {
       ),
       body: Column(
         children: [
-          // Filters Section
-          Container(color: Colors.white, child: const ReportFilters()),
+          // Filters Section - Show different filters based on active tab
+          Container(
+            color: Colors.white,
+            child:
+                _currentTabIndex == 0
+                    ? const ReportFilters() // Spending Analysis filters
+                    : const TaxReliefFilters(), // Tax Relief filters (year only)
+          ),
           // Error Message
           Consumer<ReportViewModel>(
             builder: (context, reportViewModel, child) {

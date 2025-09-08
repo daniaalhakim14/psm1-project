@@ -1,10 +1,9 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:fyp/ViewModel/itemPricePremise/itemPrice_repository.dart';
 
 import '../../Model/itemPricePremise.dart';
 
-class itemPrice_viewmodel extends ChangeNotifier{
+class itemPrice_viewmodel extends ChangeNotifier {
   final itemPriceRepository = itemPrice_repositoryClass();
   final itemPrice_repositoryClass _repository = itemPrice_repositoryClass();
   bool fetchingData = false;
@@ -18,7 +17,6 @@ class itemPrice_viewmodel extends ChangeNotifier{
   List<itemBestDeals> get bestdeals => _bestdeals;
   List<storeLocation> _storelocation = [];
   List<storeLocation> get storelocation => _storelocation;
-
 
   /*
   Future<void> fetchItemPrice() async{
@@ -37,42 +35,87 @@ class itemPrice_viewmodel extends ChangeNotifier{
   }
    */
 
-  Future<void> fetchItemPrice() async{
+  Future<void> fetchItemPrice() async {
     fetchingData = true;
     notifyListeners();
 
-    try{
+    try {
       _itemprice = await itemPriceRepository.getItemPrice();
-    } catch(e){
+    } catch (e) {
       print('Failed to load item price: $e');
       _itemprice = [];
-    } finally{
+    } finally {
       fetchingData = false;
       notifyListeners();
     }
   }
 
-  Future<void> fetchItemSearch(String searchTerm,double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async{
+  Future<void> fetchItemSearch(
+    String searchTerm,
+    double lat,
+    double lng,
+    double radius,
+    String storeType,
+    String priceRange,
+    String itemGroup,
+  ) async {
     fetchingData = true;
     notifyListeners();
-    try{
-      _itemsearch = await itemPriceRepository.getItemSearch(searchTerm,lat, lng, radius, storeType,priceRange,itemGroup);
+    try {
+      _itemsearch = await itemPriceRepository.getItemSearch(
+        searchTerm,
+        lat,
+        lng,
+        radius,
+        storeType,
+        priceRange,
+        itemGroup,
+      );
+
+      // Log the result for debugging
+      if (_itemsearch.isEmpty) {
+        print(
+          '🔍 No items found for search term "$searchTerm" within the specified radius',
+        );
+      } else {
+        print(
+          '🔍 Found ${_itemsearch.length} items for search term "$searchTerm"',
+        );
+      }
+
       notifyListeners(); // <- make sure this is called AFTER updating _itemsearch
-    } catch(e){
-      print('Failed to load item price: $e');
+    } catch (e) {
+      print('Failed to load item search: $e');
       _itemsearch = [];
-    } finally{
+    } finally {
       fetchingData = false;
       notifyListeners();
     }
   }
 
-  Future<void> fetchBestDeals(double lat, double lng, double radius, String storeType) async {
+  Future<void> fetchBestDeals(
+    double lat,
+    double lng,
+    double radius,
+    String storeType,
+  ) async {
     fetchingData = true;
     notifyListeners();
     try {
       bestdeals.clear();
-      _bestdeals = await itemPriceRepository.getBestDeals(lat, lng, radius, storeType);
+      _bestdeals = await itemPriceRepository.getBestDeals(
+        lat,
+        lng,
+        radius,
+        storeType,
+      );
+
+      // Log the result for debugging
+      if (_bestdeals.isEmpty) {
+        print('🔍 No best deals found within the specified radius');
+      } else {
+        print('🔍 Found ${_bestdeals.length} best deals');
+      }
     } catch (e) {
       print('Failed to load item deals: $e');
       _bestdeals = [];
@@ -82,51 +125,105 @@ class itemPrice_viewmodel extends ChangeNotifier{
     }
   }
 
-  Future<void> fetchStoreLocation(double lat, double lng, double radius, String storeType) async{
+  Future<void> fetchStoreLocation(
+    double lat,
+    double lng,
+    double radius,
+    String storeType,
+  ) async {
     fetchingData = true;
     notifyListeners();
-    try{
-      _storelocation =await itemPriceRepository.getStoreLocation(lat,lng,radius,storeType);
-    } catch(e){
+    try {
+      _storelocation = await itemPriceRepository.getStoreLocation(
+        lat,
+        lng,
+        radius,
+        storeType,
+      );
+
+      // Log the result for debugging
+      if (_storelocation.isEmpty) {
+        print('🏪 No stores found within the specified radius');
+      } else {
+        print('🏪 Found ${_storelocation.length} stores');
+      }
+    } catch (e) {
       print('Failed to get premise location information: $e');
-    }finally{
+      _storelocation = [];
+    } finally {
       fetchingData = false;
       notifyListeners();
     }
   }
 
-  Future<void> fetchSelectedItemDetail(int premiseid,int itemcode,String searchTerm,double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async{
+  Future<void> fetchSelectedItemDetail(
+    int premiseid,
+    int itemcode,
+    String searchTerm,
+    double lat,
+    double lng,
+    double radius,
+    String storeType,
+    String priceRange,
+    String itemGroup,
+  ) async {
     fetchingData = true;
     notifyListeners();
-    try{
-      _itemprice = await itemPriceRepository.getSelectedItemDetail(premiseid, itemcode,searchTerm,lat, lng, radius, storeType,priceRange,itemGroup);
+    try {
+      _itemprice = await itemPriceRepository.getSelectedItemDetail(
+        premiseid,
+        itemcode,
+        searchTerm,
+        lat,
+        lng,
+        radius,
+        storeType,
+        priceRange,
+        itemGroup,
+      );
       // ✅ Print each item for debugging
       /*
       for (var item in _itemprice) {
         print('📦 Item: ${item.itemname}, Price: ${item.price}, Store: ${item.premisename}');
       }
        */
-    } catch(e){
+    } catch (e) {
       print('Failed to get selected item: $e');
-    }finally{
+    } finally {
       fetchingData = false;
       notifyListeners();
     }
   }
 
-  Future<void> fetchItemPriceDetails(int itemcode, double lat, double lng, double radius, String storeType, String priceRange,String itemGroup) async {
+  Future<void> fetchItemPriceDetails(
+    int itemcode,
+    double lat,
+    double lng,
+    double radius,
+    String storeType,
+    String priceRange,
+    String itemGroup,
+  ) async {
     fetchingData = true;
     notifyListeners();
-    try{
-      _itemprice = await itemPriceRepository.getItemPriceDetails(itemcode, lat, lng, radius, storeType, priceRange, itemGroup);
-    } catch(e){
+    try {
+      _itemprice = await itemPriceRepository.getItemPriceDetails(
+        itemcode,
+        lat,
+        lng,
+        radius,
+        storeType,
+        priceRange,
+        itemGroup,
+      );
+    } catch (e) {
       print('Failed to get item with same itemcode: $e');
-    }finally{
+    } finally {
       fetchingData = false;
       notifyListeners();
     }
-        
   }
+
   // Set Default Distance Radius
   double distanceRadius = 10000.0;
   void setDistanceRadius(double radius) {
@@ -154,6 +251,4 @@ class itemPrice_viewmodel extends ChangeNotifier{
     storeType = group;
     notifyListeners(); // ensures UI updates
   }
-
-
 }

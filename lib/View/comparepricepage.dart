@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../Model/cart.dart';
 import '../Model/signupLoginpage.dart';
+import '../Model/itemPricePremise.dart';
 import '../ViewModel/cart/cart_viewmodel.dart';
 import '../ViewModel/itemPricePremise/itemPrice_viewmodel.dart';
 import '../ViewModel/signUpnLogin/signUpnLogin_viewmodel.dart';
@@ -464,7 +465,20 @@ class _comparepricepageState extends State<comparepricepage>
                             );
                           }
                           final suggestions = searchVM.itemsearch;
-                          if (suggestions.isEmpty && query.isNotEmpty) {
+
+                          // Remove duplicates based on itemname
+                          final uniqueSuggestions = <itemSearch>[];
+                          final seenItemNames = <String>{};
+
+                          for (final item in suggestions) {
+                            if (item.itemname.isNotEmpty &&
+                                !seenItemNames.contains(item.itemname)) {
+                              seenItemNames.add(item.itemname);
+                              uniqueSuggestions.add(item);
+                            }
+                          }
+
+                          if (uniqueSuggestions.isEmpty && query.isNotEmpty) {
                             return [
                               ListTile(
                                 title: Text(
@@ -481,7 +495,7 @@ class _comparepricepageState extends State<comparepricepage>
                               ),
                             ];
                           }
-                          return suggestions.map((item) {
+                          return uniqueSuggestions.map((item) {
                             return Column(
                               children: [
                                 ListTile(
@@ -598,12 +612,12 @@ class _comparepricepageState extends State<comparepricepage>
                       MaterialPageRoute(
                         builder:
                             (context) => itemcart(
-                          currentPosition: (_currentPosition),
-                          tempDistanceRadius: _tempDistanceRadius,
-                          tempStoreType: _tempStoreType,
-                          tempPriceRange: _tempPriceRange,
-                          tempItemGroup: _tempItemGroup,
-                        ),
+                              currentPosition: (_currentPosition),
+                              tempDistanceRadius: _tempDistanceRadius,
+                              tempStoreType: _tempStoreType,
+                              tempPriceRange: _tempPriceRange,
+                              tempItemGroup: _tempItemGroup,
+                            ),
                       ),
                     );
                   },
@@ -693,25 +707,64 @@ class _comparepricepageState extends State<comparepricepage>
             Consumer<itemPrice_viewmodel>(
               builder: (context, viewModel, child) {
                 final deals = viewModel.bestdeals;
+                final isLoading = viewModel.fetchingData;
+
                 if (deals.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        children: [
-                          CircularProgressIndicator(color: Color(0xFF5A7BE7)),
-                          SizedBox(height: 10),
-                          Text(
-                            "Loading best deals...",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
+                  if (isLoading) {
+                    // Still loading - show loading indicator
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            CircularProgressIndicator(color: Color(0xFF5A7BE7)),
+                            SizedBox(height: 10),
+                            Text(
+                              "Loading best deals...",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  } else {
+                    // Done loading but no results - show no stores found message
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.store_outlined,
+                              size: 48,
+                              color: Colors.grey[400],
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              "No stores found nearby",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              "Try expanding your search radius or changing location",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
                 }
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -891,9 +944,25 @@ class _comparepricepageState extends State<comparepricepage>
                                       height: 34,
                                       child: ElevatedButton.icon(
                                         onPressed: () async {
-                                          final userId = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).userInfo!.id;
-                                          final token = Provider.of<signUpnLogin_viewmodel>(context, listen: false,).authToken;
-                                          final viewModel = Provider.of<cartViewModel>(context, listen: false,);
+                                          final userId =
+                                              Provider.of<
+                                                signUpnLogin_viewmodel
+                                              >(
+                                                context,
+                                                listen: false,
+                                              ).userInfo!.id;
+                                          final token =
+                                              Provider.of<
+                                                signUpnLogin_viewmodel
+                                              >(
+                                                context,
+                                                listen: false,
+                                              ).authToken;
+                                          final viewModel =
+                                              Provider.of<cartViewModel>(
+                                                context,
+                                                listen: false,
+                                              );
 
                                           AddItemCart itemCartData =
                                               AddItemCart(
@@ -903,7 +972,9 @@ class _comparepricepageState extends State<comparepricepage>
                                                 unit: item.unit,
                                                 quantity: 1,
                                               );
-                                          print('userid: $userId, itemcode: ${item.itemcode}, brand: ${item.brand}, unit: ${item.unit}, quantity: 1');
+                                          print(
+                                            'userid: $userId, itemcode: ${item.itemcode}, brand: ${item.brand}, unit: ${item.unit}, quantity: 1',
+                                          );
 
                                           try {
                                             if (token != null) {
@@ -1037,7 +1108,9 @@ class _comparepricepageState extends State<comparepricepage>
                                       location.premisetype,
                                     ),
                                     infoWindow: InfoWindow(
-                                      title: location.premisename ?? 'Not Available',
+                                      title:
+                                          location.premisename ??
+                                          'Not Available',
                                       snippet:
                                           'Store Type: ${location.premisetype ?? 'Unknown'}',
                                     ),
