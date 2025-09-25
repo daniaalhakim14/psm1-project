@@ -100,22 +100,7 @@ class _ReportPageState extends State<ReportPage> with TickerProviderStateMixin {
     }
 
     try {
-      // Show loading dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder:
-            (context) => const AlertDialog(
-              content: Row(
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(width: 16),
-                  Text('Generating PDF...'),
-                ],
-              ),
-            ),
-      );
-
+      // The PDF service now handles its own progress dialogs and navigation
       await _pdfExportService.generateAndSavePdf(
         context: context,
         reportViewModel: reportViewModel,
@@ -124,13 +109,8 @@ class _ReportPageState extends State<ReportPage> with TickerProviderStateMixin {
         userInfo: widget.userInfo,
       );
 
-      // Close loading dialog
-      if (mounted) Navigator.of(context).pop();
-
-      _showSuccessSnackBar('PDF report saved successfully');
+      // Success - PDF service handles navigation to viewer
     } catch (e) {
-      // Close loading dialog
-      if (mounted) Navigator.of(context).pop();
       _showErrorSnackBar('Failed to generate PDF: $e');
     }
   }

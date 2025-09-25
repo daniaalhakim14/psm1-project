@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp/View/bestdealspage.dart';
 import 'package:fyp/View/homepage.dart';
 import 'package:fyp/View/selectitempage.dart';
 import 'package:fyp/View/taxexempt.dart';
@@ -691,12 +692,22 @@ class _comparepricepageState extends State<comparepricepage>
                 ),
                 Padding(
                   padding: const EdgeInsets.only(right: 24.0),
-                  child: Text(
-                    'View All',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
-                      decorationColor: Colors.blue,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BestDealsPage(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'View All',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.blue,
+                      ),
                     ),
                   ),
                 ),

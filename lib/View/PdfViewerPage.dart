@@ -1,24 +1,41 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'dart:typed_data';
 import 'package:printing/printing.dart';
-import 'package:open_file/open_file.dart';
 
 class PdfViewerPage extends StatefulWidget {
   final Uint8List pdfBytes;
-  final String fileName; // e.g 'badminton_receipt.pdf'
+  final String fileName; // e.g 'badminton_receipt.pdf' or 'MyManage_Report_...'
+  final String? customTitle; // Optional custom title
 
-  const PdfViewerPage(
-      {super.key, required this.pdfBytes, this.fileName = 'receipt.pdf'});
+  const PdfViewerPage({
+    super.key,
+    required this.pdfBytes,
+    this.fileName = 'receipt.pdf',
+    this.customTitle,
+  });
 
   @override
   State<PdfViewerPage> createState() => _PdfViewerPageState();
 }
 
-class _PdfViewerPageState extends State<PdfViewerPage>{
-  bool _saving = false;
+class _PdfViewerPageState extends State<PdfViewerPage> {
+  // Determine the appropriate title based on the filename
+  String get _pageTitle {
+    if (widget.customTitle != null) {
+      return widget.customTitle!;
+    }
+
+    if (widget.fileName.contains('Report') ||
+        widget.fileName.contains('report')) {
+      return 'Financial Report';
+    } else if (widget.fileName.contains('receipt') ||
+        widget.fileName.contains('Receipt')) {
+      return 'View Receipt';
+    } else {
+      return 'View Document';
+    }
+  }
 
   // Save to your app’s documents folder (safe on Android & iOS, no special storage permission).
   /*
@@ -59,26 +76,26 @@ class _PdfViewerPageState extends State<PdfViewerPage>{
    */
 
   // Share/Save-As via the OS share sheet (lets the user put it in Downloads, Drive, etc.) using your existing printing package
-  Future<void> _sharedPdf() async{
+  Future<void> _sharedPdf() async {
     // Opens the platform share sheet; user can save to Downloads/Drive/Files, etc
-    await Printing.sharePdf(bytes: widget.pdfBytes,filename: widget.fileName);
-
+    await Printing.sharePdf(bytes: widget.pdfBytes, filename: widget.fileName);
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE3ECF5),
       appBar: AppBar(
         elevation: 0,
-        title: const Text(
-          'View Receipt',
+        title: Text(
+          _pageTitle,
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: const Color(0xFF5A7BE7),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            tooltip: 'Share / Download ',
+            tooltip: 'Share / Download',
             icon: const Icon(Icons.ios_share),
             onPressed: _sharedPdf,
           ),
@@ -128,13 +145,19 @@ class _PdfViewerPageState extends State<PdfViewerPage>{
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF5A7BE7),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                'Close',
+              child: Text(
+                widget.fileName.contains('Report') ||
+                        widget.fileName.contains('report')
+                    ? 'Back to Reports'
+                    : 'Close',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -142,12 +165,9 @@ class _PdfViewerPageState extends State<PdfViewerPage>{
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 }
-
-
-
